@@ -1,0 +1,556 @@
+{
+  "name": "Unstoppable Inc",
+  "ceoName": "James Elton",
+  "email": "james.elton@unstoppable.com",
+  "ceoPic": "https://randomuser.me/api/portraits/men/32.jpg",
+  "industry": "Information Technology (IT) and Software",
+  "companySize": "150-300",
+  "city": "San Francisco",
+  "country": "United States",
+  "yearFounded": 2018,
+  "organizationType": "Private",
+  "numberOfOffices": 3,
+  "hrToolsUsed": "BambooHR, Lever, 15Five",
+  "hiringLevel": "Moderate",
+  "workModel": "Hybrid",
+  "user": "6654db4374561b2cfae12a7c",
+  "businessModel": {
+    "type": "SaaS",
+    "targetCustomers": "SMBs in tech, e-commerce, and direct-to-consumer sectors",
+    "revenueStreams": [
+      "SaaS subscriptions",
+      "Professional services",
+      "API integrations"
+    ],
+    "valueProposition": "AI-powered productivity and automation tools that streamline operations and enable intelligent decision-making for growing businesses."
+  },
+  "topBusinessGoals2025": {
+    "ARR_Growth": "40%",
+    "ChurnRateTarget": "<5%",
+    "FeatureVelocityIncrease": "25%",
+    "MarketExpansion": [
+      "APAC",
+      "LATAM"
+    ]
+  },
+  "operatingModel": {
+    "structure": "Cross-functional product squads",
+    "planningCadence": "Bi-weekly sprints, quarterly OKRs",
+    "decisionMaking": {
+      "product": "Decentralized",
+      "GTM_and_strategy": "Centralized"
+    },
+    "dataInfrastructure": {
+      "centralizedBI": "Snowflake, Looker",
+      "teamDashboards": "Mixpanel, Tableau"
+    },
+    "trackedMetrics": [
+      "NPS",
+      "Deployment frequency",
+      "Demo-to-paid conversion",
+      "LTV:CAC ratio"
+    ]
+  },
+  "technologyStack": {
+    "languages": [
+      "JavaScript",
+      "Python"
+    ],
+    "backend": [
+      "Node.js",
+      "Express"
+    ],
+    "frontend": [
+      "React",
+      "TypeScript"
+    ],
+    "mobile": [
+      "React Native"
+    ],
+    "database": [
+      "PostgreSQL",
+      "Redis"
+    ],
+    "infra": [
+      "AWS (ECS, S3, RDS)",
+      "Terraform",
+      "Docker"
+    ],
+    "ci_cd": [
+      "GitHub Actions",
+      "CircleCI"
+    ],
+    "observability": [
+      "Datadog",
+      "Sentry",
+      "ELK stack"
+    ],
+    "integrations": {
+      "internal": [
+        "GraphQL",
+        "REST APIs"
+      ],
+      "external": [
+        "Slack",
+        "HubSpot",
+        "Stripe",
+        "Salesforce"
+      ]
+    }
+  },
+  "functions": {
+    "product": {
+      "head": "VP of Product",
+      "structure": [
+        "Group PMs",
+        "PMs",
+        "APMs"
+      ],
+      "subFunctions": [
+        "Product strategy",
+        "Customer research",
+        "Roadmapping",
+        "Feature definition"
+      ],
+      "metrics": [
+        "Feature adoption",
+        "Roadmap velocity",
+        "Feature usage"
+      ],
+      "aiImpact": {
+        "level": "Medium",
+        "impactedAreas": [
+          "Research analysis",
+          "Feature prioritization"
+        ],
+        "mitigation": "Use AI to support decisions, not make them autonomously"
+      }
+    },
+    "engineering": {
+      "head": "CTO",
+      "structure": [
+        "Directors of Engineering",
+        "Team Leads",
+        "Engineers"
+      ],
+      "subFunctions": [
+        "Backend",
+        "Frontend",
+        "DevOps",
+        "QA",
+        "Security"
+      ],
+      "metrics": [
+        "Deployment frequency",
+        "Mean time to recover",
+        "Bug fix rate"
+      ],
+      "aiImpact": {
+        "level": "Medium",
+        "impactedAreas": [
+          "Code generation",
+          "Testing automation"
+        ],
+        "mitigation": "Embrace AI pair programming and automated testing tools"
+      }
+    },
+    "design": {
+      "head": "Head of Design",
+      "structure": [
+        "UX Leads",
+        "Product Designers",
+        "Researchers",
+        "Design Systems team"
+      ],
+      "subFunctions": [
+        "Design Systems",
+        "UX Research",
+        "Product Design",
+        "Brand Design"
+      ],
+      "metrics": [
+        "Design iteration speed",
+        "Usability test scores",
+        "Design-to-dev handoff ratio"
+      ],
+      "aiImpact": {
+        "level": "Medium-High",
+        "impactedAreas": [
+          "Low-fi prototyping",
+          "Wireframe generation"
+        ],
+        "mitigation": "Focus on UX strategy, user interviews, and systems design"
+      }
+    },
+    "marketing": {
+      "head": "CMO",
+      "structure": [
+        "Heads of SEO",
+        "Content",
+        "Paid Media",
+        "Product Marketing",
+        "Community"
+      ],
+      "subFunctions": [
+        "SEO",
+        "Content",
+        "Growth",
+        "Product Marketing",
+        "Events"
+      ],
+      "metrics": [
+        "MQLs",
+        "Conversion rate",
+        "Organic traffic",
+        "CAC"
+      ],
+      "aiImpact": {
+        "level": "High",
+        "impactedAreas": [
+          "Content generation",
+          "Ad copy",
+          "Targeting"
+        ],
+        "mitigation": "Upskill in prompt engineering and AI-based campaign tools"
+      }
+    },
+    "supportingFunctions": {
+      "peopleAndHR": {
+        "head": "Head of People",
+        "tools": [
+          "BambooHR",
+          "15Five"
+        ],
+        "areas": [
+          "Recruiting",
+          "L&D",
+          "Culture"
+        ],
+        "aiImpact": {
+          "level": "Medium",
+          "impactedAreas": [
+            "Resume screening",
+            "Onboarding workflows"
+          ],
+          "mitigation": "Train on ethical AI hiring practices"
+        }
+      },
+      "financeAndOps": {
+        "head": "VP of Operations",
+        "areas": [
+          "FP&A",
+          "Procurement",
+          "RevOps"
+        ],
+        "aiImpact": {
+          "level": "Medium",
+          "impactedAreas": [
+            "Budget forecasting",
+            "Expense categorization"
+          ],
+          "mitigation": "Adopt AI financial models with human audit layers"
+        }
+      },
+      "customerSuccessAndSupport": {
+        "head": "Director of CS",
+        "areas": [
+          "Onboarding",
+          "Support",
+          "Renewals"
+        ],
+        "aiImpact": {
+          "level": "High",
+          "impactedAreas": [
+            "Chat support",
+            "Ticket routing"
+          ],
+          "mitigation": "Train CS reps to manage AI-assisted workflows and focus on strategic upsell"
+        }
+      },
+      "sales": {
+        "head": "VP of Sales",
+        "structure": [
+          "SDRs",
+          "AEs",
+          "Partnerships"
+        ],
+        "aiImpact": {
+          "level": "Medium-High",
+          "impactedAreas": [
+            "Lead qualification",
+            "Follow-ups"
+          ],
+          "mitigation": "Use AI to enhance personalization, not replace relationships"
+        }
+      }
+    }
+  },
+  "additionalDataPoints": {
+    "okrsAndGoals": {
+      "companyLevel": [
+        "Expand ARR by 40%",
+        "Launch 2 new products",
+        "Reduce churn <5%"
+      ],
+      "departmentLevel": {
+        "marketing": [
+          "Increase MQLs by 30%",
+          "Cut CAC by 10%"
+        ],
+        "product": [
+          "Deliver 90% of roadmap",
+          "Improve feature engagement by 20%"
+        ],
+        "engineering": [
+          "Improve release cadence by 25%",
+          "Automate 40% of test coverage"
+        ],
+        "hr": [
+          "Launch AI L&D program",
+          "Maintain employee NPS > 70"
+        ]
+      }
+    },
+    "headcountPlan": {
+      "totalPlanned": 220,
+      "byFunction": {
+        "engineering": 90,
+        "product": 25,
+        "marketing": 30,
+        "design": 20,
+        "cs": 20,
+        "hr": 10,
+        "sales": 25
+      }
+    },
+    "toolsByFunction": {
+      "product": [
+        "Jira",
+        "Productboard",
+        "Amplitude"
+      ],
+      "engineering": [
+        "GitHub",
+        "CircleCI",
+        "AWS"
+      ],
+      "marketing": [
+        "HubSpot",
+        "Google Ads",
+        "Ahrefs",
+        "Figma"
+      ],
+      "design": [
+        "Figma",
+        "Maze",
+        "Notion"
+      ],
+      "people": [
+        "BambooHR",
+        "15Five",
+        "Greenhouse"
+      ],
+      "ops": [
+        "QuickBooks",
+        "Gong",
+        "Salesforce"
+      ]
+    },
+    "reportingLines": {
+      "ceo": [
+        "CTO",
+        "CMO",
+        "VP Product",
+        "Head of People",
+        "VP of Sales"
+      ],
+      "cto": [
+        "Directors of Eng",
+        "Head of QA",
+        "DevOps Lead"
+      ],
+      "cmo": [
+        "Heads of Content",
+        "SEO",
+        "Product Marketing"
+      ],
+      "vpProduct": [
+        "Group PMs"
+      ],
+      "headOfPeople": [
+        "Recruiting Lead",
+        "HRBP",
+        "L&D Manager"
+      ]
+    },
+    "communicationCadence": {
+      "execSync": "Weekly",
+      "productReview": "Bi-weekly",
+      "teamRetros": "Sprint-end",
+      "OKR Check-ins": "Quarterly"
+    },
+    "skillBenchmarking": {
+      "engineering": [
+        "System design",
+        "DevOps",
+        "AI/ML"
+      ],
+      "product": [
+        "Prioritization",
+        "User storytelling",
+        "Data interpretation"
+      ],
+      "marketing": [
+        "AI content tools",
+        "Campaign design",
+        "Attribution modeling"
+      ]
+    },
+    "aiReadinessAssessment": {
+      "orgAIReadiness": "Moderate",
+      "awarenessPrograms": [
+        "AI Fundamentals 101",
+        "Prompt Engineering Bootcamp"
+      ],
+      "employeeAIScore": {
+        "avgAcrossFunctions": 6.4,
+        "scale": "1 to 10"
+      },
+      "teamsUsingAI": [
+        "Marketing",
+        "Engineering",
+        "CS"
+      ]
+    },
+    "documentationAvailable": {
+      "orgChart": true,
+      "JDTemplates": true,
+      "SkillsMatrix": true,
+      "SOPs": true,
+      "TechInventory": true
+    }
+  },
+  "departmentKPIs": {
+    "engineering": [
+      "Release cadence: 2 weeks",
+      "Error rate <1%"
+    ],
+    "product": [
+      "Feature adoption +25%",
+      "Roadmap completion: 90%"
+    ],
+    "marketing": [
+      "MQLs +30%",
+      "Organic traffic +40%"
+    ],
+    "sales": [
+      "Close rate 18%",
+      "Pipeline growth +20%"
+    ]
+  },
+  "currentStrategicInitiatives": [
+    "Expand to APAC markets",
+    "Launch AI-powered analytics module",
+    "Increase customer retention by 15%"
+  ],
+  "orgStructure": {
+    "CEO": [
+      "CTO",
+      "CMO",
+      "VP Product",
+      "Head of People",
+      "VP of Sales"
+    ],
+    "CTO": [
+      "Directors of Eng",
+      "Head of QA",
+      "DevOps Lead"
+    ]
+  },
+  "recentOrgChanges": [
+    {
+      "type": "Reorg",
+      "date": "2024-01-15",
+      "details": "Merged Product and UX teams."
+    },
+    {
+      "type": "New Hire",
+      "date": "2024-03-22",
+      "details": "Hired new Head of Data Engineering."
+    },
+    {
+      "type": "Layoff",
+      "date": "2023-12-01",
+      "details": "Reduced QA staff by 10%."
+    }
+  ],
+  "marketBenchmarks": {
+    "industry": "IT & SaaS",
+    "medianTurnoverRate": "12%",
+    "averageEmployeeEngagementScore": 7.8
+  },
+  "knownSkillGaps": [
+    "Machine Learning Engineering",
+    "Cloud Security"
+  ],
+  "hiringNeeds": [
+    "Senior Data Scientist",
+    "DevOps Engineer"
+  ],
+  "employeeEngagementScores": {
+    "overall": 8.0,
+    "byDepartment": {
+      "engineering": 7.9,
+      "product": 8.3,
+      "marketing": 8.0,
+      "hr": 7.7
+    }
+  },
+  "attritionRatesByDept": {
+    "engineering": "9%",
+    "product": "7%",
+    "marketing": "11%",
+    "hr": "6%"
+  },
+  "diversityInclusionMetrics": {
+    "femaleRatio": "42%",
+    "underrepresentedMinority": "18%",
+    "leadershipDiversity": "33%"
+  },
+  "competitors": [
+    {
+      "name": "Zapier",
+      "focus": "Workflow automation for business processes",
+      "website": "https://zapier.com"
+    },
+    {
+      "name": "UiPath",
+      "focus": "Robotic process automation (RPA) for enterprises",
+      "website": "https://uipath.com"
+    },
+    {
+      "name": "Notion",
+      "focus": "Collaborative workspace for notes, docs, and project management",
+      "website": "https://notion.so"
+    },
+    {
+      "name": "Workato",
+      "focus": "Enterprise integration and automation platform",
+      "website": "https://workato.com"
+    }
+  ],
+  "aiImmediateImpact": {
+    "summary": "AI is already reshaping the business by accelerating development cycles, improving customer support, and automating internal processes. Immediate impacts include enhanced product features (AI-driven analytics and recommendations), faster onboarding, and reduced manual workload for both engineering and customer success teams. However, rapid AI advances from competitors (e.g., Zapier, UiPath, Workato) could quickly erode competitive advantage if not matched or exceeded.",
+    "areas": [
+      "Product: Automated insights and recommendations for customers.",
+      "Customer Success: AI chatbots for Tier 1 support and ticket routing.",
+      "Sales/Marketing: Personalization of outreach, predictive lead scoring, and campaign optimization.",
+      "Engineering: Code generation, QA automation, and AI-assisted testing."
+    ],
+    "risks": [
+      "Market moves fast\u2014competitors could release superior AI features.",
+      "Potential for customer confusion or fear of too much automation.",
+      "Need for upskilling workforce to use/implement new AI tools effectively."
+    ]
+  }
+}

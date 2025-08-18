@@ -1,0 +1,2098 @@
+[
+  {
+    "Name": "Timothy Jones",
+    "Position": "DevOps Engineer",
+    "Department": "Engineering",
+    "Email": "dhardy@yahoo.com",
+    "Education": "BSc Computer Science",
+    "Experience (Years)": 3.0,
+    "Skills": "Version Control, UI Development, Infrastructure as Code",
+    "Tools": "JavaScript, AWS, Node.js, Docker",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Git to support departmental OKRs\n- Manage and maintain AWS\n- Manage and maintain Node.js\n- Apply expertise in React to support departmental OKRs\n- Manage and maintain JavaScript",
+    "Red Flag": null,
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-08-19",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Emily Johnson",
+    "TenureYears": 3.2,
+    "CurrentProjects": [
+      "Mobile App Launch",
+      "Customer Feedback Integration"
+    ],
+    "KPIsorOKRs": [
+      "Automate 40% of test coverage",
+      "Reduce critical bugs in production by 15%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "David Brown",
+        "note": "Excellent communication in cross-team projects."
+      },
+      {
+        "reviewer": "Sarah Walton",
+        "note": "Brings innovative ideas to the table."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.1,
+    "EngagementSurveyResults": {
+      "score": 7.8,
+      "comment": "Great team player and quick problem solver."
+    }
+  },
+  {
+    "Name": "Julia Wilson",
+    "Position": "Frontend Developer",
+    "Department": "Engineering",
+    "Email": "coreycannon@henson-lewis.org",
+    "Education": "BA Design",
+    "Experience (Years)": 6.0,
+    "Skills": "Frontend Development, Infrastructure as Code, Containerization, Backend Development",
+    "Tools": "AWS, React, Git",
+    "Job Description": "Key responsibilities:\n- Manage and maintain Git\n- Apply expertise in JavaScript to support departmental OKRs\n- Apply expertise in Terraform to support departmental OKRs\n- Apply expertise in Node.js to support departmental OKRs\n- Manage and maintain React",
+    "Red Flag": null,
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-01-25",
+      "summary": "Solid contributor to team goals and meets performance expectations. Opportunity to expand leadership skills."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Intern",
+        "to": "Product Analyst",
+        "date": "2023-01-12"
+      }
+    ],
+    "Manager": "David Brown",
+    "TenureYears": 9.0,
+    "CurrentProjects": [
+      "Website Revamp"
+    ],
+    "KPIsorOKRs": [
+      "Increase feature adoption rate"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Olivia Smith",
+        "note": "Excellent communication in cross-team projects."
+      },
+      {
+        "reviewer": "Sarah Walton",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.07,
+    "EngagementSurveyResults": {
+      "score": 8.8,
+      "comment": "Always willing to help others succeed."
+    }
+  },
+  {
+    "Name": "Jeffery Fischer",
+    "Position": "Frontend Developer",
+    "Department": "Engineering",
+    "Email": "haleyjohn@gmail.com",
+    "Education": "BS Software Engineering",
+    "Experience (Years)": 4.0,
+    "Skills": "Backend Development, UI Development, Version Control, Frontend Development, Containerization",
+    "Tools": "AWS, Terraform",
+    "Job Description": "Key responsibilities:\n- Apply expertise in JavaScript to support departmental OKRs\n- Manage and maintain AWS\n- Manage and maintain Terraform\n- Apply expertise in Docker to support departmental OKRs\n- Apply expertise in React to support departmental OKRs",
+    "Red Flag": null,
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2024-03-23",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      },
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Olivia Smith",
+    "TenureYears": 6.9,
+    "CurrentProjects": [
+      "Website Revamp",
+      "Mobile App Launch"
+    ],
+    "KPIsorOKRs": [
+      "Automate 40% of test coverage",
+      "Reduce critical bugs in production by 15%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Excellent communication in cross-team projects."
+      },
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Brings innovative ideas to the table."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.09,
+    "EngagementSurveyResults": {
+      "score": 8.1,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "Seth Michael",
+    "Position": "Backend Developer",
+    "Department": "Engineering",
+    "Email": "srodriguez@hotmail.com",
+    "Education": "BBA Marketing",
+    "Experience (Years)": 2.0,
+    "Skills": "Infrastructure as Code, Version Control, UI Development",
+    "Tools": "Node.js, JavaScript, Docker, AWS",
+    "Job Description": "Key responsibilities:\n- Manage and maintain Node.js\n- Apply expertise in Git to support departmental OKRs\n- Manage and maintain JavaScript\n- Apply expertise in React to support departmental OKRs\n- Manage and maintain AWS",
+    "Red Flag": null,
+    "PerformanceRating": "Below Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-01-26",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      },
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Intern",
+        "to": "Product Analyst",
+        "date": "2023-01-12"
+      }
+    ],
+    "Manager": "Sarah Walton",
+    "TenureYears": 7.7,
+    "CurrentProjects": [
+      "Mobile App Launch",
+      "Website Revamp"
+    ],
+    "KPIsorOKRs": [
+      "Maintain NPS > 75"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "James Elton",
+        "note": "Excellent communication in cross-team projects."
+      },
+      {
+        "reviewer": "David Brown",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.37,
+    "EngagementSurveyResults": {
+      "score": 7.2,
+      "comment": "Brings innovative ideas to the table."
+    }
+  },
+  {
+    "Name": "Christina Phillips",
+    "Position": "Backend Developer",
+    "Department": "Engineering",
+    "Email": "qherrera@yahoo.com",
+    "Education": "BSc Computer Science",
+    "Experience (Years)": 5.0,
+    "Skills": "Frontend Development, Cloud Infrastructure",
+    "Tools": "Docker, Terraform, Node.js, React, Git",
+    "Job Description": "Key responsibilities:\n- Manage and maintain Terraform\n- Manage and maintain Node.js\n- Apply expertise in JavaScript to support departmental OKRs\n- Manage and maintain Git\n- Manage and maintain Docker",
+    "Red Flag": "No Familiarity with AI Tools",
+    "PerformanceRating": "Meets Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-12-09",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      },
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Emily Johnson",
+    "TenureYears": 8.5,
+    "CurrentProjects": [
+      "Project Aurora Redesign"
+    ],
+    "KPIsorOKRs": [
+      "Reduce critical bugs in production by 15%",
+      "Improve code deployment frequency by 20%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "James Elton",
+        "note": "Always willing to help others succeed."
+      },
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.31,
+    "EngagementSurveyResults": {
+      "score": 6.6,
+      "comment": "Great team player and quick problem solver."
+    }
+  },
+  {
+    "Name": "Bryan Logan",
+    "Position": "Frontend Developer",
+    "Department": "Engineering",
+    "Email": "jessicawright@hobbs-osborn.com",
+    "Education": "BA Design",
+    "Experience (Years)": 8.0,
+    "Skills": "Infrastructure as Code, Cloud Infrastructure",
+    "Tools": "Docker, Git, JavaScript, React, Node.js",
+    "Job Description": "Key responsibilities:\n- Manage and maintain Docker\n- Apply expertise in AWS to support departmental OKRs\n- Manage and maintain Node.js\n- Manage and maintain JavaScript\n- Apply expertise in Terraform to support departmental OKRs",
+    "Red Flag": null,
+    "PerformanceRating": "Below Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-02-09",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      },
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "James Elton",
+    "TenureYears": 1.3,
+    "CurrentProjects": [
+      "Internal CI/CD Automation"
+    ],
+    "KPIsorOKRs": [
+      "Maintain NPS > 75",
+      "Increase feature adoption rate"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "David Brown",
+        "note": "Brings innovative ideas to the table."
+      },
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Brings innovative ideas to the table."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.16,
+    "EngagementSurveyResults": {
+      "score": 7.2,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "Kaylee Trevino",
+    "Position": "Software Engineer",
+    "Department": "Engineering",
+    "Email": "hbrewer@cunningham.net",
+    "Education": "BS Software Engineering",
+    "Experience (Years)": 5.0,
+    "Skills": "Containerization, UI Development, Cloud Infrastructure",
+    "Tools": "Terraform, Git, Node.js, JavaScript",
+    "Job Description": "Key responsibilities:\n- Manage and maintain Node.js\n- Apply expertise in AWS to support departmental OKRs\n- Manage and maintain JavaScript\n- Apply expertise in Docker to support departmental OKRs\n- Apply expertise in React to support departmental OKRs",
+    "Red Flag": "JD-Experience Mismatch",
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-10-04",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      },
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Intern",
+        "to": "Product Analyst",
+        "date": "2023-01-12"
+      }
+    ],
+    "Manager": "Emily Johnson",
+    "TenureYears": 7.6,
+    "CurrentProjects": [
+      "Customer Feedback Integration"
+    ],
+    "KPIsorOKRs": [
+      "Increase feature adoption rate",
+      "Improve code deployment frequency by 20%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "David Brown",
+        "note": "Great team player and quick problem solver."
+      },
+      {
+        "reviewer": "David Brown",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.37,
+    "EngagementSurveyResults": {
+      "score": 7.8,
+      "comment": "Always willing to help others succeed."
+    }
+  },
+  {
+    "Name": "Connie Decker",
+    "Position": "Product Analyst",
+    "Department": "Product",
+    "Email": "holmesemily@brooks.com",
+    "Education": "BA Psychology",
+    "Experience (Years)": 1.0,
+    "Skills": "Project Management, Documentation Management, Product Planning",
+    "Tools": "Amplitude, SQL",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Notion to support departmental OKRs\n- Manage and maintain SQL\n- Manage and maintain Amplitude\n- Apply expertise in Jira to support departmental OKRs\n- Apply expertise in Productboard to support departmental OKRs",
+    "Red Flag": "No Recent Learning Activity",
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-01-04",
+      "summary": "Solid contributor to team goals and meets performance expectations. Opportunity to expand leadership skills."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      },
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "David Brown",
+    "TenureYears": 1.8,
+    "CurrentProjects": [
+      "Mobile App Launch",
+      "Website Revamp"
+    ],
+    "KPIsorOKRs": [
+      "Improve code deployment frequency by 20%",
+      "Reduce critical bugs in production by 15%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Sarah Walton",
+        "note": "Excellent communication in cross-team projects."
+      },
+      {
+        "reviewer": "Olivia Smith",
+        "note": "Brings innovative ideas to the table."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.22,
+    "EngagementSurveyResults": {
+      "score": 7.9,
+      "comment": "Brings innovative ideas to the table."
+    }
+  },
+  {
+    "Name": "Breanna Smith",
+    "Position": "Product Manager",
+    "Department": "Product",
+    "Email": "brenda02@yahoo.com",
+    "Education": "BS Software Engineering",
+    "Experience (Years)": 5.0,
+    "Skills": "Product Planning, Data Analysis, Product Analytics",
+    "Tools": "Notion, Jira",
+    "Job Description": "Key responsibilities:\n- Apply expertise in SQL to support departmental OKRs\n- Apply expertise in Productboard to support departmental OKRs\n- Manage and maintain Notion\n- Manage and maintain Jira\n- Apply expertise in Amplitude to support departmental OKRs",
+    "Red Flag": null,
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-04-30",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      },
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Junior Developer",
+        "to": "Frontend Developer",
+        "date": "2022-06-01"
+      }
+    ],
+    "Manager": "James Elton",
+    "TenureYears": 7.8,
+    "CurrentProjects": [
+      "Website Revamp"
+    ],
+    "KPIsorOKRs": [
+      "Increase feature adoption rate"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Great team player and quick problem solver."
+      },
+      {
+        "reviewer": "David Brown",
+        "note": "Always willing to help others succeed."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.39,
+    "EngagementSurveyResults": {
+      "score": 6.9,
+      "comment": "Always willing to help others succeed."
+    }
+  },
+  {
+    "Name": "Christopher Esparza",
+    "Position": "Associate Product Manager",
+    "Department": "Product",
+    "Email": "kimberlyhampton@saunders.com",
+    "Education": "BBA Marketing",
+    "Experience (Years)": 10.0,
+    "Skills": "Product Planning, Product Analytics",
+    "Tools": "Jira, Notion, SQL",
+    "Job Description": "Key responsibilities:\n- Manage and maintain SQL\n- Manage and maintain Jira\n- Apply expertise in Productboard to support departmental OKRs\n- Apply expertise in Amplitude to support departmental OKRs\n- Manage and maintain Notion",
+    "Red Flag": "No Familiarity with AI Tools",
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2024-04-19",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      },
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Intern",
+        "to": "Product Analyst",
+        "date": "2023-01-12"
+      }
+    ],
+    "Manager": "James Elton",
+    "TenureYears": 5.5,
+    "CurrentProjects": [
+      "Internal CI/CD Automation",
+      "Customer Feedback Integration"
+    ],
+    "KPIsorOKRs": [
+      "Reduce critical bugs in production by 15%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Olivia Smith",
+        "note": "Great team player and quick problem solver."
+      },
+      {
+        "reviewer": "James Elton",
+        "note": "Always willing to help others succeed."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.28,
+    "EngagementSurveyResults": {
+      "score": 7.7,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "Olivia Gomez",
+    "Position": "Product Manager",
+    "Department": "Product",
+    "Email": "glester@flowers.info",
+    "Education": "BS Economics",
+    "Experience (Years)": 7.0,
+    "Skills": "Documentation Management, Product Planning, Data Analysis",
+    "Tools": "Amplitude, Jira",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Productboard to support departmental OKRs\n- Manage and maintain Jira\n- Apply expertise in Notion to support departmental OKRs\n- Manage and maintain Amplitude\n- Apply expertise in SQL to support departmental OKRs",
+    "Red Flag": null,
+    "PerformanceRating": "Below Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-06-25",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Olivia Smith",
+    "TenureYears": 6.3,
+    "CurrentProjects": [
+      "Internal CI/CD Automation",
+      "Project Aurora Redesign"
+    ],
+    "KPIsorOKRs": [
+      "Automate 40% of test coverage"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "David Brown",
+        "note": "Brings innovative ideas to the table."
+      },
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Always willing to help others succeed."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.25,
+    "EngagementSurveyResults": {
+      "score": 6.6,
+      "comment": "Brings innovative ideas to the table."
+    }
+  },
+  {
+    "Name": "Tyler Peters",
+    "Position": "Associate Product Manager",
+    "Department": "Product",
+    "Email": "vlamb@payne-padilla.com",
+    "Education": "BSc Computer Science",
+    "Experience (Years)": 4.0,
+    "Skills": "Product Analytics, Documentation Management",
+    "Tools": "SQL, Productboard, Jira",
+    "Job Description": "Key responsibilities:\n- Manage and maintain SQL\n- Apply expertise in Amplitude to support departmental OKRs\n- Apply expertise in Notion to support departmental OKRs\n- Manage and maintain Productboard\n- Manage and maintain Jira",
+    "Red Flag": null,
+    "PerformanceRating": "Meets Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-02-17",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Intern",
+        "to": "Product Analyst",
+        "date": "2023-01-12"
+      }
+    ],
+    "Manager": "James Elton",
+    "TenureYears": 9.5,
+    "CurrentProjects": [
+      "Mobile App Launch",
+      "Project Aurora Redesign"
+    ],
+    "KPIsorOKRs": [
+      "Improve code deployment frequency by 20%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Always willing to help others succeed."
+      },
+      {
+        "reviewer": "James Elton",
+        "note": "Excellent communication in cross-team projects."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.25,
+    "EngagementSurveyResults": {
+      "score": 7.1,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "Larry Warner",
+    "Position": "UI Designer",
+    "Department": "Design",
+    "Email": "patrick03@gmail.com",
+    "Education": "BS Economics",
+    "Experience (Years)": 5.0,
+    "Skills": "UI/UX Design, Interface Design, UX Testing",
+    "Tools": "InVision, Adobe XD",
+    "Job Description": "Key responsibilities:\n- Manage and maintain Adobe XD\n- Manage and maintain InVision\n- Apply expertise in Maze to support departmental OKRs\n- Apply expertise in Sketch to support departmental OKRs\n- Apply expertise in Figma to support departmental OKRs",
+    "Red Flag": "No Familiarity with AI Tools",
+    "PerformanceRating": "Below Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-04-19",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      },
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Intern",
+        "to": "Product Analyst",
+        "date": "2023-01-12"
+      }
+    ],
+    "Manager": "Emily Johnson",
+    "TenureYears": 1.1,
+    "CurrentProjects": [
+      "Internal CI/CD Automation"
+    ],
+    "KPIsorOKRs": [
+      "Improve code deployment frequency by 20%",
+      "Automate 40% of test coverage"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "James Elton",
+        "note": "Excellent communication in cross-team projects."
+      },
+      {
+        "reviewer": "James Elton",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.35,
+    "EngagementSurveyResults": {
+      "score": 8.9,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "Paul Wright",
+    "Position": "UI Designer",
+    "Department": "Design",
+    "Email": "jordanpowers@yahoo.com",
+    "Education": "BSc Computer Science",
+    "Experience (Years)": 6.0,
+    "Skills": "Interface Design, Prototyping",
+    "Tools": "Figma, InVision, Maze",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Sketch to support departmental OKRs\n- Manage and maintain Maze\n- Apply expertise in Adobe XD to support departmental OKRs\n- Manage and maintain InVision\n- Manage and maintain Figma",
+    "Red Flag": "Underleveled",
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-03-06",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      },
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Junior Developer",
+        "to": "Frontend Developer",
+        "date": "2022-06-01"
+      }
+    ],
+    "Manager": "Emily Johnson",
+    "TenureYears": 9.4,
+    "CurrentProjects": [
+      "Mobile App Launch"
+    ],
+    "KPIsorOKRs": [
+      "Automate 40% of test coverage"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Sarah Walton",
+        "note": "Great team player and quick problem solver."
+      },
+      {
+        "reviewer": "James Elton",
+        "note": "Brings innovative ideas to the table."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.35,
+    "EngagementSurveyResults": {
+      "score": 8.6,
+      "comment": "Always willing to help others succeed."
+    }
+  },
+  {
+    "Name": "Kenneth Brown",
+    "Position": "UX Designer",
+    "Department": "Design",
+    "Email": "andrew00@williams.com",
+    "Education": "BS Economics",
+    "Experience (Years)": 1.0,
+    "Skills": "Prototyping, Interface Design, UI/UX Design",
+    "Tools": "Maze, Adobe XD",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Sketch to support departmental OKRs\n- Manage and maintain Maze\n- Apply expertise in Figma to support departmental OKRs\n- Apply expertise in InVision to support departmental OKRs\n- Manage and maintain Adobe XD",
+    "Red Flag": null,
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-04-22",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "David Brown",
+    "TenureYears": 3.5,
+    "CurrentProjects": [
+      "Project Aurora Redesign",
+      "Customer Feedback Integration"
+    ],
+    "KPIsorOKRs": [
+      "Increase feature adoption rate",
+      "Reduce critical bugs in production by 15%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "David Brown",
+        "note": "Brings innovative ideas to the table."
+      },
+      {
+        "reviewer": "James Elton",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.12,
+    "EngagementSurveyResults": {
+      "score": 6.9,
+      "comment": "Brings innovative ideas to the table."
+    }
+  },
+  {
+    "Name": "Antonio Stanton",
+    "Position": "Product Marketing Manager",
+    "Department": "Marketing",
+    "Email": "patriciarobinson@yahoo.com",
+    "Education": "MBA",
+    "Experience (Years)": 1.0,
+    "Skills": "SEO Analysis, Email Marketing, Content Management",
+    "Tools": "Google Ads, ChatGPT, HubSpot",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Mailchimp to support departmental OKRs\n- Apply expertise in Contentful to support departmental OKRs\n- Manage and maintain HubSpot\n- Manage and maintain Google Ads\n- Manage and maintain ChatGPT",
+    "Red Flag": null,
+    "PerformanceRating": "Meets Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-06-01",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      },
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Junior Developer",
+        "to": "Frontend Developer",
+        "date": "2022-06-01"
+      }
+    ],
+    "Manager": "Emily Johnson",
+    "TenureYears": 6.5,
+    "CurrentProjects": [
+      "Website Revamp",
+      "Customer Feedback Integration"
+    ],
+    "KPIsorOKRs": [
+      "Maintain NPS > 75",
+      "Increase feature adoption rate"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Sarah Walton",
+        "note": "Always willing to help others succeed."
+      },
+      {
+        "reviewer": "Olivia Smith",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.19,
+    "EngagementSurveyResults": {
+      "score": 6.6,
+      "comment": "Always willing to help others succeed."
+    }
+  },
+  {
+    "Name": "Eric Banks",
+    "Position": "SEO Specialist",
+    "Department": "Marketing",
+    "Email": "qsmith@hotmail.com",
+    "Education": "BSc Computer Science",
+    "Experience (Years)": 6.0,
+    "Skills": "CRM Management, Prompt Engineering",
+    "Tools": "Google Ads, Mailchimp, Contentful, Ahrefs",
+    "Job Description": "Key responsibilities:\n- Apply expertise in ChatGPT to support departmental OKRs\n- Manage and maintain Mailchimp\n- Manage and maintain Contentful\n- Manage and maintain Google Ads\n- Apply expertise in HubSpot to support departmental OKRs",
+    "Red Flag": null,
+    "PerformanceRating": "Below Expectations",
+    "LastPerformanceReview": {
+      "date": "2024-01-02",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      },
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Olivia Smith",
+    "TenureYears": 8.2,
+    "CurrentProjects": [
+      "Internal CI/CD Automation"
+    ],
+    "KPIsorOKRs": [
+      "Maintain NPS > 75",
+      "Increase feature adoption rate"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Always willing to help others succeed."
+      },
+      {
+        "reviewer": "Sarah Walton",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.11,
+    "EngagementSurveyResults": {
+      "score": 7.9,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "nullcy Parks",
+    "Position": "Content Strategist",
+    "Department": "Marketing",
+    "Email": "cunninghamdavid@yahoo.com",
+    "Education": "BBA Marketing",
+    "Experience (Years)": 6.0,
+    "Skills": "Prompt Engineering, Content Management, Digital Advertising, SEO Analysis",
+    "Tools": "HubSpot, Mailchimp",
+    "Job Description": "Key responsibilities:\n- Manage and maintain Mailchimp\n- Apply expertise in Ahrefs to support departmental OKRs\n- Apply expertise in Contentful to support departmental OKRs\n- Apply expertise in Google Ads to support departmental OKRs\n- Apply expertise in ChatGPT to support departmental OKRs",
+    "Red Flag": null,
+    "PerformanceRating": "Meets Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-04-14",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      },
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Sarah Walton",
+    "TenureYears": 3.3,
+    "CurrentProjects": [
+      "Internal CI/CD Automation",
+      "Customer Feedback Integration"
+    ],
+    "KPIsorOKRs": [
+      "Maintain NPS > 75"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Olivia Smith",
+        "note": "Brings innovative ideas to the table."
+      },
+      {
+        "reviewer": "Sarah Walton",
+        "note": "Excellent communication in cross-team projects."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.35,
+    "EngagementSurveyResults": {
+      "score": 6.6,
+      "comment": "Always willing to help others succeed."
+    }
+  },
+  {
+    "Name": "Jonathan Howell",
+    "Position": "Performance Marketer",
+    "Department": "Marketing",
+    "Email": "riveramary@wright.com",
+    "Education": "BA Design",
+    "Experience (Years)": 7.0,
+    "Skills": "SEO Analysis, Content Management, Email Marketing",
+    "Tools": "Google Ads, HubSpot, ChatGPT",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Mailchimp to support departmental OKRs\n- Manage and maintain HubSpot\n- Manage and maintain ChatGPT\n- Manage and maintain Google Ads\n- Apply expertise in Ahrefs to support departmental OKRs",
+    "Red Flag": null,
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2024-03-26",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Junior Developer",
+        "to": "Frontend Developer",
+        "date": "2022-06-01"
+      }
+    ],
+    "Manager": "Olivia Smith",
+    "TenureYears": 5.8,
+    "CurrentProjects": [
+      "Customer Feedback Integration",
+      "Internal CI/CD Automation"
+    ],
+    "KPIsorOKRs": [
+      "Reduce critical bugs in production by 15%",
+      "Improve code deployment frequency by 20%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "James Elton",
+        "note": "Excellent communication in cross-team projects."
+      },
+      {
+        "reviewer": "James Elton",
+        "note": "Always willing to help others succeed."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.39,
+    "EngagementSurveyResults": {
+      "score": 7.5,
+      "comment": "Brings innovative ideas to the table."
+    }
+  },
+  {
+    "Name": "Sara Hoffman",
+    "Position": "Content Strategist",
+    "Department": "Marketing",
+    "Email": "mpennington@oliver.com",
+    "Education": "MBA",
+    "Experience (Years)": 7.0,
+    "Skills": "Digital Advertising, Content Management, SEO Analysis, CRM Management",
+    "Tools": "Mailchimp, ChatGPT",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Ahrefs to support departmental OKRs\n- Manage and maintain ChatGPT\n- Apply expertise in Contentful to support departmental OKRs\n- Apply expertise in HubSpot to support departmental OKRs\n- Manage and maintain Mailchimp",
+    "Red Flag": null,
+    "PerformanceRating": "Below Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-05-13",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Junior Developer",
+        "to": "Frontend Developer",
+        "date": "2022-06-01"
+      }
+    ],
+    "Manager": "Olivia Smith",
+    "TenureYears": 8.7,
+    "CurrentProjects": [
+      "Project Aurora Redesign"
+    ],
+    "KPIsorOKRs": [
+      "Improve code deployment frequency by 20%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "David Brown",
+        "note": "Always willing to help others succeed."
+      },
+      {
+        "reviewer": "David Brown",
+        "note": "Excellent communication in cross-team projects."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.14,
+    "EngagementSurveyResults": {
+      "score": 8.6,
+      "comment": "Always willing to help others succeed."
+    }
+  },
+  {
+    "Name": "Amanda Peterson",
+    "Position": "SEO Specialist",
+    "Department": "Marketing",
+    "Email": "garrettpamela@yahoo.com",
+    "Education": "BS Economics",
+    "Experience (Years)": 9.0,
+    "Skills": "SEO Analysis, Content Management, Prompt Engineering, Digital Advertising",
+    "Tools": "HubSpot, Mailchimp",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Google Ads to support departmental OKRs\n- Apply expertise in Contentful to support departmental OKRs\n- Manage and maintain HubSpot\n- Apply expertise in Ahrefs to support departmental OKRs\n- Apply expertise in ChatGPT to support departmental OKRs",
+    "Red Flag": null,
+    "PerformanceRating": "Meets Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-08-16",
+      "summary": "Solid contributor to team goals and meets performance expectations. Opportunity to expand leadership skills."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      },
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "James Elton",
+    "TenureYears": 4.7,
+    "CurrentProjects": [
+      "Internal CI/CD Automation",
+      "Customer Feedback Integration"
+    ],
+    "KPIsorOKRs": [
+      "Maintain NPS > 75",
+      "Automate 40% of test coverage"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "David Brown",
+        "note": "Always willing to help others succeed."
+      },
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Brings innovative ideas to the table."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.19,
+    "EngagementSurveyResults": {
+      "score": 8.3,
+      "comment": "Great team player and quick problem solver."
+    }
+  },
+  {
+    "Name": "Edward Hernulldez",
+    "Position": "Customer Success Manager",
+    "Department": "Customer Success",
+    "Email": "francis65@pratt-blackburn.com",
+    "Education": "BS Software Engineering",
+    "Experience (Years)": 1.0,
+    "Skills": "CRM Management, Slack",
+    "Tools": "Intercom, Notion, Zendesk",
+    "Job Description": "Key responsibilities:\n- Manage and maintain Intercom\n- Manage and maintain Notion\n- Manage and maintain Zendesk\n- Apply expertise in Slack to support departmental OKRs\n- Apply expertise in HubSpot to support departmental OKRs",
+    "Red Flag": null,
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-03-01",
+      "summary": "Solid contributor to team goals and meets performance expectations. Opportunity to expand leadership skills."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      },
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Intern",
+        "to": "Product Analyst",
+        "date": "2023-01-12"
+      }
+    ],
+    "Manager": "David Brown",
+    "TenureYears": 5.2,
+    "CurrentProjects": [
+      "Website Revamp"
+    ],
+    "KPIsorOKRs": [
+      "Increase feature adoption rate",
+      "Reduce critical bugs in production by 15%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "James Elton",
+        "note": "Excellent communication in cross-team projects."
+      },
+      {
+        "reviewer": "David Brown",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.39,
+    "EngagementSurveyResults": {
+      "score": 6.5,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "Steven Pierce",
+    "Position": "Customer Success Manager",
+    "Department": "Customer Success",
+    "Email": "sarah07@griffith-powell.info",
+    "Education": "BS Economics",
+    "Experience (Years)": 3.0,
+    "Skills": "Documentation Management, Customer Engagement",
+    "Tools": "HubSpot, Zendesk, Slack",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Intercom to support departmental OKRs\n- Apply expertise in Notion to support departmental OKRs\n- Manage and maintain HubSpot\n- Manage and maintain Zendesk\n- Manage and maintain Slack",
+    "Red Flag": "No Familiarity with AI Tools",
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-12-21",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Sarah Walton",
+    "TenureYears": 8.8,
+    "CurrentProjects": [
+      "Website Revamp",
+      "Customer Feedback Integration"
+    ],
+    "KPIsorOKRs": [
+      "Increase feature adoption rate",
+      "Reduce critical bugs in production by 15%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Always willing to help others succeed."
+      },
+      {
+        "reviewer": "Olivia Smith",
+        "note": "Always willing to help others succeed."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.13,
+    "EngagementSurveyResults": {
+      "score": 9.1,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "Don Forbes",
+    "Position": "Customer Success Manager",
+    "Department": "Customer Success",
+    "Email": "wanda38@hotmail.com",
+    "Education": "BSc Computer Science",
+    "Experience (Years)": 3.0,
+    "Skills": "Slack, Documentation Management",
+    "Tools": "Intercom, HubSpot, Zendesk",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Slack to support departmental OKRs\n- Apply expertise in Notion to support departmental OKRs\n- Manage and maintain HubSpot\n- Manage and maintain Intercom\n- Manage and maintain Zendesk",
+    "Red Flag": null,
+    "PerformanceRating": "Below Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-12-07",
+      "summary": "Solid contributor to team goals and meets performance expectations. Opportunity to expand leadership skills."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Junior Developer",
+        "to": "Frontend Developer",
+        "date": "2022-06-01"
+      }
+    ],
+    "Manager": "James Elton",
+    "TenureYears": 1.8,
+    "CurrentProjects": [
+      "Customer Feedback Integration",
+      "Internal CI/CD Automation"
+    ],
+    "KPIsorOKRs": [
+      "Maintain NPS > 75"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "James Elton",
+        "note": "Great team player and quick problem solver."
+      },
+      {
+        "reviewer": "Sarah Walton",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.27,
+    "EngagementSurveyResults": {
+      "score": 9.1,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "William Bonilla",
+    "Position": "Talent Acquisition Specialist",
+    "Department": "People & HR",
+    "Email": "knightmark@willis.net",
+    "Education": "BBA Marketing",
+    "Experience (Years)": 4.0,
+    "Skills": "Talent Acquisition, HR Operations",
+    "Tools": "15Five, LinkedIn Recruiter",
+    "Job Description": "Key responsibilities:\n- Apply expertise in BambooHR to support departmental OKRs\n- Manage and maintain 15Five\n- Manage and maintain LinkedIn Recruiter\n- Apply expertise in Lever to support departmental OKRs",
+    "Red Flag": null,
+    "PerformanceRating": "Meets Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-05-30",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Sarah Walton",
+    "TenureYears": 5.1,
+    "CurrentProjects": [
+      "Internal CI/CD Automation"
+    ],
+    "KPIsorOKRs": [
+      "Maintain NPS > 75"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Olivia Smith",
+        "note": "Brings innovative ideas to the table."
+      },
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Always willing to help others succeed."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.25,
+    "EngagementSurveyResults": {
+      "score": 7.6,
+      "comment": "Great team player and quick problem solver."
+    }
+  },
+  {
+    "Name": "Heather Hendricks",
+    "Position": "Talent Acquisition Specialist",
+    "Department": "People & HR",
+    "Email": "meghan09@cunningham.com",
+    "Education": "BA Psychology",
+    "Experience (Years)": 10.0,
+    "Skills": "HR Operations, Talent Acquisition",
+    "Tools": "15Five, LinkedIn Recruiter",
+    "Job Description": "Key responsibilities:\n- Manage and maintain 15Five\n- Manage and maintain LinkedIn Recruiter\n- Apply expertise in Lever to support departmental OKRs\n- Apply expertise in BambooHR to support departmental OKRs",
+    "Red Flag": "No Recent Learning Activity",
+    "PerformanceRating": "Meets Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-04-04",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Sarah Walton",
+    "TenureYears": 9.4,
+    "CurrentProjects": [
+      "Customer Feedback Integration"
+    ],
+    "KPIsorOKRs": [
+      "Improve code deployment frequency by 20%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Always willing to help others succeed."
+      },
+      {
+        "reviewer": "Olivia Smith",
+        "note": "Excellent communication in cross-team projects."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.07,
+    "EngagementSurveyResults": {
+      "score": 6.8,
+      "comment": "Brings innovative ideas to the table."
+    }
+  },
+  {
+    "Name": "Edward Simpson",
+    "Position": "Sales Development Rep",
+    "Department": "Sales",
+    "Email": "aarcher@gmail.com",
+    "Education": "BBA Marketing",
+    "Experience (Years)": 3.0,
+    "Skills": "Sales Operations, Slack, Conversation Intelligence",
+    "Tools": "ZoomInfo, Outreach",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Salesforce to support departmental OKRs\n- Manage and maintain ZoomInfo\n- Apply expertise in Slack to support departmental OKRs\n- Apply expertise in Gong to support departmental OKRs\n- Manage and maintain Outreach",
+    "Red Flag": null,
+    "PerformanceRating": "Below Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-07-15",
+      "summary": "Solid contributor to team goals and meets performance expectations. Opportunity to expand leadership skills."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      },
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Junior Developer",
+        "to": "Frontend Developer",
+        "date": "2022-06-01"
+      }
+    ],
+    "Manager": "Emily Johnson",
+    "TenureYears": 5.7,
+    "CurrentProjects": [
+      "Mobile App Launch",
+      "Website Revamp"
+    ],
+    "KPIsorOKRs": [
+      "Improve code deployment frequency by 20%",
+      "Increase feature adoption rate"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Sarah Walton",
+        "note": "Brings innovative ideas to the table."
+      },
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Excellent communication in cross-team projects."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.35,
+    "EngagementSurveyResults": {
+      "score": 7.3,
+      "comment": "Brings innovative ideas to the table."
+    }
+  },
+  {
+    "Name": "Jessica Peterson",
+    "Position": "Account Executive",
+    "Department": "Sales",
+    "Email": "qbrowning@osborne.net",
+    "Education": "BBA Marketing",
+    "Experience (Years)": 5.0,
+    "Skills": "Lead Generation, Conversation Intelligence, Sales Operations",
+    "Tools": "Slack, Outreach",
+    "Job Description": "Key responsibilities:\n- Apply expertise in ZoomInfo to support departmental OKRs\n- Apply expertise in Salesforce to support departmental OKRs\n- Manage and maintain Outreach\n- Manage and maintain Slack\n- Apply expertise in Gong to support departmental OKRs",
+    "Red Flag": null,
+    "PerformanceRating": "Meets Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-02-11",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      },
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Intern",
+        "to": "Product Analyst",
+        "date": "2023-01-12"
+      }
+    ],
+    "Manager": "Olivia Smith",
+    "TenureYears": 2.9,
+    "CurrentProjects": [
+      "Customer Feedback Integration",
+      "Mobile App Launch"
+    ],
+    "KPIsorOKRs": [
+      "Improve code deployment frequency by 20%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Great team player and quick problem solver."
+      },
+      {
+        "reviewer": "Olivia Smith",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.24,
+    "EngagementSurveyResults": {
+      "score": 6.9,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "Diana Greer",
+    "Position": "Revenue Operations Manager",
+    "Department": "Finullce & Ops",
+    "Email": "hopkinseric@david.net",
+    "Education": "MBA",
+    "Experience (Years)": 7.0,
+    "Skills": "Data Analysis, Sales Operations",
+    "Tools": "Excel, QuickBooks, Tableau",
+    "Job Description": "Key responsibilities:\n- Apply expertise in SQL to support departmental OKRs\n- Apply expertise in Salesforce to support departmental OKRs\n- Manage and maintain QuickBooks\n- Manage and maintain Excel\n- Manage and maintain Tableau",
+    "Red Flag": null,
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-05-09",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      },
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Junior Developer",
+        "to": "Frontend Developer",
+        "date": "2022-06-01"
+      }
+    ],
+    "Manager": "James Elton",
+    "TenureYears": 5.7,
+    "CurrentProjects": [
+      "Website Revamp",
+      "Project Aurora Redesign"
+    ],
+    "KPIsorOKRs": [
+      "Maintain NPS > 75",
+      "Reduce critical bugs in production by 15%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "David Brown",
+        "note": "Brings innovative ideas to the table."
+      },
+      {
+        "reviewer": "Olivia Smith",
+        "note": "Excellent communication in cross-team projects."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.21,
+    "EngagementSurveyResults": {
+      "score": 8.3,
+      "comment": "Great team player and quick problem solver."
+    }
+  },
+  {
+    "Name": "Nicole Baker",
+    "Position": "FP&A Analyst",
+    "Department": "Finullce & Ops",
+    "Email": "pattersonvicki@hotmail.com",
+    "Education": "BSc Computer Science",
+    "Experience (Years)": 2.0,
+    "Skills": "Data Visualization, Finullcial Management, Sales Operations",
+    "Tools": "Excel, SQL",
+    "Job Description": "Key responsibilities:\n- Apply expertise in Tableau to support departmental OKRs\n- Manage and maintain SQL\n- Manage and maintain Excel\n- Apply expertise in QuickBooks to support departmental OKRs\n- Apply expertise in Salesforce to support departmental OKRs",
+    "Red Flag": null,
+    "PerformanceRating": "Below Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-12-14",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      },
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "David Brown",
+    "TenureYears": 9.1,
+    "CurrentProjects": [
+      "Website Revamp",
+      "Customer Feedback Integration"
+    ],
+    "KPIsorOKRs": [
+      "Improve code deployment frequency by 20%",
+      "Automate 40% of test coverage"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Olivia Smith",
+        "note": "Brings innovative ideas to the table."
+      },
+      {
+        "reviewer": "David Brown",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.4,
+    "EngagementSurveyResults": {
+      "score": 8.8,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "Codex Engineer Bot",
+    "Position": null,
+    "Department": "Engineering",
+    "Email": null,
+    "Education": null,
+    "Experience (Years)": null,
+    "Skills": "GitHub Copilot, ESLint, Prettier, VSCode, Git",
+    "Tools": null,
+    "Job Description": "Code Generation, Unit Testing, Refactoring, Version Control, Linting",
+    "Red Flag": null,
+    "PerformanceRating": "Meets Expectations",
+    "LastPerformanceReview": {
+      "date": "2022-07-17",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      },
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Junior Developer",
+        "to": "Frontend Developer",
+        "date": "2022-06-01"
+      }
+    ],
+    "Manager": "Olivia Smith",
+    "TenureYears": 8.0,
+    "CurrentProjects": [
+      "Website Revamp"
+    ],
+    "KPIsorOKRs": [
+      "Reduce critical bugs in production by 15%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Sarah Walton",
+        "note": "Always willing to help others succeed."
+      },
+      {
+        "reviewer": "James Elton",
+        "note": "Brings innovative ideas to the table."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.29,
+    "EngagementSurveyResults": {
+      "score": 7.6,
+      "comment": "Great team player and quick problem solver."
+    }
+  },
+  {
+    "Name": "AutoInfra Manager",
+    "Position": null,
+    "Department": "Engineering",
+    "Email": null,
+    "Education": null,
+    "Experience (Years)": null,
+    "Skills": "Terraform, AWS CloudFormation, Datadog, AWS CLI, Prometheus",
+    "Tools": null,
+    "Job Description": "Infrastructure as Code, Cloud Provisioning, Resource Optimization, Monitoring",
+    "Red Flag": null,
+    "PerformanceRating": "Below Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-08-19",
+      "summary": "Solid contributor to team goals and meets performance expectations. Opportunity to expand leadership skills."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      },
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "James Elton",
+    "TenureYears": 2.4,
+    "CurrentProjects": [
+      "Mobile App Launch"
+    ],
+    "KPIsorOKRs": [
+      "Improve code deployment frequency by 20%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "James Elton",
+        "note": "Always willing to help others succeed."
+      },
+      {
+        "reviewer": "David Brown",
+        "note": "Excellent communication in cross-team projects."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.38,
+    "EngagementSurveyResults": {
+      "score": 7.7,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "Debug AI Assistant",
+    "Position": null,
+    "Department": "Engineering",
+    "Email": null,
+    "Education": null,
+    "Experience (Years)": null,
+    "Skills": "Sentry, ELK Stack, Datadog, StackDriver",
+    "Tools": null,
+    "Job Description": "Error Detection, Log Analysis, Performance Debugging, Pattern Recognition",
+    "Red Flag": null,
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-01-07",
+      "summary": "Solid contributor to team goals and meets performance expectations. Opportunity to expand leadership skills."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      },
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Intern",
+        "to": "Product Analyst",
+        "date": "2023-01-12"
+      }
+    ],
+    "Manager": "Emily Johnson",
+    "TenureYears": 5.6,
+    "CurrentProjects": [
+      "Mobile App Launch",
+      "Website Revamp"
+    ],
+    "KPIsorOKRs": [
+      "Improve code deployment frequency by 20%",
+      "Increase feature adoption rate"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "David Brown",
+        "note": "Brings innovative ideas to the table."
+      },
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Always willing to help others succeed."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.3,
+    "EngagementSurveyResults": {
+      "score": 9.2,
+      "comment": "Brings innovative ideas to the table."
+    }
+  },
+  {
+    "Name": "ContentGPT",
+    "Position": null,
+    "Department": "Marketing",
+    "Email": null,
+    "Education": null,
+    "Experience (Years)": null,
+    "Skills": "ChatGPT, Jasper, SurferSEO, Grammarly",
+    "Tools": null,
+    "Job Description": "Content Ideation, SEO Optimization, Copywriting, Tone Matching, Repurposing Content",
+    "Red Flag": null,
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-05-20",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      },
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Sarah Walton",
+    "TenureYears": 6.9,
+    "CurrentProjects": [
+      "Mobile App Launch"
+    ],
+    "KPIsorOKRs": [
+      "Increase feature adoption rate",
+      "Improve code deployment frequency by 20%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Olivia Smith",
+        "note": "Brings innovative ideas to the table."
+      },
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Excellent communication in cross-team projects."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.37,
+    "EngagementSurveyResults": {
+      "score": 8.5,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "AdOptimizer AI",
+    "Position": null,
+    "Department": "Marketing",
+    "Email": null,
+    "Education": null,
+    "Experience (Years)": null,
+    "Skills": "Meta Ads, Google Ads, AdEspresso, HubSpot",
+    "Tools": null,
+    "Job Description": "Audience Segmentation, Budget Allocation, A/B Testing, Performance Monitoring",
+    "Red Flag": null,
+    "PerformanceRating": "Below Expectations",
+    "LastPerformanceReview": {
+      "date": "2024-04-13",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Intern",
+        "to": "Product Analyst",
+        "date": "2023-01-12"
+      }
+    ],
+    "Manager": "David Brown",
+    "TenureYears": 1.6,
+    "CurrentProjects": [
+      "Internal CI/CD Automation"
+    ],
+    "KPIsorOKRs": [
+      "Maintain NPS > 75"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "James Elton",
+        "note": "Brings innovative ideas to the table."
+      },
+      {
+        "reviewer": "Sarah Walton",
+        "note": "Always willing to help others succeed."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.28,
+    "EngagementSurveyResults": {
+      "score": 8.8,
+      "comment": "Brings innovative ideas to the table."
+    }
+  },
+  {
+    "Name": "Social Pulse Bot",
+    "Position": null,
+    "Department": "Marketing",
+    "Email": null,
+    "Education": null,
+    "Experience (Years)": null,
+    "Skills": "Brandwatch, Hootsuite, Buffer, Sprout Social",
+    "Tools": null,
+    "Job Description": "Sentiment Analysis, Trend Detection, Engagement Timing, Hashtag Optimization",
+    "Red Flag": null,
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-02-06",
+      "summary": "Solid contributor to team goals and meets performance expectations. Opportunity to expand leadership skills."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Advanced React Workshop",
+        "date": "2022-09-01"
+      },
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Sarah Walton",
+    "TenureYears": 9.8,
+    "CurrentProjects": [
+      "Website Revamp"
+    ],
+    "KPIsorOKRs": [
+      "Increase feature adoption rate",
+      "Maintain NPS > 75"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Great team player and quick problem solver."
+      },
+      {
+        "reviewer": "David Brown",
+        "note": "Excellent communication in cross-team projects."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.17,
+    "EngagementSurveyResults": {
+      "score": 8.7,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "Voice of Customer AI",
+    "Position": null,
+    "Department": "Product",
+    "Email": null,
+    "Education": null,
+    "Experience (Years)": null,
+    "Skills": "Dovetail, Productboard, Nolt, Typeform",
+    "Tools": null,
+    "Job Description": "Feedback Aggregation, Sentiment Analysis, Feature Request Clustering",
+    "Red Flag": null,
+    "PerformanceRating": "Meets Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-02-01",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Olivia Smith",
+    "TenureYears": 9.4,
+    "CurrentProjects": [
+      "Project Aurora Redesign",
+      "Mobile App Launch"
+    ],
+    "KPIsorOKRs": [
+      "Maintain NPS > 75"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Great team player and quick problem solver."
+      },
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Brings innovative ideas to the table."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.1,
+    "EngagementSurveyResults": {
+      "score": 8.3,
+      "comment": "Great team player and quick problem solver."
+    }
+  },
+  {
+    "Name": "Roadmap Companion",
+    "Position": null,
+    "Department": "Product",
+    "Email": null,
+    "Education": null,
+    "Experience (Years)": null,
+    "Skills": "Jira, Aha!, ProductPlan, Notion",
+    "Tools": null,
+    "Job Description": "Prioritization Frameworks, Value-Risk Scoring, Timeline Estimation",
+    "Red Flag": null,
+    "PerformanceRating": "Exceeds Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-03-21",
+      "summary": "Occasional lapses in meeting deadlines but improving steadily."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "Project Management Professional",
+        "date": "2021-07-12"
+      },
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [],
+    "Manager": "Olivia Smith",
+    "TenureYears": 4.3,
+    "CurrentProjects": [
+      "Customer Feedback Integration",
+      "Website Revamp"
+    ],
+    "KPIsorOKRs": [
+      "Automate 40% of test coverage"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Great team player and quick problem solver."
+      },
+      {
+        "reviewer": "Sarah Walton",
+        "note": "Always willing to help others succeed."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.37,
+    "EngagementSurveyResults": {
+      "score": 7.4,
+      "comment": "Excellent communication in cross-team projects."
+    }
+  },
+  {
+    "Name": "Usage Analytics Bot",
+    "Position": null,
+    "Department": "Product",
+    "Email": null,
+    "Education": null,
+    "Experience (Years)": null,
+    "Skills": "Amplitude, Mixpanel, Heap",
+    "Tools": null,
+    "Job Description": "User Behavior Analysis, Funnel Analysis, Feature Adoption Tracking",
+    "Red Flag": null,
+    "PerformanceRating": "Meets Expectations",
+    "LastPerformanceReview": {
+      "date": "2023-11-18",
+      "summary": "Consistently delivers on objectives and frequently exceeds targets. Notable strengths in collaboration and innovation."
+    },
+    "TrainingCertificationHistory": [
+      {
+        "title": "AWS Certified Solutions Architect",
+        "date": "2023-11-15"
+      }
+    ],
+    "PromotionHistory": [
+      {
+        "from": "Junior Developer",
+        "to": "Frontend Developer",
+        "date": "2022-06-01"
+      }
+    ],
+    "Manager": "David Brown",
+    "TenureYears": 6.5,
+    "CurrentProjects": [
+      "Project Aurora Redesign",
+      "Website Revamp"
+    ],
+    "KPIsorOKRs": [
+      "Increase feature adoption rate",
+      "Reduce critical bugs in production by 15%"
+    ],
+    "PeerFeedback": [
+      {
+        "reviewer": "Emily Johnson",
+        "note": "Always willing to help others succeed."
+      },
+      {
+        "reviewer": "James Elton",
+        "note": "Great team player and quick problem solver."
+      }
+    ],
+    "AbsenteeismOrTurnoverRiskScore": 0.15,
+    "EngagementSurveyResults": {
+      "score": 8.3,
+      "comment": "Always willing to help others succeed."
+    }
+  }
+]
