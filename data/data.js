@@ -194,6 +194,108 @@ export const departmentsDemoData = [
 
 export const allemployees = [
   {
+    id: "ceo",
+    name: "James Elton",
+    position: "CEO",
+    department: "Information Technology (IT) and Software",
+    email: "jameselton@unstoppable.com",
+    payroll: {
+      baseSalary: 450000,
+      bonus: 200000,
+      stockOptions: 50000,
+      lastRaiseDate: "2023-01-01",
+      raisePercentage: 15,
+    },
+    performance: {
+      goals: [
+        {
+          name: "Company growth strategy",
+          targetDate: "2023-12-31",
+          completion: 95,
+          status: "on track",
+        },
+        {
+          name: "Expand to new markets",
+          targetDate: "2023-09-30",
+          completion: 85,
+          status: "on track",
+        },
+        {
+          name: "Build executive team",
+          targetDate: "2023-06-30",
+          completion: 100,
+          status: "completed",
+        },
+      ],
+      overallCompletion: 93,
+    },
+    education: {
+      degree: "MBA",
+      institution: "Harvard Business School",
+      location: "Boston, USA",
+      startDate: "2005",
+      endDate: "2007",
+      gpa: "3.9",
+    },
+    experience: [
+      {
+        company: "Unstoppable Inc",
+        position: "Chief Executive Officer",
+        location: "Global",
+        startDate: "2018",
+        endDate: "Present",
+        current: true,
+        responsibilities: [
+          "Overall company strategy and vision",
+          "Leadership of executive team",
+          "Investor relations",
+          "Company culture development",
+        ],
+      },
+      {
+        company: "TechVision",
+        position: "President",
+        location: "San Francisco, CA",
+        startDate: "2012",
+        endDate: "2018",
+        current: false,
+        responsibilities: [
+          "Grew company from $10M to $100M ARR",
+          "Led product and engineering teams",
+          "Acquired 3 companies",
+        ],
+      },
+      {
+        company: "NextGen Solutions",
+        position: "VP of Product",
+        location: "New York, NY",
+        startDate: "2007",
+        endDate: "2012",
+        current: false,
+        responsibilities: [
+          "Built product team from scratch",
+          "Launched flagship product",
+          "Established product-market fit",
+        ],
+      },
+    ],
+    skills: [
+      "Strategic Leadership",
+      "Business Development",
+      "Financial Management",
+      "Team Building",
+      "Innovation",
+    ],
+    tools: ["Financial Modeling", "Data Analysis", "Market Research"],
+    jobDescription: [
+      "Set company vision and strategy",
+      "Lead executive team",
+      "Make high-stakes decisions",
+      "Represent company to investors and public",
+      "Drive company culture",
+    ],
+  },
+  {
     id: "1",
     name: "Timothy Jones",
     position: "DevOps Engineer",
