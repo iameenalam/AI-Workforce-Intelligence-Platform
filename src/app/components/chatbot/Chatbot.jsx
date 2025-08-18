@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import Cookies from "js-cookie";
 import { Input } from "@/components/ui/input";
 import { Send, Bot, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -57,17 +56,17 @@ export default function Chatbot({ userId, userIdentity }) {
       setRemainingPrompts((prev) => prev.filter((q) => q !== messageContent));
     }
     try {
-      const token = Cookies.get("token");
-      if (!token) throw new Error("Authentication failed. Please log in.");
       const res = await fetch("/api/chatbot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: messageContent, userId, userIdentity, token }),
+        body: JSON.stringify({ message: messageContent, userId, userIdentity }),
       });
+
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.reply || "An error occurred.");
+        throw new Error(errorData.reply || "An error occurred while fetching the response.");
       }
+
       const data = await res.json();
       setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
     } catch (err) {
