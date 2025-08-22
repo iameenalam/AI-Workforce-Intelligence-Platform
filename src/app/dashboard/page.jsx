@@ -11,8 +11,8 @@ import { getUser } from "@/redux/action/user";
 import { getOrganization, updateOrganization, deleteOrganization, updateCeo } from "@/redux/action/org";
 import { getDepartments, updateDepartment, deleteDepartment, updateHod, deleteHod } from "@/redux/action/departments";
 import { getTeammembers, updateTeammember, deleteTeammember } from "@/redux/action/teammembers";
-import { logoutSuccess } from "@/redux/reducer/userReducer";
 
+import { logoutSuccess } from "@/redux/reducer/userReducer";
 import { clearMessage, clearError } from "@/redux/reducer/departmentsReducer";
 import { clearMessage as clearTmMessage, clearError as clearTmError } from "@/redux/reducer/teammembersReducer";
 import { clearMessage as clearOrgMessage, clearError as clearOrgError } from "@/redux/reducer/orgReducer";
@@ -81,28 +81,6 @@ export default function HRDashboard() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const handleNavigate = (path) => { window.location.hash = path; };
-  const handleBack = () => { window.history.back(); };
-
-  const handleEditDept = (dept) => { setEditingDepartment(dept); setIsDeptModalOpen(true); };
-  const handleDeleteDept = (id) => { if (window.confirm("Delete this department?")) dispatch(deleteDepartment(id)); };
-  const handleSaveDept = (id, data) => dispatch(updateDepartment(id, data));
-
-  const handleEditHod = (deptId) => { const dept = departments.find(d => d._id === deptId); setEditingHod(dept); setIsHodModalOpen(true); };
-  const handleDeleteHod = (deptId) => { if (window.confirm("Remove this HOD?")) dispatch(deleteHod(deptId)); };
-  const handleSaveHod = (id, data, isCvUpload) => dispatch(updateHod(id, data, isCvUpload));
-
-  const handleEditTm = (tm) => { setEditingTeammember(tm); setIsTmModalOpen(true); };
-  const handleDeleteTm = (id) => { if (window.confirm("Delete this team member?")) dispatch(deleteTeammember(id)); };
-  const handleSaveTm = (id, data, isCvUpload) => dispatch(updateTeammember(id, data, isCvUpload));
-
-  const handleEditOrg = (org) => { setEditingOrg(org); setIsOrgModalOpen(true); };
-  const handleDeleteOrg = () => { if (window.confirm("Delete entire organization?")) { dispatch(deleteOrganization()); handleNavigate(''); } };
-  const handleSaveOrg = (data) => dispatch(updateOrganization(data));
-
-  const handleEditCeo = (org) => { setEditingCeo(org); setIsCeoModalOpen(true); };
-  const handleSaveCeo = (id, data, isCvUpload) => dispatch(updateCeo(id, data, isCvUpload));
-
   useEffect(() => {
     if (!isAuth && !userLoading) {
       const token = Cookies.get("token");
@@ -120,6 +98,28 @@ export default function HRDashboard() {
       dispatch(getTeammembers({ organizationId: organization._id }));
     }
   }, [dispatch, organization]);
+
+  const handleNavigate = (path) => { window.location.hash = path; };
+  const handleBack = () => { window.history.back(); };
+
+  const handleEditDept = (dept) => { setEditingDepartment(dept); setIsDeptModalOpen(true); };
+  const handleDeleteDept = (id) => dispatch(deleteDepartment(id));
+  const handleSaveDept = (id, data) => dispatch(updateDepartment(id, data));
+
+  const handleEditHod = (deptId) => { const dept = departments.find(d => d._id === deptId); setEditingHod(dept); setIsHodModalOpen(true); };
+  const handleDeleteHod = (deptId) => dispatch(deleteHod(deptId));
+  const handleSaveHod = (id, data, isCvUpload) => dispatch(updateHod(id, data, isCvUpload));
+
+  const handleEditTm = (tm) => { setEditingTeammember(tm); setIsTmModalOpen(true); };
+  const handleDeleteTm = (id) => dispatch(deleteTeammember(id));
+  const handleSaveTm = (id, data, isCvUpload) => dispatch(updateTeammember(id, data, isCvUpload));
+
+  const handleEditOrg = (org) => { setEditingOrg(org); setIsOrgModalOpen(true); };
+  const handleDeleteOrg = () => { dispatch(deleteOrganization()); handleNavigate(''); };
+  const handleSaveOrg = (data) => dispatch(updateOrganization(data));
+
+  const handleEditCeo = (org) => { setEditingCeo(org); setIsCeoModalOpen(true); };
+  const handleSaveCeo = (id, data, isCvUpload) => dispatch(updateCeo(id, data, isCvUpload));
 
   const logoutHandler = () => {
     Cookies.remove("token", { path: "/" });
@@ -169,7 +169,7 @@ export default function HRDashboard() {
   };
 
   const renderContent = () => {
-    const loadingComponent = <div className="flex items-center justify-center h-full p-10"><Loader2 className="h-8 w-8 animate-spin text-sky-400" /></div>;
+    const loadingComponent = <div className="flex items-center justify-center h-full p-10"><Loader2 className="h-12 w-12 animate-spin text-indigo-600" /></div>;
 
     if (isLoading && !orgLoaded) return loadingComponent;
 
@@ -209,17 +209,17 @@ export default function HRDashboard() {
                 <div className="p-4 sm:p-8">
                     <div className="flex flex-col md:flex-row justify-between md:items-center mb-8 gap-4">
                         <div>
-                            <h2 className="text-3xl font-bold text-white capitalize">{activeTab}</h2>
-                            <p className="text-slate-400">{tabSubtitles[activeTab]}</p>
+                            <h2 className="text-3xl font-bold text-gray-900 capitalize">{activeTab}</h2>
+                            <p className="text-gray-500">{tabSubtitles[activeTab]}</p>
                         </div>
                         <div className="flex items-center gap-4">
                             {activeTab === 'employees' && (
                                 <>
                                     <div className="relative flex-1 md:flex-none">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
-                                        <input type="text" placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-2 w-full md:w-64 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors placeholder-slate-500" />
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                        <input type="text" placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-2 w-full md:w-64 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors placeholder-gray-400" />
                                     </div>
-                                    <select value={filterDepartment} onChange={(e) => setFilterDepartment(e.target.value)} className="px-3 py-2 w-48 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors">
+                                    <select value={filterDepartment} onChange={(e) => setFilterDepartment(e.target.value)} className="px-3 py-2 w-48 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
                                         <option value="all">All Departments</option>
                                         {(departments || []).map((dept) => (<option key={dept._id} value={dept._id}>{dept.departmentName}</option>))}
                                     </select>
@@ -227,13 +227,13 @@ export default function HRDashboard() {
                             )}
                             {activeTab === 'departments' && (
                                 <div className="relative flex-1 md:flex-none">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
-                                    <input type="text" placeholder="Search departments..." value={searchDeptTerm} onChange={(e) => setSearchDeptTerm(e.target.value)} className="pl-10 pr-4 py-2 w-full md:w-64 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors placeholder-slate-500" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                    <input type="text" placeholder="Search departments..." value={searchDeptTerm} onChange={(e) => setSearchDeptTerm(e.target.value)} className="pl-10 pr-4 py-2 w-full md:w-64 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors placeholder-gray-400" />
                                 </div>
                             )}
                         </div>
                     </div>
-                    <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 min-h-[calc(100vh-200px)]">
+                    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-lg min-h-[calc(100vh-200px)] p-6">
                         {isLoading && loadingComponent}
                         {!isLoading && activeTab === 'overview' && <Overview organization={organization} departments={departments} totalEmployees={employeesOnly.length} onNavigate={handleNavigate} setActiveTab={setActiveTab} />}
                         {!isLoading && activeTab === 'employees' && <Employees employees={filteredEmployees} departments={departments} onNavigate={handleNavigate} onEditHod={handleEditHod} onDeleteHod={handleDeleteHod} onEditTm={handleEditTm} onDeleteTm={handleDeleteTm} />}
@@ -247,7 +247,7 @@ export default function HRDashboard() {
   if (!userLoading && !isAuth) return null;
 
   return (
-    <div className="flex flex-col h-screen bg-slate-900 text-white">
+    <div className="flex flex-col h-screen bg-slate-50 text-gray-800">
         <Navbar
             logoutHandler={logoutHandler}
             onMenuClick={() => setIsMobileMenuOpen(true)}
@@ -261,7 +261,7 @@ export default function HRDashboard() {
                 isMobileMenuOpen={isMobileMenuOpen}
                 setIsMobileMenuOpen={setIsMobileMenuOpen}
             />
-            <main className="flex-1 overflow-y-auto bg-slate-900/50" style={{backgroundImage: 'radial-gradient(circle at top left, rgba(14, 165, 233, 0.1), transparent-30%)'}}>
+            <main className="flex-1 overflow-y-auto bg-slate-50">
                 {renderContent()}
             </main>
         </div>

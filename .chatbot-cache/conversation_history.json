@@ -2050,5 +2050,89 @@
     "role": "assistant",
     "content": "Fariz Ali is a Team Lead at PTCL, reporting to Bill Gates in the Finance Department. He has a background in front-end development with skills in HTML, CSS, JavaScript, React, Redux, and more. Fariz has experience working as a Front-End Developer at TEKsystems and Infinity Consulting Solutions. He holds a Bachelor's Degree in Computer Science from New York University and has a certification in Principles of UX and Usability from the Interaction Design Foundation. His role involves leading a team in the Financial Planning subfunction.",
     "timestamp": "2025-08-16T08:59:43.138Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "who is fariz ali",
+    "timestamp": "2025-08-22T07:02:01.023Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "There is no information available about a person named Fariz Ali in the provided data for PTCL. If you have any other questions or need information on another team member, feel free to ask!",
+    "timestamp": "2025-08-22T07:02:01.023Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "what is the org name",
+    "timestamp": "2025-08-22T07:02:55.318Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "The organization's name is PTCL, which stands for Pakistan Telecommunication Company Limited.",
+    "timestamp": "2025-08-22T07:02:55.318Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "who is the ceo",
+    "timestamp": "2025-08-22T07:03:07.707Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "The CEO of PTCL is Ameen Alam.",
+    "timestamp": "2025-08-22T07:03:07.707Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "give all details related to the org",
+    "timestamp": "2025-08-22T07:03:22.636Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "Here are the details related to the organization, PTCL:\n\n- **Name:** PTCL (Pakistan Telecommunication Company Limited)\n- **Industry:** Telecommunications\n- **Company Size:** 450-600 employees\n- **Location:** Karachi, Pakistan\n- **Year Founded:** 2004\n- **Organization Type:** Private\n- **Number of Offices:** 2\n- **Work Model:** Onsite\n- **HR Tools Used:** Workday\n- **Hiring Level:** Moderate\n\n**CEO Information:**\n- **Name:** Ameen Alam\n- **Email:** ameenalam98@gmail.com\n- **Profile Picture:** ![CEO Picture](http://res.cloudinary.com/dxrm9mg7f/image/upload/v1755845984/reeorg/opfhrdikxluwppwfvzhs.jpg)\n\n**Logo:**\n- ![PTCL Logo](http://res.cloudinary.com/dxrm9mg7f/image/upload/v1755845984/reeorg/em3gpzvjqjrgi7pjxp1b.png)\n\nIf you need more specific details about departments or team members, feel free to ask!",
+    "timestamp": "2025-08-22T07:03:22.636Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "how many departments",
+    "timestamp": "2025-08-22T07:03:47.310Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "The data provided includes details for one department, which is the Finance department. If there are more departments within PTCL, they are not listed in the current data set.",
+    "timestamp": "2025-08-22T07:03:47.310Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "how many departments in ptcl",
+    "timestamp": "2025-08-22T07:48:26.745Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "I apologize for the confusion earlier. The data provided does not include specific information about the number of departments within PTCL. If you need further assistance or have other questions related to PTCL, feel free to ask!",
+    "timestamp": "2025-08-22T07:48:26.745Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "who is usman ",
+    "timestamp": "2025-08-22T07:48:38.501Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "The data provided does not include any information about an individual named Usman. If Usman is a part of PTCL and you need specific details about him, please provide more context or check if there is additional data available.",
+    "timestamp": "2025-08-22T07:48:38.501Z"
   }
 ]

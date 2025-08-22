@@ -16,7 +16,6 @@ import {
   updateCeoFail,
 } from "../reducer/orgReducer";
 
-// Fetch organization (current user's org)
 export const getOrganization = () => async (dispatch) => {
   try {
     dispatch(loadingStart());

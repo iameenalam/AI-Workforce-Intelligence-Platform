@@ -1,5 +1,5 @@
-// redux/reducers/teammembersReducer.js
 import { createSlice } from "@reduxjs/toolkit";
+import { deleteOrganizationSuccess } from "./orgReducer";
 
 const initialState = {
   teammembers: [],
@@ -42,7 +42,6 @@ const teammembersSlice = createSlice({
       state.btnLoading = false;
       state.error = action.payload;
     },
-    // NEW: Reducers for updating a team member
     updateTeammemberSuccess: (state, action) => {
       state.btnLoading = false;
       state.message = action.payload.message;
@@ -55,7 +54,6 @@ const teammembersSlice = createSlice({
         state.btnLoading = false;
         state.error = action.payload;
     },
-    // NEW: Reducers for deleting a team member
     deleteTeammemberSuccess: (state, action) => {
         state.loading = false;
         state.message = "Team member deleted successfully.";
@@ -93,6 +91,15 @@ const teammembersSlice = createSlice({
       state.loading = false;
       state.btnLoading = false;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(deleteOrganizationSuccess, (state) => {
+      state.teammembers = [];
+      state.loading = false;
+      state.btnLoading = false;
+      state.error = null;
+      state.message = null;
+    });
   },
 });
 

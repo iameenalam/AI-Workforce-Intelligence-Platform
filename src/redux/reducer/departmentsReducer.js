@@ -1,10 +1,10 @@
-// redux/reducer/departmentsReducer.js
 import { createSlice } from "@reduxjs/toolkit";
+import { deleteOrganizationSuccess } from "./orgReducer";
 
 const initialState = {
   departments: [],
   loading: false,
-  btnLoading: false, // Used for general button loading state
+  btnLoading: false,
   error: null,
   message: null,
 };
@@ -100,6 +100,15 @@ const departmentsSlice = createSlice({
       state.loading = false;
       state.btnLoading = false;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(deleteOrganizationSuccess, (state) => {
+      state.departments = [];
+      state.loading = false;
+      state.btnLoading = false;
+      state.error = null;
+      state.message = null;
+    });
   },
 });
 

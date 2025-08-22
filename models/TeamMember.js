@@ -43,7 +43,6 @@ const teamMemberSchema = new mongoose.Schema(
     subfunctionIndex: { type: Number, required: true },
     invited: { type: Boolean, default: false },
 
-    // CV Data Fields
     cvUrl: { type: String, default: "" },
     skills: { type: [String], default: [] },
     tools: { type: [String], default: [] },
