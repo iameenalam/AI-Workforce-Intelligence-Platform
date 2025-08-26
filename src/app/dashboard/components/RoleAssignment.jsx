@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Users, Building2, Crown, Shield, User, 
+import {
+  Users, Building2, Crown, Shield, User,
   ChevronRight, Loader2, GripVertical, UploadCloud
 } from "lucide-react";
 import Cookies from "js-cookie";
@@ -49,7 +49,7 @@ const DepartmentSection = ({ department, employees, onDrop, onDragOver, expanded
 
   return (
     <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm transition-shadow hover:shadow-md">
-      <div 
+      <div
         className="flex items-center justify-between cursor-pointer p-4"
         onClick={() => toggleDept(department._id)}
       >
@@ -259,6 +259,15 @@ export function RoleAssignment() {
     e.preventDefault();
     if (!draggedEmployee) return;
 
+    // Check if the employee is being dropped into the same role and department they are already in
+    const currentDeptId = draggedEmployee.department?._id || draggedEmployee.department;
+    if (draggedEmployee.role === role && currentDeptId === departmentId && draggedEmployee.subfunctionIndex === subfunctionIndex) {
+      toast.error("Employee is already in this role.");
+      setDraggedEmployee(null);
+      setDragOverState(null);
+      return;
+    }
+
     // Check if trying to assign HOD when one already exists
     if (role === "HOD") {
       const existingHOD = employees.find(emp =>
@@ -302,6 +311,9 @@ export function RoleAssignment() {
     if (!draggedEmployee) return;
 
     if (draggedEmployee.role === "Unassigned" || !draggedEmployee.department) {
+      toast.error("Employee is already unassigned.");
+      setDraggedEmployee(null);
+      setDragOverState(null);
       return;
     }
 
@@ -318,6 +330,9 @@ export function RoleAssignment() {
     } catch (error) {
       console.error("Error updating employee:", error);
       toast.error("Failed to update employee assignment");
+    } finally {
+        setDraggedEmployee(null);
+        setDragOverState(null);
     }
   };
 
@@ -326,22 +341,26 @@ export function RoleAssignment() {
 
   // Only show loading if we don't have any data at all
   if (loading && (!reduxEmployees || reduxEmployees.length === 0) && (!reduxDepartments || reduxDepartments.length === 0)) {
-    return <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-indigo-600" /></div>;
+    return <div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin text-indigo-600" /></div>;
   }
 
   const unassignedEmployees = employees.filter(emp => emp.role === "Unassigned" || !emp.department);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start h-full">
+    // On small screens, the main grid is a single column, allowing the content to flow and scroll.
+    // On large screens, it becomes a 2-column layout.
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start h-full p-4 lg:p-0">
       <div className="lg:col-span-4 xl:col-span-3">
-        <div className="lg:sticky top-6">
-          <div className="bg-white border border-gray-200 rounded-xl p-4 h-[60vh] lg:h-[calc(100vh-17rem)] flex flex-col">
+        <div className="lg:sticky lg:top-6 lg:h-[calc(100vh-17rem)]">
+          {/* We've removed the fixed height on mobile for this container */}
+          <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col h-auto lg:h-full">
             <div className="flex items-center gap-3 mb-4 flex-shrink-0">
               <Users className="w-5 h-5 text-gray-600" />
               <h3 className="text-lg font-semibold text-gray-900">Unassigned Employees</h3>
               <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">{unassignedEmployees.length}</span>
             </div>
             <div
+              // On large screens, this container will become scrollable
               className={`flex-grow min-h-[100px] border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50/50 overflow-y-auto transition-all duration-200 ${dragOverState === 'unassigned' ? 'border-solid bg-indigo-50' : 'hover:border-gray-400'}`}
               onDragOver={handleDragOver}
               onDrop={handleDropToUnassigned}
@@ -362,7 +381,7 @@ export function RoleAssignment() {
           </div>
         </div>
       </div>
-      <div className="lg:col-span-8 xl:col-span-9 space-y-4 h-auto lg:h-[calc(100vh-17rem)] lg:overflow-y-auto lg:pr-2">
+      <div className="lg:col-span-8 xl:col-span-9 space-y-4">
         {departments.length > 0 ? (
           departments.map(department => (
             <DepartmentSection key={department._id} department={department} employees={employees} onDrop={handleDrop} onDragOver={handleDragOver} expandedDepts={expandedDepts} toggleDept={toggleDept} expandedSubfuncs={expandedSubfuncs} toggleSubfunc={toggleSubfunc} onDragStart={handleDragStart} onDragEnd={handleDragEnd} draggedEmployee={draggedEmployee} dragOverState={dragOverState} setDragOverState={setDragOverState} />
