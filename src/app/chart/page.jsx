@@ -730,25 +730,24 @@ export default function ChartPage() {
           </div>
         </div>
       </div>
-      <main className="min-h-screen bg-slate-100 pt-[80px]">
-        <div className="absolute inset-0 z-0 opacity-40" style={{ backgroundImage: 'radial-gradient(#d1d5db 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-        <div ref={chartRef} className="relative overflow-auto h-[calc(100vh-80px)] w-full p-4 md:p-8">
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 transition-all duration-200 pt-[80px]">
+        <div ref={chartRef} className="h-[calc(100vh-80px)] overflow-y-auto overflow-x-auto p-4 md:p-8">
           {!orgLoading && orgLoaded && !organization ? (
-            <div className="text-center py-12">
-              <p className="text-slate-600 text-lg mb-4">No organization chart found.</p>
-              <Button variant="default" className="shadow-lg" onClick={() => setOrgFormOpen(true)} type="button">Create Your Organization</Button>
-            </div>
+          <div className="text-center py-12">
+            <p className="text-slate-600 text-lg mb-4">No organization chart found.</p>
+            <Button variant="default" className="shadow-lg" onClick={() => setOrgFormOpen(true)} type="button">Create Your Organization</Button>
+          </div>
           ) : (
-            organization && tree && (
-              isMobile ? (
-                <div className="w-full max-w-2xl mx-auto"><AnimatePresence>{renderVerticalTree(tree)}</AnimatePresence></div>
-              ) : (
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", minHeight: chartHeight, width: "100%" }}>
-                  <div style={{ position: "relative", width: chartWidth, height: chartHeight }}>
-                    <AnimatePresence>{chartLines}</AnimatePresence>
-                    <AnimatePresence>{chartNodes}</AnimatePresence>
-                  </div>
+          organization && tree && (
+            isMobile ? (
+              <div className="w-full max-w-2xl mx-auto"><AnimatePresence>{renderVerticalTree(tree)}</AnimatePresence></div>
+            ) : (
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", minHeight: chartHeight, width: "100%" }}>
+                <div style={{ position: "relative", width: chartWidth, height: chartHeight }}>
+                  <AnimatePresence>{chartLines}</AnimatePresence>
+                  <AnimatePresence>{chartNodes}</AnimatePresence>
                 </div>
+              </div>
               )
             )
           )}

@@ -2290,5 +2290,29 @@
     "role": "assistant",
     "content": "Alam, who is the Head of Department (HOD) for the Finance department, has the following payroll details:\n\n- **Base Salary:** $40,000\n- **Bonus:** $20,000\n- **Stock Options:** $5,000\n- **Last Raise Date:** August 25, 2025\n\nThis compensation package reflects Alam's role and responsibilities within the Finance department at Disrupt.com.",
     "timestamp": "2025-08-26T08:21:55.773Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "how many employees in finance department",
+    "timestamp": "2025-08-26T11:35:25.705Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "The Finance department at Disrupt.com currently has two employees listed in the provided data:\n\n1. **Alam** - Head of Department (HOD)\n2. **llfslfl33** - Team Lead\n\nThese roles indicate a small team structure within the Finance department.",
+    "timestamp": "2025-08-26T11:35:25.705Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "and web dev?",
+    "timestamp": "2025-08-26T11:35:48.438Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "The Web Development department at Disrupt.com currently has one employee listed in the provided data:\n\n1. **Khan** - Head of Department (HOD)\n\nThis indicates that, based on the available data, the Web Development department is led by Khan.",
+    "timestamp": "2025-08-26T11:35:48.438Z"
   }
 ]
