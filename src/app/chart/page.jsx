@@ -16,12 +16,11 @@ import { logoutSuccess } from "@/redux/reducer/userReducer";
 import Link from "next/link";
 import OrgForm from "../components/popup-forms/orgform";
 import DeptForm from "../components/popup-forms/deptform";
-// import InvForm from "../components/popup-forms/invform";
 import Popup from "../components/popup-forms/Popup";
 import { toast, Toaster } from "react-hot-toast";
 import { getUser } from "@/redux/action/user";
 import { useHasMounted } from "@/hooks/useHasMounted";
-import { UserPlus, LogOut, FoldVertical, UnfoldVertical, Network, Building2, Workflow, ExternalLink, LayoutDashboard } from "lucide-react";
+import { UserPlus, LogOut, FoldVertical, UnfoldVertical, Network, Building2, Workflow, ExternalLink, LayoutDashboard, MoreVertical } from "lucide-react";
 import ChatbotBubble from "../components/chatbotorg/ChatbotBubble";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -99,7 +98,7 @@ function OrgBox({ children, style = {}, className = "", highlight = "", isMobile
   );
 }
 
-function OrganizationInfoBox({ organization, isMobile, collapsed, onCollapseChange, onAddClick }) {
+function OrganizationInfoBox({ organization, isMobile, collapsed, onCollapseChange }) {
   return (
     <OrgBox highlight="org" isMobile={isMobile}>
       <div className="flex items-center mb-2">
@@ -118,17 +117,16 @@ function OrganizationInfoBox({ organization, isMobile, collapsed, onCollapseChan
           <div className="text-xs text-gray-500 truncate">{organization.industry}</div>
         </div>
       </div>
-      <div className="flex justify-between gap-2 mt-auto pt-2">
+      <div className="flex justify-center gap-2 mt-auto pt-2">
         <Button size="sm" variant="outline" onClick={onCollapseChange} className="flex items-center text-xs px-2 py-1 border-teal-200 text-teal-700 hover:bg-teal-50" type="button">
           <ChevronIcon up={!collapsed} />{collapsed ? "Expand" : "Collapse"}
         </Button>
-        <Button size="sm" variant="outline" className="text-xs px-2 py-1 border-teal-200 text-teal-700 hover:bg-teal-50" onClick={onAddClick} type="button">+ Add</Button>
       </div>
     </OrgBox>
   );
 }
 
-function DepartmentBox({ organization, department, collapsed, onCollapseChange, onAddClick, isMobile }) {
+function DepartmentBox({ organization, department, collapsed, onCollapseChange, isMobile }) {
   return (
     <OrgBox highlight="deptbox" isMobile={isMobile}>
       <div className="flex items-center mb-2">
@@ -141,11 +139,10 @@ function DepartmentBox({ organization, department, collapsed, onCollapseChange, 
           <div className="text-xs text-gray-500 truncate">{organization.name}</div>
         </div>
       </div>
-      <div className="flex justify-between gap-2 mt-auto pt-2">
+      <div className="flex justify-center gap-2 mt-auto pt-2">
         <Button size="sm" variant="outline" onClick={onCollapseChange} className="flex items-center text-xs px-2 py-1 border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer" type="button">
           <ChevronIcon up={!collapsed} />{collapsed ? "Expand" : "Collapse"}
         </Button>
-        <Button size="sm" variant="outline" className="text-xs px-2 py-1 border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer" onClick={onAddClick} type="button">+ Add</Button>
       </div>
     </OrgBox>
   );
@@ -155,6 +152,7 @@ export default function ChartPage() {
   const dispatch = useDispatch();
   const router = useRouter();
   const chartRef = useRef(null);
+  const menuRef = useRef(null);
   const hasMounted = useHasMounted();
   const windowSize = useWindowSize();
 
@@ -175,6 +173,7 @@ export default function ChartPage() {
   const [deptFormOpen, setDeptFormOpen] = useState(false);
   const [invFormOpen, setInvFormOpen] = useState(false);
   const [scrollToNodeId, setScrollToNodeId] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!hasMounted) return;
@@ -208,26 +207,33 @@ export default function ChartPage() {
     }
   }, [departments]);
 
-  // Filter employees to only show those with assigned roles and departments
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const assignedEmployees = employees?.filter(emp => emp.role !== "Unassigned" && emp.department) || [];
 
-  // Get subfunction members from both employees and legacy team members
   const getSubfunctionMembers = (deptId, sfIndex, role = null) => {
-    // Get from current employees system
     const employeeMembers = assignedEmployees.filter(emp =>
       emp.department?._id === deptId &&
       emp.subfunctionIndex === sfIndex &&
       (role ? emp.role === role : true)
     );
 
-    // Get from legacy team members system
     const legacyMembers = teammembers?.filter(tm =>
       tm.department === deptId &&
       tm.subfunctionIndex === sfIndex &&
       (role ? tm.role === role : true)
     ) || [];
 
-    // Combine both sources
     return [...employeeMembers, ...legacyMembers];
   };
   const getSubfunctionKey = (deptId, sfIndex) => `${deptId}__${sfIndex}`;
@@ -256,7 +262,7 @@ export default function ChartPage() {
     const orgRootNode = {
       id: "organization_root",
       type: "org",
-      box: (isMobile) => <OrganizationInfoBox organization={organization} isMobile={isMobile} collapsed={orgCollapsed} onCollapseChange={() => { setOrgCollapsed(c => !c); setScrollToNodeId('organization_root'); }} onAddClick={() => setDeptFormOpen(true)} />,
+      box: (isMobile) => <OrganizationInfoBox organization={organization} isMobile={isMobile} collapsed={orgCollapsed} onCollapseChange={() => { setOrgCollapsed(c => !c); setScrollToNodeId('organization_root'); }} />,
       children: [],
       expanded: !orgCollapsed,
     };
@@ -276,11 +282,10 @@ export default function ChartPage() {
               <div className="text-xs text-gray-500 truncate">{organization.name}</div>
             </div>
           </div>
-          <div className="flex justify-between gap-2 mt-auto pt-2">
+          <div className="flex justify-center gap-2 mt-auto pt-2">
             <Button size="sm" variant="outline" onClick={() => { setCeoCollapsed(c => !c); setScrollToNodeId('ceo'); }} className="flex items-center text-xs px-2 py-1 border-blue-200 text-blue-600 hover:bg-blue-50" type="button">
               <ChevronIcon up={!ceoCollapsed} />{ceoCollapsed ? "Expand" : "Collapse"}
             </Button>
-            {organization && <Button size="sm" variant="outline" className="text-xs px-2 py-1 border-blue-200 text-blue-600 hover:bg-blue-50" onClick={() => setDeptFormOpen(true)} type="button">+ Add</Button>}
           </div>
         </OrgBox>
       ),
@@ -295,12 +300,11 @@ export default function ChartPage() {
         const deptBoxNode = {
           id: `${department._id}_deptbox`,
           type: "deptbox",
-          box: (isMobile) => <DepartmentBox organization={organization} department={department} collapsed={deptBoxCollapsed[department._id]} onCollapseChange={() => { setDeptBoxCollapsed(p => ({ ...p, [department._id]: !p[department._id] })); setScrollToNodeId(`${department._id}_deptbox`); }} onAddClick={() => setDeptFormOpen(true)} isMobile={isMobile} />,
+          box: (isMobile) => <DepartmentBox organization={organization} department={department} collapsed={deptBoxCollapsed[department._id]} onCollapseChange={() => { setDeptBoxCollapsed(p => ({ ...p, [department._id]: !p[department._id] })); setScrollToNodeId(`${department._id}_deptbox`); }} isMobile={isMobile} />,
           children: [],
           expanded: !deptBoxCollapsed[department._id],
         };
 
-        // Find HOD for this department
         const hodEmployee = assignedEmployees.find(emp => emp.department?._id === department._id && emp.role === "HOD");
 
         const hodNode = hodEmployee ? {
@@ -318,7 +322,7 @@ export default function ChartPage() {
                   <div className="text-xs text-gray-500 truncate">{department.departmentName}</div>
                 </div>
               </div>
-              <div className="flex justify-between gap-2 mt-auto pt-2">
+              <div className="flex justify-center gap-2 mt-auto pt-2">
                 <Button size="sm" variant="outline" onClick={() => { setDeptCollapsed(p => ({ ...p, [department._id]: !p[department._id] })); setScrollToNodeId(department._id); }} className="flex items-center text-xs px-2 py-1 border-green-200 text-green-600 hover:bg-green-50" type="button">
                   <ChevronIcon up={!deptCollapsed[department._id]} />{deptCollapsed[department._id] ? "Expand" : "Collapse"}
                 </Button>
@@ -329,130 +333,11 @@ export default function ChartPage() {
           expanded: !deptCollapsed[department._id],
         } : null;
 
-          // Assign children to department based on HOD presence
-          if (!deptBoxCollapsed[department._id]) {
-            if (hodNode) {
-              // If HOD exists, HOD goes under department, subfunctions under HOD
-              deptBoxNode.children = [hodNode];
-              if (department.subfunctions?.length > 0) {
-                hodNode.children = department.subfunctions.map((sf, sfIndex) => {
-                  const subfunctionKey = getSubfunctionKey(department._id, sfIndex);
-                  const teamLeads = getSubfunctionMembers(department._id, sfIndex, "Team Lead");
-                  const teamMembers = getSubfunctionMembers(department._id, sfIndex, "Team Member");
-
-                  // Debug logging
-                  console.log(`Subfunction ${sf.name} (${sfIndex}):`, {
-                    teamLeads: teamLeads.length,
-                    teamMembers: teamMembers.length,
-                    allEmployeesForDept: assignedEmployees.filter(emp => emp.department?._id === department._id).map(emp => ({
-                      name: emp.name,
-                      role: emp.role,
-                      subfunctionIndex: emp.subfunctionIndex
-                    }))
-                  });
-
-                  const sfNode = {
-              id: `${department._id}_sfBox_${sfIndex}`,
-              type: "subfunction",
-              box: (isMobile) => (
-                <OrgBox highlight="subfunction" isMobile={isMobile}>
-                  <div className="flex items-center mb-2">
-                    <div className="flex-shrink-0 mr-3"><div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-100"><Workflow className="h-6 w-6 text-violet-600" /></div></div>
-                    <div className="flex-1 min-w-0">
-                      <HoverLink href={`/chart/subfunction/${department._id}/${sfIndex}`} className="font-bold text-gray-800 hover:text-violet-600">{sf.name}</HoverLink>
-                      <div className="text-xs text-violet-600 font-semibold">Sub-Function</div>
-                      <div className="text-xs text-gray-500 truncate">{department.departmentName}</div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between gap-2 mt-auto pt-2">
-                    <Button size="sm" variant="outline" onClick={() => setSubfunctionCollapsed(p => ({ ...p, [subfunctionKey]: !p[subfunctionKey] }))} className="flex items-center text-xs px-2 py-1 border-violet-200 text-violet-700 hover:bg-violet-50" type="button">
-                      <ChevronIcon up={!subfunctionCollapsed[subfunctionKey]} />{subfunctionCollapsed[subfunctionKey] ? "Expand" : "Collapse"}
-                    </Button>
-                    {/* <Button size="sm" variant="outline" className="text-xs px-2 py-1 border-violet-200 text-violet-700 hover:bg-violet-50" onClick={() => setInvFormOpen(true)} type="button">+ Add</Button> */}
-                  </div>
-                </OrgBox>
-              ),
-              children: [],
-              expanded: !subfunctionCollapsed[subfunctionKey],
-            };
-
-            if (!subfunctionCollapsed[subfunctionKey] && (teamLeads.length > 0 || teamMembers.length > 0)) {
-              // Create nodes for all team leads
-              const teamLeadNodes = teamLeads.map((tl, tlIndex) => ({
-                id: `${department._id}_sf_${sfIndex}_tl_${tlIndex}`,
-                type: "tl",
-                box: (isMobile) => (
-                  <OrgBox highlight="tl" isMobile={isMobile}>
-                    <div className="flex items-center mb-2">
-                      <div className="flex-shrink-0 mr-3">
-                        {tl.pic ? (
-                          <img src={tl.pic} alt={tl.name} className="w-11 h-11 rounded-full object-cover border-2 border-orange-200" />
-                        ) : (
-                          <div className="w-11 h-11 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-sm">TL</div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <HoverLink href={`/chart/employee/${tl._id}`} className="font-bold text-gray-800 hover:text-orange-600">{tl.name}</HoverLink>
-                        <div className="text-xs text-orange-600 font-semibold">Team Lead</div>
-                        <div className="text-xs text-gray-500 truncate">{sf.name}</div>
-                      </div>
-                    </div>
-                  </OrgBox>
-                ),
-                children: [],
-                expanded: true,
-              }));
-
-              // Team leads will be added directly to subfunction without container
-
-              // Add team members and team leads directly to subfunction
-              const allNodes = [];
-
-              // Add team leads first
-              if (teamLeads.length > 0) {
-                allNodes.push(...teamLeadNodes);
-              }
-
-              // Add team members
-              if (teamMembers.length > 0) {
-                const teamMemberNodes = teamMembers.map((tm) => ({
-                  id: tm._id,
-                  type: "member",
-                  box: (isMobile) => (
-                    <OrgBox isMobile={isMobile}>
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 mr-3">
-                          {tm.pic ? (
-                            <img src={tm.pic} alt={tm.name} className="w-11 h-11 rounded-full object-cover border-2 border-slate-200" />
-                          ) : (
-                            <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">TM</div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <HoverLink href={`/chart/employee/${tm._id}`} className="font-bold text-gray-800 hover:text-slate-600">{tm.name}</HoverLink>
-                          <div className="text-xs text-slate-600 font-semibold">Team Member</div>
-                          <div className="text-xs text-gray-500 truncate">{sf.name}</div>
-                        </div>
-                      </div>
-                    </OrgBox>
-                  ),
-                  children: [],
-                  expanded: true,
-                }));
-                allNodes.push(...teamMemberNodes);
-              }
-
-              // Set all nodes directly under subfunction
-              if (allNodes.length > 0) {
-                sfNode.children = allNodes;
-              }
-            }
-                  return sfNode;
-                });
-              }
-            } else if (department.subfunctions?.length > 0) {
-              // If no HOD, subfunctions go directly under department
-              deptBoxNode.children = department.subfunctions.map((sf, sfIndex) => {
+        if (!deptBoxCollapsed[department._id]) {
+          if (hodNode) {
+            deptBoxNode.children = [hodNode];
+            if (department.subfunctions?.length > 0) {
+              hodNode.children = department.subfunctions.map((sf, sfIndex) => {
                 const subfunctionKey = getSubfunctionKey(department._id, sfIndex);
                 const teamLeads = getSubfunctionMembers(department._id, sfIndex, "Team Lead");
                 const teamMembers = getSubfunctionMembers(department._id, sfIndex, "Team Member");
@@ -470,11 +355,10 @@ export default function ChartPage() {
                           <div className="text-xs text-gray-500 truncate">{department.departmentName}</div>
                         </div>
                       </div>
-                      <div className="flex justify-between gap-2 mt-auto pt-2">
+                      <div className="flex justify-center gap-2 mt-auto pt-2">
                         <Button size="sm" variant="outline" onClick={() => setSubfunctionCollapsed(p => ({ ...p, [subfunctionKey]: !p[subfunctionKey] }))} className="flex items-center text-xs px-2 py-1 border-violet-200 text-violet-700 hover:bg-violet-50" type="button">
                           <ChevronIcon up={!subfunctionCollapsed[subfunctionKey]} />{subfunctionCollapsed[subfunctionKey] ? "Expand" : "Collapse"}
                         </Button>
-                        {/* <Button size="sm" variant="outline" className="text-xs px-2 py-1 border-violet-200 text-violet-700 hover:bg-violet-50" onClick={() => setInvFormOpen(true)} type="button">+ Add</Button> */}
                       </div>
                     </OrgBox>
                   ),
@@ -482,9 +366,7 @@ export default function ChartPage() {
                   expanded: !subfunctionCollapsed[subfunctionKey],
                 };
 
-                // Apply the same simplified team lead and member logic as the HOD case
                 if (!subfunctionCollapsed[subfunctionKey] && (teamLeads.length > 0 || teamMembers.length > 0)) {
-                  // Create nodes for all team leads
                   const teamLeadNodes = teamLeads.map((tl, tlIndex) => ({
                     id: `${department._id}_sf_${sfIndex}_tl_${tlIndex}`,
                     type: "tl",
@@ -510,22 +392,19 @@ export default function ChartPage() {
                     expanded: true,
                   }));
 
-                  // Add team members and team leads directly to subfunction
                   const allNodes = [];
 
-                  // Add team leads first
                   if (teamLeads.length > 0) {
                     allNodes.push(...teamLeadNodes);
                   }
 
-                  // Add team members
                   if (teamMembers.length > 0) {
                     const teamMemberNodes = teamMembers.map((tm) => ({
                       id: tm._id,
                       type: "member",
                       box: (isMobile) => (
                         <OrgBox isMobile={isMobile}>
-                          <div className="flex items-center mb-2">
+                          <div className="flex items-center">
                             <div className="flex-shrink-0 mr-3">
                               {tm.pic ? (
                                 <img src={tm.pic} alt={tm.name} className="w-11 h-11 rounded-full object-cover border-2 border-slate-200" />
@@ -547,16 +426,112 @@ export default function ChartPage() {
                     allNodes.push(...teamMemberNodes);
                   }
 
-                  // Set all nodes directly under subfunction
                   if (allNodes.length > 0) {
                     sfNode.children = allNodes;
                   }
                 }
-
                 return sfNode;
               });
             }
+          } else if (department.subfunctions?.length > 0) {
+            deptBoxNode.children = department.subfunctions.map((sf, sfIndex) => {
+              const subfunctionKey = getSubfunctionKey(department._id, sfIndex);
+              const teamLeads = getSubfunctionMembers(department._id, sfIndex, "Team Lead");
+              const teamMembers = getSubfunctionMembers(department._id, sfIndex, "Team Member");
+
+              const sfNode = {
+                id: `${department._id}_sfBox_${sfIndex}`,
+                type: "subfunction",
+                box: (isMobile) => (
+                  <OrgBox highlight="subfunction" isMobile={isMobile}>
+                    <div className="flex items-center mb-2">
+                      <div className="flex-shrink-0 mr-3"><div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-100"><Workflow className="h-6 w-6 text-violet-600" /></div></div>
+                      <div className="flex-1 min-w-0">
+                        <HoverLink href={`/chart/subfunction/${department._id}/${sfIndex}`} className="font-bold text-gray-800 hover:text-violet-600">{sf.name}</HoverLink>
+                        <div className="text-xs text-violet-600 font-semibold">Sub-Function</div>
+                        <div className="text-xs text-gray-500 truncate">{department.departmentName}</div>
+                      </div>
+                    </div>
+                    <div className="flex justify-center gap-2 mt-auto pt-2">
+                      <Button size="sm" variant="outline" onClick={() => setSubfunctionCollapsed(p => ({ ...p, [subfunctionKey]: !p[subfunctionKey] }))} className="flex items-center text-xs px-2 py-1 border-violet-200 text-violet-700 hover:bg-violet-50" type="button">
+                        <ChevronIcon up={!subfunctionCollapsed[subfunctionKey]} />{subfunctionCollapsed[subfunctionKey] ? "Expand" : "Collapse"}
+                      </Button>
+                    </div>
+                  </OrgBox>
+                ),
+                children: [],
+                expanded: !subfunctionCollapsed[subfunctionKey],
+              };
+
+              if (!subfunctionCollapsed[subfunctionKey] && (teamLeads.length > 0 || teamMembers.length > 0)) {
+                const teamLeadNodes = teamLeads.map((tl, tlIndex) => ({
+                  id: `${department._id}_sf_${sfIndex}_tl_${tlIndex}`,
+                  type: "tl",
+                  box: (isMobile) => (
+                    <OrgBox highlight="tl" isMobile={isMobile}>
+                      <div className="flex items-center mb-2">
+                        <div className="flex-shrink-0 mr-3">
+                          {tl.pic ? (
+                            <img src={tl.pic} alt={tl.name} className="w-11 h-11 rounded-full object-cover border-2 border-orange-200" />
+                          ) : (
+                            <div className="w-11 h-11 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-sm">TL</div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <HoverLink href={`/chart/employee/${tl._id}`} className="font-bold text-gray-800 hover:text-orange-600">{tl.name}</HoverLink>
+                          <div className="text-xs text-orange-600 font-semibold">Team Lead</div>
+                          <div className="text-xs text-gray-500 truncate">{sf.name}</div>
+                        </div>
+                      </div>
+                    </OrgBox>
+                  ),
+                  children: [],
+                  expanded: true,
+                }));
+
+                const allNodes = [];
+
+                if (teamLeads.length > 0) {
+                  allNodes.push(...teamLeadNodes);
+                }
+
+                if (teamMembers.length > 0) {
+                  const teamMemberNodes = teamMembers.map((tm) => ({
+                    id: tm._id,
+                    type: "member",
+                    box: (isMobile) => (
+                      <OrgBox isMobile={isMobile}>
+                        <div className="flex items-center mb-2">
+                          <div className="flex-shrink-0 mr-3">
+                            {tm.pic ? (
+                              <img src={tm.pic} alt={tm.name} className="w-11 h-11 rounded-full object-cover border-2 border-slate-200" />
+                            ) : (
+                              <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">TM</div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <HoverLink href={`/chart/employee/${tm._id}`} className="font-bold text-gray-800 hover:text-slate-600">{tm.name}</HoverLink>
+                            <div className="text-xs text-slate-600 font-semibold">Team Member</div>
+                            <div className="text-xs text-gray-500 truncate">{sf.name}</div>
+                          </div>
+                        </div>
+                      </OrgBox>
+                    ),
+                    children: [],
+                    expanded: true,
+                  }));
+                  allNodes.push(...teamMemberNodes);
+                }
+
+                if (allNodes.length > 0) {
+                  sfNode.children = allNodes;
+                }
+              }
+
+              return sfNode;
+            });
           }
+        }
 
         return deptBoxNode;
       });
@@ -689,41 +664,69 @@ export default function ChartPage() {
       <Toaster position="top-right" toastOptions={{ style: { background: '#333', color: '#fff' } }} />
       <div className="fixed top-0 left-0 w-full z-50 border-b border-gray-200 shadow-sm bg-gradient-to-br from-gray-50 to-gray-100 backdrop-blur-sm">
         <div className="flex flex-row justify-between items-center gap-4 max-w-full px-2 sm:px-6 py-4">
-          <div className="flex-1 flex items-center min-w-0">
-            <h1 className="hidden sm:block text-2xl font-bold text-gray-800">Organizational Chart</h1>
-            <span className="block sm:hidden text-lg font-bold text-gray-800">OrgChart</span>
+          <div className="flex flex-1 items-center">
+            <span className="block truncate text-lg font-bold text-gray-800 sm:hidden">Organizational Chart</span>
+            <h1 className="hidden text-2xl font-bold text-gray-800 sm:block">Organizational Chart</h1>
           </div>
-          <div className="flex flex-wrap items-center gap-1 sm:gap-3">
-            {organization && (
-              <>
-                <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} onClick={isFullyExpanded ? handleCollapseAll : handleExpandAll} type="button">
-                  {isFullyExpanded ? <FoldVertical className="text-black w-5 h-5" /> : <UnfoldVertical className="text-black w-5 h-5" />}
-                  <span className="hidden sm:inline text-base ml-2">{isFullyExpanded ? "Collapse All" : "Expand All"}</span>
-                </Button>
-                <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} onClick={() => setDeptFormOpen(true)} type="button">
-                  <Building2 className="w-6 h-6 text-black" />
-                  <span className="hidden sm:inline text-base ml-2">Add Department(s)</span>
-                </Button>
-              </>
-            )}
-            {/* {hasDepartments && (
-              <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} onClick={() => setInvFormOpen(true)} type="button">
-                <UserPlus className="w-6 h-6 text-black" />
-                <span className="hidden sm:inline text-base ml-2">Invite Employee(s)</span>
+          <div className="relative" ref={menuRef}>
+            <div className="flex flex-wrap items-center gap-1 sm:gap-3 sm:hidden">
+              <Button variant="outline" size="sm" onClick={() => setIsMenuOpen(!isMenuOpen)} className="shadow-sm flex items-center text-black px-2 cursor-pointer">
+                <MoreVertical className="w-5 h-5" />
               </Button>
-            )} */}
-            {organization && (
-              <Link href="/dashboard">
-                <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} type="button">
-                  <LayoutDashboard className="w-6 h-6 text-black" />
-                  <span className="hidden sm:inline text-base ml-2">Dashboard</span>
-                </Button>
-              </Link>
+            </div>
+            <div className="hidden sm:flex flex-wrap items-center gap-1 sm:gap-3">
+              {organization && (
+                <>
+                  <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} onClick={isFullyExpanded ? handleCollapseAll : handleExpandAll} type="button">
+                    {isFullyExpanded ? <FoldVertical className="text-black w-5 h-5" /> : <UnfoldVertical className="text-black w-5 h-5" />}
+                    <span className="text-base ml-2">{isFullyExpanded ? "Collapse All" : "Expand All"}</span>
+                  </Button>
+                  <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} onClick={() => setDeptFormOpen(true)} type="button">
+                    <Building2 className="w-6 h-6 text-black" />
+                    <span className="text-base ml-2">Add Department(s)</span>
+                  </Button>
+                </>
+              )}
+              {organization && (
+                <Link href="/dashboard">
+                  <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} type="button">
+                    <LayoutDashboard className="w-6 h-6 text-black" />
+                    <span className="text-base ml-2">Dashboard</span>
+                  </Button>
+                </Link>
+              )}
+              <Button variant="destructive" size="sm" onClick={logoutHandler} className={`shadow-sm flex items-center bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700 ${navbarFont} px-2 cursor-pointer`} style={{ color: "#fff" }}>
+                <LogOut className="w-6 h-6" color="#fff" />
+                <span className="text-base ml-2" style={{ color: "#fff" }}>Logout</span>
+              </Button>
+            </div>
+            {isMenuOpen && isMobile && (
+              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
+                <div className="py-1">
+                  {organization && (
+                    <>
+                      <Button variant="ghost" size="sm" className={`w-full justify-start text-black ${navbarFont} px-4 py-2`} onClick={() => { handleExpandAll(); setIsMenuOpen(false); }} type="button">
+                        <UnfoldVertical className="w-5 h-5 mr-2" />Expand All
+                      </Button>
+                      <Button variant="ghost" size="sm" className={`w-full justify-start text-black ${navbarFont} px-4 py-2`} onClick={() => { handleCollapseAll(); setIsMenuOpen(false); }} type="button">
+                        <FoldVertical className="w-5 h-5 mr-2" />Collapse All
+                      </Button>
+                      <Button variant="ghost" size="sm" className={`w-full justify-start text-black ${navbarFont} px-4 py-2`} onClick={() => { setDeptFormOpen(true); setIsMenuOpen(false); }} type="button">
+                        <Building2 className="w-6 h-6 mr-2" />Add Department(s)
+                      </Button>
+                      <Link href="/dashboard" className="block">
+                        <Button variant="ghost" size="sm" className={`w-full justify-start text-black ${navbarFont} px-4 py-2`} onClick={() => setIsMenuOpen(false)} type="button">
+                          <LayoutDashboard className="w-6 h-6 mr-2" />Dashboard
+                        </Button>
+                      </Link>
+                    </>
+                  )}
+                  <Button variant="ghost" size="sm" onClick={logoutHandler} className={`w-full justify-start text-red-600 ${navbarFont} px-4 py-2`} type="button">
+                    <LogOut className="w-6 h-6 mr-2" />Logout
+                  </Button>
+                </div>
+              </motion.div>
             )}
-            <Button variant="destructive" size="sm" onClick={logoutHandler} className={`shadow-sm flex items-center bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700 ${navbarFont} px-2 cursor-pointer`} style={{ color: "#fff" }}>
-              <LogOut className="w-6 h-6" color="#fff" />
-              <span className="hidden sm:inline text-base ml-2" style={{ color: "#fff" }}>Logout</span>
-            </Button>
           </div>
         </div>
       </div>
@@ -753,7 +756,6 @@ export default function ChartPage() {
       </main>
       <Popup open={orgFormOpen} onClose={() => setOrgFormOpen(false)}><OrgForm onClose={() => setOrgFormOpen(false)} /></Popup>
       <Popup open={deptFormOpen} onClose={handleDeptFormClose}><DeptForm onClose={handleDeptFormClose} /></Popup>
-      {/* <Popup open={invFormOpen} onClose={handleInvFormClose} width="max-w-3xl"><InvForm onClose={handleInvFormClose} /></Popup> */}
       <ChatbotBubble />
     </>
   );

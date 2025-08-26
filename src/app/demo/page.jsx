@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { orgData, allemployees, departmentsDemoData } from "../../../data/data";
 import { Button } from "@/components/ui/button";
-import { Network, Loader2, Building2, ExternalLink, FoldVertical, UnfoldVertical } from "lucide-react";
+import { Network, Loader2, Building2, ExternalLink, FoldVertical, UnfoldVertical, MoreVertical } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import ChatbotBubble from "../components/chatbot/ChatbotBubble";
@@ -131,8 +131,10 @@ export default function OrgChartDemoStyledLikeOrgChart() {
   const [ceoCollapsed, setCeoCollapsed] = useState(false);
   const [deptCollapsed, setDeptCollapsed] = useState({});
   const [scrollToNodeId, setScrollToNodeId] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const windowSize = useWindowSize();
   const chartContainerRef = useRef(null);
+  const menuRef = useRef(null);
   const companyInfo = orgData[0];
 
   const handleExpandAll = () => {
@@ -277,6 +279,18 @@ export default function OrgChartDemoStyledLikeOrgChart() {
     setScrollToNodeId('organization_root');
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const tree = !loading ? buildChartTree() : null;
   const isMobile = windowSize.width < MOBILE_BREAKPOINT;
 
@@ -407,18 +421,40 @@ export default function OrgChartDemoStyledLikeOrgChart() {
       <div className="fixed top-0 left-0 z-50 w-full border-b border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm backdrop-blur-sm">
         <div className="mx-auto flex max-w-full flex-row items-center justify-between gap-4 px-2 py-4 sm:px-6">
           <div className="flex flex-1 items-center">
-            <span className="block truncate text-lg font-bold text-gray-800 sm:hidden">DemoChart</span>
+            <span className="block truncate text-lg font-bold text-gray-800 sm:hidden">Demo Organizational Chart</span>
             <h1 className="hidden text-2xl font-bold text-gray-800 sm:block">Demo Organizational Chart</h1>
           </div>
-          <div className="flex flex-wrap items-center gap-1 sm:gap-3">
-            <Button variant="outline" size="sm" className={`flex cursor-pointer items-center px-2 text-black shadow-sm ${navbarFont}`} onClick={isFullyExpanded ? handleCollapseAll : handleExpandAll} type="button">
-              {isFullyExpanded ? <FoldVertical className="h-5 w-5 text-black" /> : <UnfoldVertical className="h-5 w-5 text-black" />}
-              <span className="hidden sm:inline text-base ml-2">{isFullyExpanded ? "Collapse All" : "Expand All"}</span>
-            </Button>
-            <Button variant="outline" size="sm" className={`flex cursor-pointer items-center px-2 text-black shadow-sm ${navbarFont}`} type="button" onClick={() => router.push("/signup")}>
-              <Network className="h-6 w-6 text-black" />
-              <span className="sm:inline text-base ml-2">Create Org Chart</span>
-            </Button>
+          <div className="relative" ref={menuRef}>
+            <div className="flex flex-wrap items-center gap-1 sm:gap-3 sm:hidden">
+              <Button variant="outline" size="sm" onClick={() => setIsMenuOpen(!isMenuOpen)} className="shadow-sm flex items-center text-black px-2 cursor-pointer">
+                <MoreVertical className="w-5 h-5" />
+              </Button>
+            </div>
+            <div className="hidden sm:flex flex-wrap items-center gap-1 sm:gap-3">
+              <Button variant="outline" size="sm" className={`flex cursor-pointer items-center px-2 text-black shadow-sm ${navbarFont}`} onClick={isFullyExpanded ? handleCollapseAll : handleExpandAll} type="button">
+                {isFullyExpanded ? <FoldVertical className="h-5 w-5 text-black" /> : <UnfoldVertical className="h-5 w-5 text-black" />}
+                <span className="hidden sm:inline text-base ml-2">{isFullyExpanded ? "Collapse All" : "Expand All"}</span>
+              </Button>
+              <Button variant="outline" size="sm" className={`flex cursor-pointer items-center px-2 text-black shadow-sm ${navbarFont}`} type="button" onClick={() => router.push("/signup")}>
+                <Network className="h-6 w-6 text-black" />
+                <span className="sm:inline text-base ml-2">Create Your Org Chart</span>
+              </Button>
+            </div>
+            {isMenuOpen && isMobile && (
+              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
+                <div className="py-1">
+                  <Button variant="ghost" size="sm" className={`w-full justify-start text-black ${navbarFont} px-4 py-2`} onClick={() => { handleExpandAll(); setIsMenuOpen(false); }} type="button">
+                    <UnfoldVertical className="w-5 h-5 mr-2" />Expand All
+                  </Button>
+                  <Button variant="ghost" size="sm" className={`w-full justify-start text-black ${navbarFont} px-4 py-2`} onClick={() => { handleCollapseAll(); setIsMenuOpen(false); }} type="button">
+                    <FoldVertical className="w-5 h-5 mr-2" />Collapse All
+                  </Button>
+                  <Button variant="ghost" size="sm" className={`w-full justify-start text-black ${navbarFont} px-4 py-2`} onClick={() => { router.push("/signup"); setIsMenuOpen(false); }} type="button">
+                    <Network className="w-6 h-6 mr-2" />Create Your Org Chart
+                  </Button>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
