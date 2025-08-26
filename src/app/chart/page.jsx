@@ -5,17 +5,18 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getOrganization } from "@/redux/action/org";
 import { getDepartments } from "@/redux/action/departments";
+import { getEmployees } from "@/redux/action/employees";
 import { getTeammembers } from "@/redux/action/teammembers";
 import { clearMessage as clearOrgMessage } from "@/redux/reducer/orgReducer";
 import { clearMessage as clearDeptMessage } from "@/redux/reducer/departmentsReducer";
-import { clearMessage as clearTeamMessage } from "@/redux/reducer/teammembersReducer";
+import { clearEmployeesMessage } from "@/redux/action/employees";
 import { Button } from "@/components/ui/button";
 import Cookies from "js-cookie";
 import { logoutSuccess } from "@/redux/reducer/userReducer";
 import Link from "next/link";
 import OrgForm from "../components/popup-forms/orgform";
 import DeptForm from "../components/popup-forms/deptform";
-import InvForm from "../components/popup-forms/invform";
+// import InvForm from "../components/popup-forms/invform";
 import Popup from "../components/popup-forms/Popup";
 import { toast, Toaster } from "react-hot-toast";
 import { getUser } from "@/redux/action/user";
@@ -160,7 +161,8 @@ export default function ChartPage() {
   const { isAuth } = useSelector((state) => state.user);
   const { organization, loading: orgLoading, loaded: orgLoaded } = useSelector((state) => state.organization);
   const { departments, message: deptMsg } = useSelector((state) => state.departments);
-  const { teammembers, message: teamMsg } = useSelector((state) => state.teammembers);
+  const { employees, message: empMsg } = useSelector((state) => state.employees);
+  const { teammembers } = useSelector((state) => state.teammembers);
   const { message: orgMsg } = useSelector((state) => state.organization);
 
   const [orgCollapsed, setOrgCollapsed] = useState(false);
@@ -168,7 +170,7 @@ export default function ChartPage() {
   const [deptBoxCollapsed, setDeptBoxCollapsed] = useState({});
   const [deptCollapsed, setDeptCollapsed] = useState({});
   const [subfunctionCollapsed, setSubfunctionCollapsed] = useState({});
-  const [teamLeadCollapsed, setTeamLeadCollapsed] = useState({});
+
   const [orgFormOpen, setOrgFormOpen] = useState(false);
   const [deptFormOpen, setDeptFormOpen] = useState(false);
   const [invFormOpen, setInvFormOpen] = useState(false);
@@ -183,9 +185,15 @@ export default function ChartPage() {
 
   useEffect(() => { if (orgMsg) { toast.success(orgMsg); dispatch(clearOrgMessage()); dispatch(getOrganization()); } }, [orgMsg, dispatch]);
   useEffect(() => { if (deptMsg) { toast.success(deptMsg); if (organization?._id) dispatch(getDepartments({ organizationId: organization._id })); dispatch(clearDeptMessage()); } }, [deptMsg, organization, dispatch]);
-  useEffect(() => { if (teamMsg) { toast.success(teamMsg); if (organization?._id) dispatch(getTeammembers({ organizationId: organization._id })); dispatch(clearTeamMessage()); } }, [teamMsg, organization, dispatch]);
+  useEffect(() => { if (empMsg) { toast.success(empMsg); dispatch(getEmployees()); dispatch(clearEmployeesMessage()); } }, [empMsg, dispatch]);
   useEffect(() => { if (isAuth && !organization && !orgLoading && !orgLoaded) dispatch(getOrganization()); }, [isAuth, organization, orgLoading, orgLoaded, dispatch]);
-  useEffect(() => { if (organization?._id) { dispatch(getDepartments({ organizationId: organization._id })); dispatch(getTeammembers({ organizationId: organization._id })); } }, [dispatch, organization]);
+  useEffect(() => {
+    if (organization?._id) {
+      dispatch(getDepartments({ organizationId: organization._id }));
+      dispatch(getEmployees());
+      dispatch(getTeammembers({ organizationId: organization._id }));
+    }
+  }, [dispatch, organization]);
 
   useEffect(() => {
     if (departments) {
@@ -200,11 +208,31 @@ export default function ChartPage() {
     }
   }, [departments]);
 
-  const filteredTeammembers = teammembers.filter((tm) => tm.invited);
-  const getSubfunctionMembers = (deptId, sfIndex, role = null) => filteredTeammembers.filter(tm => tm.department === deptId && tm.subfunctionIndex === sfIndex && (role ? tm.role === role : true));
+  // Filter employees to only show those with assigned roles and departments
+  const assignedEmployees = employees?.filter(emp => emp.role !== "Unassigned" && emp.department) || [];
+
+  // Get subfunction members from both employees and legacy team members
+  const getSubfunctionMembers = (deptId, sfIndex, role = null) => {
+    // Get from current employees system
+    const employeeMembers = assignedEmployees.filter(emp =>
+      emp.department?._id === deptId &&
+      emp.subfunctionIndex === sfIndex &&
+      (role ? emp.role === role : true)
+    );
+
+    // Get from legacy team members system
+    const legacyMembers = teammembers?.filter(tm =>
+      tm.department === deptId &&
+      tm.subfunctionIndex === sfIndex &&
+      (role ? tm.role === role : true)
+    ) || [];
+
+    // Combine both sources
+    return [...employeeMembers, ...legacyMembers];
+  };
   const getSubfunctionKey = (deptId, sfIndex) => `${deptId}__${sfIndex}`;
   const handleDeptFormClose = () => { setDeptFormOpen(false); if (organization?._id) dispatch(getDepartments({ organizationId: organization._id })); };
-  const handleInvFormClose = () => { setInvFormOpen(false); if (organization?._id) dispatch(getTeammembers({ organizationId: organization._id })); };
+  const handleInvFormClose = () => { setInvFormOpen(false); dispatch(getEmployees()); };
 
   const handleExpandAll = () => {
     setOrgCollapsed(false);
@@ -212,7 +240,6 @@ export default function ChartPage() {
     setDeptBoxCollapsed(departments.reduce((acc, d) => ({ ...acc, [d._id]: false }), {}));
     setDeptCollapsed(departments.reduce((acc, d) => ({ ...acc, [d._id]: false }), {}));
     setSubfunctionCollapsed({});
-    setTeamLeadCollapsed({});
     setScrollToNodeId('organization_root');
   };
 
@@ -273,18 +300,21 @@ export default function ChartPage() {
           expanded: !deptBoxCollapsed[department._id],
         };
 
-        const hodNode = {
-          id: department._id,
+        // Find HOD for this department
+        const hodEmployee = assignedEmployees.find(emp => emp.department?._id === department._id && emp.role === "HOD");
+
+        const hodNode = hodEmployee ? {
+          id: `hod_${department._id}`,
           type: "dept",
           box: (isMobile) => (
             <OrgBox highlight="dept" isMobile={isMobile}>
               <div className="flex items-center mb-2">
                 <div className="flex-shrink-0 mr-3">
-                  {department.hodPic ? <img src={department.hodPic} alt={department.hodName} className="w-11 h-11 rounded-full object-cover border-2 border-green-200" /> : <div className="w-11 h-11 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm font-bold">HOD</div>}
+                  {hodEmployee.pic ? <img src={hodEmployee.pic} alt={hodEmployee.name} className="w-11 h-11 rounded-full object-cover border-2 border-green-200" /> : <div className="w-11 h-11 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm font-bold">HOD</div>}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <HoverLink href={`/chart/hod/${department._id}`} className="font-bold text-gray-800 hover:text-green-600">{department.hodName}</HoverLink>
-                  <div className="text-xs text-green-600 font-semibold">{department.role}</div>
+                  <HoverLink href={`/chart/employee/${hodEmployee._id}`} className="font-bold text-gray-800 hover:text-green-600">{hodEmployee.name}</HoverLink>
+                  <div className="text-xs text-green-600 font-semibold">{hodEmployee.role}</div>
                   <div className="text-xs text-gray-500 truncate">{department.departmentName}</div>
                 </div>
               </div>
@@ -292,22 +322,36 @@ export default function ChartPage() {
                 <Button size="sm" variant="outline" onClick={() => { setDeptCollapsed(p => ({ ...p, [department._id]: !p[department._id] })); setScrollToNodeId(department._id); }} className="flex items-center text-xs px-2 py-1 border-green-200 text-green-600 hover:bg-green-50" type="button">
                   <ChevronIcon up={!deptCollapsed[department._id]} />{deptCollapsed[department._id] ? "Expand" : "Collapse"}
                 </Button>
-                <Button size="sm" variant="outline" className="text-xs px-2 py-1 border-green-200 text-green-600 hover:bg-green-50" onClick={() => setDeptFormOpen(true)} type="button">+ Add</Button>
               </div>
             </OrgBox>
           ),
           children: [],
           expanded: !deptCollapsed[department._id],
-        };
+        } : null;
 
-        if (!deptBoxCollapsed[department._id]) deptBoxNode.children = [hodNode];
+          // Assign children to department based on HOD presence
+          if (!deptBoxCollapsed[department._id]) {
+            if (hodNode) {
+              // If HOD exists, HOD goes under department, subfunctions under HOD
+              deptBoxNode.children = [hodNode];
+              if (department.subfunctions?.length > 0) {
+                hodNode.children = department.subfunctions.map((sf, sfIndex) => {
+                  const subfunctionKey = getSubfunctionKey(department._id, sfIndex);
+                  const teamLeads = getSubfunctionMembers(department._id, sfIndex, "Team Lead");
+                  const teamMembers = getSubfunctionMembers(department._id, sfIndex, "Team Member");
 
-        if (department.subfunctions?.length > 0) {
-          hodNode.children = department.subfunctions.map((sf, sfIndex) => {
-            const subfunctionKey = getSubfunctionKey(department._id, sfIndex);
-            const teamLead = getSubfunctionMembers(department._id, sfIndex, "Team Lead");
-            const teamMembers = getSubfunctionMembers(department._id, sfIndex, "Team Member");
-            const sfNode = {
+                  // Debug logging
+                  console.log(`Subfunction ${sf.name} (${sfIndex}):`, {
+                    teamLeads: teamLeads.length,
+                    teamMembers: teamMembers.length,
+                    allEmployeesForDept: assignedEmployees.filter(emp => emp.department?._id === department._id).map(emp => ({
+                      name: emp.name,
+                      role: emp.role,
+                      subfunctionIndex: emp.subfunctionIndex
+                    }))
+                  });
+
+                  const sfNode = {
               id: `${department._id}_sfBox_${sfIndex}`,
               type: "subfunction",
               box: (isMobile) => (
@@ -324,7 +368,7 @@ export default function ChartPage() {
                     <Button size="sm" variant="outline" onClick={() => setSubfunctionCollapsed(p => ({ ...p, [subfunctionKey]: !p[subfunctionKey] }))} className="flex items-center text-xs px-2 py-1 border-violet-200 text-violet-700 hover:bg-violet-50" type="button">
                       <ChevronIcon up={!subfunctionCollapsed[subfunctionKey]} />{subfunctionCollapsed[subfunctionKey] ? "Expand" : "Collapse"}
                     </Button>
-                    <Button size="sm" variant="outline" className="text-xs px-2 py-1 border-violet-200 text-violet-700 hover:bg-violet-50" onClick={() => setInvFormOpen(true)} type="button">+ Add</Button>
+                    {/* <Button size="sm" variant="outline" className="text-xs px-2 py-1 border-violet-200 text-violet-700 hover:bg-violet-50" onClick={() => setInvFormOpen(true)} type="button">+ Add</Button> */}
                   </div>
                 </OrgBox>
               ),
@@ -332,41 +376,58 @@ export default function ChartPage() {
               expanded: !subfunctionCollapsed[subfunctionKey],
             };
 
-            if (!subfunctionCollapsed[subfunctionKey] && (teamLead.length > 0 || teamMembers.length > 0)) {
-              const teamLeadKey = `${department._id}__${sfIndex}`;
-              let tlNode = {
-                id: `${department._id}_sf_${sfIndex}_tl`,
+            if (!subfunctionCollapsed[subfunctionKey] && (teamLeads.length > 0 || teamMembers.length > 0)) {
+              // Create nodes for all team leads
+              const teamLeadNodes = teamLeads.map((tl, tlIndex) => ({
+                id: `${department._id}_sf_${sfIndex}_tl_${tlIndex}`,
                 type: "tl",
-                box: (isMobile) => teamLead.length > 0 ? (
+                box: (isMobile) => (
                   <OrgBox highlight="tl" isMobile={isMobile}>
                     <div className="flex items-center mb-2">
-                      <div className="flex-shrink-0 mr-3"><div className="w-11 h-11 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-sm">TL</div></div>
+                      <div className="flex-shrink-0 mr-3">
+                        {tl.pic ? (
+                          <img src={tl.pic} alt={tl.name} className="w-11 h-11 rounded-full object-cover border-2 border-orange-200" />
+                        ) : (
+                          <div className="w-11 h-11 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-sm">TL</div>
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <HoverLink href={`/chart/employee/${teamLead[0]._id}`} className="font-bold text-gray-800 hover:text-orange-600">{teamLead[0].name}</HoverLink>
+                        <HoverLink href={`/chart/employee/${tl._id}`} className="font-bold text-gray-800 hover:text-orange-600">{tl.name}</HoverLink>
                         <div className="text-xs text-orange-600 font-semibold">Team Lead</div>
                         <div className="text-xs text-gray-500 truncate">{sf.name}</div>
                       </div>
                     </div>
-                    <div className="flex justify-between gap-2 mt-auto pt-2">
-                      <Button size="sm" variant="outline" onClick={() => setTeamLeadCollapsed(p => ({ ...p, [teamLeadKey]: !p[teamLeadKey] }))} className="flex items-center text-xs px-2 py-1 border-orange-200 text-orange-600 hover:bg-orange-50" type="button">
-                        <ChevronIcon up={!teamLeadCollapsed[teamLeadKey]} />{teamLeadCollapsed[teamLeadKey] ? "Expand" : "Collapse"}
-                      </Button>
-                      <Button size="sm" variant="outline" className="text-xs px-2 py-1 border-orange-200 text-orange-600 hover:bg-orange-50" onClick={() => setInvFormOpen(true)} type="button">+ Add</Button>
-                    </div>
                   </OrgBox>
-                ) : null,
+                ),
                 children: [],
-                expanded: !teamLeadCollapsed[teamLeadKey],
-              };
+                expanded: true,
+              }));
 
-              if (!teamLeadCollapsed[teamLeadKey] && teamMembers.length > 0) {
-                tlNode.children = teamMembers.map((tm) => ({
+              // Team leads will be added directly to subfunction without container
+
+              // Add team members and team leads directly to subfunction
+              const allNodes = [];
+
+              // Add team leads first
+              if (teamLeads.length > 0) {
+                allNodes.push(...teamLeadNodes);
+              }
+
+              // Add team members
+              if (teamMembers.length > 0) {
+                const teamMemberNodes = teamMembers.map((tm) => ({
                   id: tm._id,
                   type: "member",
                   box: (isMobile) => (
                     <OrgBox isMobile={isMobile}>
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 mr-3"><div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">TM</div></div>
+                        <div className="flex-shrink-0 mr-3">
+                          {tm.pic ? (
+                            <img src={tm.pic} alt={tm.name} className="w-11 h-11 rounded-full object-cover border-2 border-slate-200" />
+                          ) : (
+                            <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">TM</div>
+                          )}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <HoverLink href={`/chart/employee/${tm._id}`} className="font-bold text-gray-800 hover:text-slate-600">{tm.name}</HoverLink>
                           <div className="text-xs text-slate-600 font-semibold">Team Member</div>
@@ -378,12 +439,125 @@ export default function ChartPage() {
                   children: [],
                   expanded: true,
                 }));
+                allNodes.push(...teamMemberNodes);
               }
-              sfNode.children = teamLead.length > 0 ? [tlNode] : tlNode.children;
+
+              // Set all nodes directly under subfunction
+              if (allNodes.length > 0) {
+                sfNode.children = allNodes;
+              }
             }
-            return sfNode;
-          });
-        }
+                  return sfNode;
+                });
+              }
+            } else if (department.subfunctions?.length > 0) {
+              // If no HOD, subfunctions go directly under department
+              deptBoxNode.children = department.subfunctions.map((sf, sfIndex) => {
+                const subfunctionKey = getSubfunctionKey(department._id, sfIndex);
+                const teamLeads = getSubfunctionMembers(department._id, sfIndex, "Team Lead");
+                const teamMembers = getSubfunctionMembers(department._id, sfIndex, "Team Member");
+
+                const sfNode = {
+                  id: `${department._id}_sfBox_${sfIndex}`,
+                  type: "subfunction",
+                  box: (isMobile) => (
+                    <OrgBox highlight="subfunction" isMobile={isMobile}>
+                      <div className="flex items-center mb-2">
+                        <div className="flex-shrink-0 mr-3"><div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-100"><Workflow className="h-6 w-6 text-violet-600" /></div></div>
+                        <div className="flex-1 min-w-0">
+                          <HoverLink href={`/chart/subfunction/${department._id}/${sfIndex}`} className="font-bold text-gray-800 hover:text-violet-600">{sf.name}</HoverLink>
+                          <div className="text-xs text-violet-600 font-semibold">Sub-Function</div>
+                          <div className="text-xs text-gray-500 truncate">{department.departmentName}</div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between gap-2 mt-auto pt-2">
+                        <Button size="sm" variant="outline" onClick={() => setSubfunctionCollapsed(p => ({ ...p, [subfunctionKey]: !p[subfunctionKey] }))} className="flex items-center text-xs px-2 py-1 border-violet-200 text-violet-700 hover:bg-violet-50" type="button">
+                          <ChevronIcon up={!subfunctionCollapsed[subfunctionKey]} />{subfunctionCollapsed[subfunctionKey] ? "Expand" : "Collapse"}
+                        </Button>
+                        {/* <Button size="sm" variant="outline" className="text-xs px-2 py-1 border-violet-200 text-violet-700 hover:bg-violet-50" onClick={() => setInvFormOpen(true)} type="button">+ Add</Button> */}
+                      </div>
+                    </OrgBox>
+                  ),
+                  children: [],
+                  expanded: !subfunctionCollapsed[subfunctionKey],
+                };
+
+                // Apply the same simplified team lead and member logic as the HOD case
+                if (!subfunctionCollapsed[subfunctionKey] && (teamLeads.length > 0 || teamMembers.length > 0)) {
+                  // Create nodes for all team leads
+                  const teamLeadNodes = teamLeads.map((tl, tlIndex) => ({
+                    id: `${department._id}_sf_${sfIndex}_tl_${tlIndex}`,
+                    type: "tl",
+                    box: (isMobile) => (
+                      <OrgBox highlight="tl" isMobile={isMobile}>
+                        <div className="flex items-center mb-2">
+                          <div className="flex-shrink-0 mr-3">
+                            {tl.pic ? (
+                              <img src={tl.pic} alt={tl.name} className="w-11 h-11 rounded-full object-cover border-2 border-orange-200" />
+                            ) : (
+                              <div className="w-11 h-11 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-sm">TL</div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <HoverLink href={`/chart/employee/${tl._id}`} className="font-bold text-gray-800 hover:text-orange-600">{tl.name}</HoverLink>
+                            <div className="text-xs text-orange-600 font-semibold">Team Lead</div>
+                            <div className="text-xs text-gray-500 truncate">{sf.name}</div>
+                          </div>
+                        </div>
+                      </OrgBox>
+                    ),
+                    children: [],
+                    expanded: true,
+                  }));
+
+                  // Add team members and team leads directly to subfunction
+                  const allNodes = [];
+
+                  // Add team leads first
+                  if (teamLeads.length > 0) {
+                    allNodes.push(...teamLeadNodes);
+                  }
+
+                  // Add team members
+                  if (teamMembers.length > 0) {
+                    const teamMemberNodes = teamMembers.map((tm) => ({
+                      id: tm._id,
+                      type: "member",
+                      box: (isMobile) => (
+                        <OrgBox isMobile={isMobile}>
+                          <div className="flex items-center mb-2">
+                            <div className="flex-shrink-0 mr-3">
+                              {tm.pic ? (
+                                <img src={tm.pic} alt={tm.name} className="w-11 h-11 rounded-full object-cover border-2 border-slate-200" />
+                              ) : (
+                                <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">TM</div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <HoverLink href={`/chart/employee/${tm._id}`} className="font-bold text-gray-800 hover:text-slate-600">{tm.name}</HoverLink>
+                              <div className="text-xs text-slate-600 font-semibold">Team Member</div>
+                              <div className="text-xs text-gray-500 truncate">{sf.name}</div>
+                            </div>
+                          </div>
+                        </OrgBox>
+                      ),
+                      children: [],
+                      expanded: true,
+                    }));
+                    allNodes.push(...teamMemberNodes);
+                  }
+
+                  // Set all nodes directly under subfunction
+                  if (allNodes.length > 0) {
+                    sfNode.children = allNodes;
+                  }
+                }
+
+                return sfNode;
+              });
+            }
+          }
+
         return deptBoxNode;
       });
     }
@@ -532,18 +706,20 @@ export default function ChartPage() {
                 </Button>
               </>
             )}
-            {hasDepartments && (
+            {/* {hasDepartments && (
               <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} onClick={() => setInvFormOpen(true)} type="button">
                 <UserPlus className="w-6 h-6 text-black" />
-                <span className="hidden sm:inline text-base ml-2">Invite Team Member</span>
+                <span className="hidden sm:inline text-base ml-2">Invite Employee(s)</span>
               </Button>
+            )} */}
+            {organization && (
+              <Link href="/dashboard">
+                <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} type="button">
+                  <LayoutDashboard className="w-6 h-6 text-black" />
+                  <span className="hidden sm:inline text-base ml-2">Dashboard</span>
+                </Button>
+              </Link>
             )}
-            <Link href="/dashboard">
-              <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} type="button">
-                <LayoutDashboard className="w-6 h-6 text-black" />
-                <span className="hidden sm:inline text-base ml-2">Dashboard</span>
-              </Button>
-            </Link>
             <Button variant="destructive" size="sm" onClick={logoutHandler} className={`shadow-sm flex items-center bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700 ${navbarFont} px-2 cursor-pointer`} style={{ color: "#fff" }}>
               <LogOut className="w-6 h-6" color="#fff" />
               <span className="hidden sm:inline text-base ml-2" style={{ color: "#fff" }}>Logout</span>
@@ -577,7 +753,7 @@ export default function ChartPage() {
       </main>
       <Popup open={orgFormOpen} onClose={() => setOrgFormOpen(false)}><OrgForm onClose={() => setOrgFormOpen(false)} /></Popup>
       <Popup open={deptFormOpen} onClose={handleDeptFormClose}><DeptForm onClose={handleDeptFormClose} /></Popup>
-      <Popup open={invFormOpen} onClose={handleInvFormClose} width="max-w-3xl"><InvForm onClose={handleInvFormClose} /></Popup>
+      {/* <Popup open={invFormOpen} onClose={handleInvFormClose} width="max-w-3xl"><InvForm onClose={handleInvFormClose} /></Popup> */}
       <ChatbotBubble />
     </>
   );

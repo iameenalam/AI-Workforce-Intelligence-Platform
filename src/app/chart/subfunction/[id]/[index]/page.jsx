@@ -9,6 +9,7 @@ import { ArrowLeft, Loader2, UserCircle, Users, Lightbulb, Target, ServerCrash, 
 import { getOrganization } from "@/redux/action/org";
 import { getDepartments } from "@/redux/action/departments";
 import { getTeammembers } from "@/redux/action/teammembers";
+import { getEmployees } from "@/redux/action/employees";
 
 const TABS = [
   { value: "overview", label: "Overview" },
@@ -36,6 +37,7 @@ export default function SubfunctionPage() {
   const { organization } = useSelector((state) => state.organization);
   const { departments, loading: deptsLoading } = useSelector((state) => state.departments);
   const { teammembers, loading: teamLoading } = useSelector((state) => state.teammembers);
+  const { employees, loading: employeesLoading } = useSelector((state) => state.employees);
   
   useEffect(() => {
     if (!organization) {
@@ -48,12 +50,20 @@ export default function SubfunctionPage() {
       if (!teammembers || teammembers.length === 0) {
         dispatch(getTeammembers({ organizationId: organization._id }));
       }
+      if (!employees || employees.length === 0) {
+        dispatch(getEmployees());
+      }
     }
-  }, [dispatch, organization, departments, teammembers]);
+  }, [dispatch, organization?._id]); // Only depend on organization ID to prevent infinite loops
   
   const department = departments?.find(d => d._id === id);
   const subfunction = department?.subfunctions?.[parseInt(index)];
   const relevantTeamMembers = teammembers?.filter(tm => tm.department === id && tm.subfunctionIndex === parseInt(index)) || [];
+  const relevantEmployees = employees?.filter(emp =>
+    emp.department &&
+    (emp.department._id === id || emp.department === id) &&
+    emp.subfunctionIndex === parseInt(index)
+  ) || [];
   
   useEffect(() => {
     if (!subfunction) return;
@@ -78,7 +88,7 @@ export default function SubfunctionPage() {
     generateDetails();
   }, [subfunction]);
 
-  const loading = deptsLoading || teamLoading || !subfunction;
+  const loading = deptsLoading || teamLoading || employeesLoading || !subfunction;
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen bg-slate-50"><Loader2 className="h-12 w-12 animate-spin text-indigo-600" /></div>;
@@ -99,7 +109,18 @@ export default function SubfunctionPage() {
   }
 
   const { name, details } = subfunction;
-  const teamLead = relevantTeamMembers.find(tm => tm.role === "Team Lead");
+
+  // Find all team leads (can be multiple)
+  const teamLeads = [
+    ...relevantTeamMembers.filter(tm => tm.role === "Team Lead"),
+    ...relevantEmployees.filter(emp => emp.role === "Team Lead")
+  ];
+
+  // Combine team members and employees for this subfunction
+  const allMembers = [
+    ...relevantTeamMembers,
+    ...relevantEmployees.filter(emp => emp.role !== "HOD") // Exclude HOD from subfunction members
+  ];
 
   return (
     <div className="min-h-screen bg-slate-50 text-gray-800">
@@ -152,25 +173,27 @@ export default function SubfunctionPage() {
                             <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-6 flex items-center gap-4">
                                 <div className="flex-shrink-0 bg-indigo-100 text-indigo-600 rounded-full p-3"><UserCircle className="w-7 h-7" /></div>
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500">Team Lead</p>
-                                    <p className="text-lg font-semibold text-gray-800">{teamLead ? teamLead.name : 'Not Assigned'}</p>
+                                    <p className="text-sm font-medium text-gray-500">Team Lead{teamLeads.length > 1 ? 's' : ''}</p>
+                                    <p className="text-lg font-semibold text-gray-800">
+                                        {teamLeads.length > 0 ? teamLeads.map(lead => lead.name).join(', ') : 'Not Assigned'}
+                                    </p>
                                 </div>
                             </div>
                             <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-6 flex items-center gap-4">
                                 <div className="flex-shrink-0 bg-indigo-100 text-indigo-600 rounded-full p-3"><Users className="w-7 h-7" /></div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-500">Team Members</p>
-                                    <p className="text-lg font-semibold text-gray-800">{relevantTeamMembers.length} Members</p>
+                                    <p className="text-lg font-semibold text-gray-800">{allMembers.length} Members</p>
                                 </div>
                             </div>
                         </div>
                         <div>
                             <h3 className="text-lg font-semibold text-gray-800 mb-4">Team Roster</h3>
-                            {relevantTeamMembers.length > 0 ? (
+                            {allMembers.length > 0 ? (
                                 <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4">
                                     <ul className="space-y-2">
-                                        {relevantTeamMembers.map((member) => (
-                                            <li key={member._id} className="flex items-center gap-3">
+                                        {allMembers.map((member) => (
+                                            <li key={`${member._id}-${member.type || 'employee'}`} className="flex items-center gap-3">
                                                 <UserCircle className="w-5 h-5 text-gray-400" />
                                                 <span className="text-gray-700">{member.name} - <span className="text-gray-500 text-sm">{member.role}</span></span>
                                             </li>

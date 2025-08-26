@@ -52,16 +52,12 @@ export async function POST(request) {
     const formdata = await request.formData();
 
     const departmentName = formdata.get("departmentName");
-    const hodName = formdata.get("hodName");
-    const hodPicFile = formdata.get("hodPic");
-    const hodEmail = formdata.get("hodEmail");
-    const role = formdata.get("role");
     const departmentDetails = formdata.get("departmentDetails");
     const subfunctionsRaw = formdata.get("subfunctions"); // JSON string of subfunctions
 
-    if (!departmentName || !hodName || !hodEmail || !role) {
+    if (!departmentName) {
       return NextResponse.json(
-        { message: "All required fields are required." },
+        { message: "Department name is required." },
         { status: 400 }
       );
     }
@@ -95,22 +91,12 @@ export async function POST(request) {
       );
     }
 
-    let hodPic = "";
-    if (hodPicFile && hodPicFile.size > 0) {
-      const uploadedHodPic = await uploadFile(hodPicFile);
-      hodPic = uploadedHodPic.url;
-    }
-
     const department = await Department.create({
       departmentName,
-      hodName,
-      hodPic,
-      hodEmail,
-      role,
       departmentDetails,
+      subfunctions,
       organization: organization._id,
       user: userId,
-      subfunctions,
     });
 
     return NextResponse.json(

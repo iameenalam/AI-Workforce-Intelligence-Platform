@@ -2134,5 +2134,161 @@
     "role": "assistant",
     "content": "The data provided does not include any information about an individual named Usman. If Usman is a part of PTCL and you need specific details about him, please provide more context or check if there is additional data available.",
     "timestamp": "2025-08-22T07:48:38.501Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "who is fariz",
+    "timestamp": "2025-08-22T09:46:46.748Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "Fariz Ali is the Head of the Finance Department at PTCL. His responsibilities include managing financial planning, risk management, and reporting to guide decisions, protect assets, and ensure accurate and compliant records. Fariz Ali reports directly to the CEO, Ameen Alam.",
+    "timestamp": "2025-08-22T09:46:46.748Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "how many employees in disrupt",
+    "timestamp": "2025-08-22T19:05:31.002Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "Disrupt.com has a company size of approximately 450-600 employees.",
+    "timestamp": "2025-08-22T19:05:31.002Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "who is the hod of web dev",
+    "timestamp": "2025-08-22T19:05:44.310Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "The data provided does not specify the Head of the Web Development Department at Disrupt.com. If you need more information, please check if there is additional data available or provide more context.",
+    "timestamp": "2025-08-22T19:05:44.310Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "who is the hod of web dev",
+    "timestamp": "2025-08-22T19:06:39.815Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "The data does not include information about the Head of the Web Development Department at Disrupt.com. If you have access to additional resources or data, you might find the information there.",
+    "timestamp": "2025-08-22T19:06:39.815Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "what are the skills of kgdigd ",
+    "timestamp": "2025-08-25T07:13:08.095Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "The employee named \"kgdigd,\" who is a Team Lead in the Finance department, possesses the following skills:\n\n- Python\n- C#\n- .Net\n- Java\n- T-SQL\n- Software Development Lifecycle (SDLC)\n- System Architecture Design\n- Requirements Specification\n- User Documentation\n- Training Manuals\n- MySQL\n- Oracle\n- Access\n- SAP\n- Microsoft Office\n- Remedy\n- Microsoft SQL Server\n- DB Artisan\n- Eclipse\n- Visual Studio .NET\n- FrontPage\n- Visual Basic\n- ASP\n- XML\n- XSL\n- JWS\n- SQL\n- HTML\n- JavaScript\n- Linux\n- Ruby\n- Embedded Software\n- Smalltalk\n- Protocol Testing\n- PHP\n- Perl\n- C++\n- UI Design\n- Graphics Development\n- 3-D Programming",
+    "timestamp": "2025-08-25T07:13:08.095Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "give me the metrics related to my org",
+    "timestamp": "2025-08-25T07:14:19.267Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "Here are some key metrics related to Disrupt.com:\n\n- **Industry:** Information Technology (IT) and Software\n- **Company Size:** 450-600 employees\n- **Location:** Karachi, Pakistan\n- **Year Founded:** 2004\n- **Organization Type:** Public\n- **Number of Offices:** 2\n- **Work Model:** Onsite\n- **Hiring Level:** Moderate\n- **HR Tools Used:** Workday\n\nThese metrics provide a snapshot of the organization's size, industry, and operational structure. If you need more specific metrics or data, please let me know.",
+    "timestamp": "2025-08-25T07:14:19.267Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "i mean related to dept, sub funcs, employees etc",
+    "timestamp": "2025-08-25T07:14:44.127Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "Certainly! Here are the metrics related to departments, subfunctions, and employees at Disrupt.com:\n\n### Departments and Subfunctions:\n1. **Web Development**\n   - **Subfunctions:**\n     - Frontend\n     - Backend\n\n2. **Finance**\n   - **Subfunctions:**\n     - Financial Planning\n     - Risk Management\n\n### Employees:\n- **Total Employees:** The company size ranges between 450-600 employees.\n- **Key Roles:**\n  - **CEO:** Aaqib Gadit\n  - **HOD of Web Development:** Khan\n  - **Team Leads in Finance:**\n    - kgdigd\n    - llfslfl33\n\n### Employee Skills and Tools:\n- **Common Skills:**\n  - SQL, Java, Python, Data Analysis, Software Development Lifecycle (SDLC), System Architecture Design\n- **Common Tools:**\n  - SPSS, Minitab, Google Analytics, MySQL, Oracle, Microsoft SQL Server\n\nThese metrics provide a detailed view of the organizational structure, including departments, subfunctions, and key employee roles. If you need further details on specific employees or departments, feel free to ask!",
+    "timestamp": "2025-08-25T07:14:44.127Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "how many total employees based on the assigned employees",
+    "timestamp": "2025-08-25T07:15:42.824Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "Based on the current employee data provided, there are three specifically detailed employees:\n\n1. Khan - HOD of Web Development\n2. kgdigd - Team Lead in Finance\n3. llfslfl33 - Team Lead in Finance\n\nThese are the employees listed in the detailed records. However, the overall company size is between 450-600 employees, indicating that the detailed data provided here is just a subset of the entire workforce at Disrupt.com.",
+    "timestamp": "2025-08-25T07:15:42.824Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "how many departments and subfunctions... name them",
+    "timestamp": "2025-08-25T08:31:05.685Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "Disrupt.com has the following departments and subfunctions:\n\n### Departments and Subfunctions:\n\n1. **Web Development**\n   - **Subfunctions:**\n     - Frontend\n     - Backend\n\n2. **Finance**\n   - **Subfunctions:**\n     - Financial Planning\n     - Risk Management\n\nIn total, there are 2 departments and 4 subfunctions within these departments.",
+    "timestamp": "2025-08-25T08:31:05.685Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "how many employees in each",
+    "timestamp": "2025-08-25T08:31:25.856Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "The detailed employee data provided lists specific roles but does not specify the total number of employees in each department or subfunction. However, based on the available data, we have:\n\n- **Web Development Department:**\n  - Known Employee: Khan (HOD)\n\n- **Finance Department:**\n  - Known Employees: \n    - kgdigd (Team Lead)\n    - llfslfl33 (Team Lead)\n\nFor a comprehensive count of employees in each department, additional data would be required beyond the specific roles mentioned. The overall company size is between 450-600 employees, indicating that many more employees are distributed across these departments.",
+    "timestamp": "2025-08-25T08:31:25.856Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "If a market shift or AI breakthrough happened tomorrow, where are we most exposed?",
+    "timestamp": "2025-08-25T10:49:31.088Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "To assess the exposure of Disrupt.com to a market shift or AI breakthrough, we can consider the following factors based on the current organizational data:\n\n### Current Strengths:\n1. **Leadership in Data Science:** \n   - CEO Aaqib Gadit has extensive skills in data science methodologies, machine learning principles, and big data analysis, which positions the company well to adapt to AI advancements.\n\n2. **Skilled Workforce in Data-Related Fields:**\n   - Employees like Khan and llfslfl33 have strong backgrounds in data analysis and statistical modeling, which can be leveraged to integrate AI technologies.\n\n3. **Existing Tools and Certifications:**\n   - The use of advanced tools like SPSS, Minitab, and Google Analytics, along with certifications in data management and analytics, suggests a readiness to adopt new AI technologies.\n\n### Potential Exposures:\n1. **Limited Employee Data:**\n   - The detailed data available only covers a few employees, which limits understanding of the broader workforce's readiness for AI integration.\n\n2. **Departmental Focus:**\n   - The current focus on Web Development and Finance might not fully cover the potential areas AI could impact, such as customer service, marketing, or supply chain management.\n\n3. **Adaptability to Rapid Changes:**\n   - While the leadership is strong in data science, the company's overall adaptability to rapid AI-driven market changes is unclear without more comprehensive data on employee skills and departmental strategies.\n\n### Strategic Insights:\n- **Upskilling and Training:** Investing in upskilling the workforce in AI and machine learning could mitigate exposure to rapid AI advancements.\n- **Diversification of Departments:** Expanding focus beyond current departments to include areas like AI-driven customer service or marketing could reduce exposure to market shifts.\n- **Continuous Monitoring:** Implementing a strategy for continuous monitoring of AI trends and market shifts will help in proactive adaptation.\n\nBy addressing these potential exposures, Disrupt.com can better position itself to leverage AI breakthroughs and mitigate risks associated with market shifts.",
+    "timestamp": "2025-08-25T10:49:31.088Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "who is sfls",
+    "timestamp": "2025-08-26T07:44:38.894Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "The data provided does not include any information about an individual named \"sfls.\" If you have additional context or details, please share them, and I can assist you further. Otherwise, it seems \"sfls\" might not be part of the current employee or organizational data for Disrupt.com.",
+    "timestamp": "2025-08-26T07:44:38.894Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "tell me the payroll of alam",
+    "timestamp": "2025-08-26T08:21:55.773Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "Alam, who is the Head of Department (HOD) for the Finance department, has the following payroll details:\n\n- **Base Salary:** $40,000\n- **Bonus:** $20,000\n- **Stock Options:** $5,000\n- **Last Raise Date:** August 25, 2025\n\nThis compensation package reflects Alam's role and responsibilities within the Finance department at Disrupt.com.",
+    "timestamp": "2025-08-26T08:21:55.773Z"
   }
 ]

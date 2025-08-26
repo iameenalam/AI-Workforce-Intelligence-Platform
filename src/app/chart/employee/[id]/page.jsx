@@ -2,14 +2,18 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import Cookies from "js-cookie";
-import Link from "next/link";
+import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, Building2, Briefcase, Mail, CloudUpload, CheckCircle2,
-  XCircle, BookOpen, Lightbulb, Loader2, X, UserPlus, UserCheck,
-  FileText, Award, Wrench, User, ChevronLeft, ChevronRight
+  ArrowLeft, Building2, Briefcase, Mail, BookOpen, Lightbulb,
+  Award, Wrench, User, Loader2, XCircle, ChevronLeft, ChevronRight,
+  DollarSign, Gift, Package, Calendar, TrendingUp, Clock, CheckCircle,
+  Play, AlertTriangle
 } from "lucide-react";
+import Link from "next/link";
+import { getEmployees } from "@/redux/action/employees";
+import { getTeammembers } from "@/redux/action/teammembers";
+import { getDepartments } from "@/redux/action/departments";
 
 const Alert = ({ type, message }) => {
   const isError = type === "error";
@@ -19,7 +23,7 @@ const Alert = ({ type, message }) => {
         isError ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"
       }`}
     >
-      {isError ? <XCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
+      {isError && <XCircle className="h-5 w-5" />}
       <p>{message}</p>
     </div>
   );
@@ -30,73 +34,79 @@ const EmptyState = ({ icon, text }) => (
     {icon}
     <p className="mt-4 font-medium text-gray-600">{text}</p>
     <p className="mt-1 text-sm text-gray-500">
-      Upload a CV to populate this section.
+      Information not available.
     </p>
   </div>
 );
 
-const Modal = ({ isOpen, onClose, children }) => {
-    useEffect(() => {
-        const handleEsc = (event) => {
-            if (event.key === 'Escape') onClose();
-        };
-        window.addEventListener('keydown', handleEsc);
+const StatCard = ({ icon, label, value, unit = "" }) => (
+  <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+    <div className="flex items-center gap-3">
+      <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm font-medium text-gray-600">{label}</p>
+        <p className="text-lg font-bold text-gray-900">
+          {value}{unit}
+        </p>
+      </div>
+    </div>
+  </div>
+);
 
-        if (isOpen) {
-          document.body.style.overflow = 'hidden';
-        }
-
-        return () => {
-            window.removeEventListener('keydown', handleEsc);
-            document.body.style.overflow = 'unset';
-        };
-    }, [isOpen, onClose]);
-
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onClose}
-                    className="fixed inset-0 z-50 grid place-items-center bg-black/50 backdrop-blur-sm cursor-pointer p-4"
-                >
-                    <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.9, opacity: 0 }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="relative w-full max-w-lg rounded-2xl bg-white shadow-xl cursor-default"
-                    >
-                         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors">
-                            <X className="w-6 h-6" />
-                        </button>
-                        {children}
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
+const statusConfig = {
+  not_started: {
+    icon: <Clock className="h-4 w-4" />,
+    styles: "bg-gray-100 text-gray-800"
+  },
+  in_progress: {
+    icon: <Play className="h-4 w-4" />,
+    styles: "bg-blue-100 text-blue-800"
+  },
+  completed: {
+    icon: <CheckCircle className="h-4 w-4" />,
+    styles: "bg-green-100 text-green-800"
+  },
+  overdue: {
+    icon: <AlertTriangle className="h-4 w-4" />,
+    styles: "bg-red-100 text-red-800"
+  },
+  default: {
+    icon: <Clock className="h-4 w-4" />,
+    styles: "bg-gray-100 text-gray-800"
+  }
 };
 
-export default function TeamMemberPage() {
-  const { id } = useParams();
+export default function ChartEmployeeProfile() {
   const router = useRouter();
-  const [teamMember, setTeamMember] = useState(null);
+  const { id } = useParams();
+  const dispatch = useDispatch();
+
+  const { employees, loading: employeesLoading } = useSelector((state) => state.employees);
+  const { teammembers, loading: teamLoading } = useSelector((state) => state.teammembers);
+  const { departments, loading: deptsLoading } = useSelector((state) => state.departments);
+  const { organization } = useSelector((state) => state.organization);
+
+  const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("experience");
-  const [cvFile, setCvFile] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState(null);
-  const [uploadSuccess, setUploadSuccess] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const tabsContainerRef = useRef(null);
   const [showScrollArrows, setShowScrollArrows] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const TABS = [
+    { value: "experience", label: "Experience", icon: <Briefcase /> },
+    { value: "education", label: "Education", icon: <BookOpen /> },
+    { value: "skills", label: "Skills", icon: <Lightbulb /> },
+    { value: "tools", label: "Tools", icon: <Wrench /> },
+    { value: "certifications", label: "Certifications", icon: <Award /> },
+    { value: "performance", label: "Performance", icon: <TrendingUp /> },
+    { value: "payroll", label: "Payroll", icon: <DollarSign /> },
+  ];
 
   const checkScrollability = () => {
     const container = tabsContainerRef.current;
@@ -117,12 +127,16 @@ export default function TeamMemberPage() {
       container.addEventListener('scroll', checkScrollability);
 
       return () => {
-        resizeObserver.disconnect();
-        container.removeEventListener('scroll', checkScrollability);
+        if (resizeObserver && container) {
+            resizeObserver.unobserve(container);
+        }
+        if (container) {
+            container.removeEventListener('scroll', checkScrollability);
+        }
       };
     }
-  }, [teamMember]);
-
+  }, [employee]);
+  
   const handleArrowScroll = (direction) => {
     const container = tabsContainerRef.current;
     if (container) {
@@ -131,109 +145,47 @@ export default function TeamMemberPage() {
     }
   };
 
-  const fetchTeamMember = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const token = Cookies.get("token");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-      const res = await fetch(`/api/teammembers/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Failed to fetch team member data");
-      }
-      const data = await res.json();
-      setTeamMember(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (organization?._id) {
+      dispatch(getEmployees());
+      dispatch(getTeammembers({ organizationId: organization._id }));
+      dispatch(getDepartments({ organizationId: organization._id }));
     }
-  };
+  }, [dispatch, organization?._id]);
 
   useEffect(() => {
-    if (id) fetchTeamMember();
-  }, [id]);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type === "application/pdf") {
-      setCvFile(file);
-      setUploadError(null);
-      setUploadSuccess("");
-    } else {
-      setCvFile(null);
-      setUploadError("Please select a valid PDF file.");
-    }
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setUploadError(null);
-    setUploadSuccess("");
-    setCvFile(null);
-  };
-
-  const handleCvUpload = async () => {
-    if (!cvFile) return;
-    setIsUploading(true);
-    setUploadError(null);
-    setUploadSuccess("");
-    const formData = new FormData();
-    formData.append("cv", cvFile);
-    try {
-      const token = Cookies.get("token");
-      const res = await fetch(`/api/teammembers/cv?id=${id}`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || "An unknown error occurred.");
+    if (employeesLoading || teamLoading || deptsLoading) return;
+    
+    if (id && (employees || teammembers)) {
+      let foundEmployee = employees?.find(emp => emp._id === id) || teammembers?.find(tm => tm._id === id);
       
-      setUploadSuccess(result.message || "Profile updated successfully!");
-      
-      const dataRes = await fetch(`/api/teammembers/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const fullData = await dataRes.json();
-      if (dataRes.ok) {
-        setTeamMember(fullData);
+      if (foundEmployee) {
+        setEmployee(foundEmployee);
+      } else {
+        setError("Employee not found");
       }
-
-      setTimeout(closeModal, 1500);
-    } catch (err) {
-      setUploadError(err.message);
-    } finally {
-      setIsUploading(false);
+      setLoading(false);
     }
-  };
+  }, [id, employees, teammembers, employeesLoading, teamLoading, deptsLoading]);
 
-  if (loading) return <div className="flex items-center justify-center h-screen bg-slate-50"><Loader2 className="h-12 w-12 animate-spin text-indigo-600" /></div>;
-  if (error) return <div className="flex items-center justify-center h-screen bg-slate-50"><Alert type="error" message={error} /></div>;
-  if (!teamMember) return <div className="flex items-center justify-center h-screen bg-slate-50 text-gray-700">No Team Member found.</div>;
-
-  const education = teamMember.education || [];
-  const experience = teamMember.experience || [];
-  const skills = teamMember.skills || [];
-  const tools = teamMember.tools || [];
-  const certifications = teamMember.certifications || [];
+  if (loading || employeesLoading || teamLoading || deptsLoading) {
+    return <div className="flex items-center justify-center h-screen bg-slate-50"><Loader2 className="h-12 w-12 animate-spin text-indigo-600" /></div>;
+  }
   
-  const TABS = [
-    { value: "experience", label: "Experience", icon: <Briefcase /> },
-    { value: "education", label: "Education", icon: <BookOpen /> },
-    { value: "skills", label: "Skills", icon: <Lightbulb /> },
-    { value: "tools", label: "Tools", icon: <Wrench /> },
-    { value: "job-description", label: "Job Description", icon: <FileText /> },
-    { value: "certifications", label: "Certifications", icon: <Award /> },
-  ];
+  if (error) {
+    return <div className="flex items-center justify-center h-screen bg-slate-50"><Alert type="error" message={error} /></div>;
+  }
+  
+  if (!employee) {
+    return <div className="flex items-center justify-center h-screen bg-slate-50 text-gray-700">No Employee found.</div>;
+  }
 
-  const isProfileComplete = education.length > 0 || experience.length > 0 || skills.length > 0;
+  const department = departments?.find(d => d._id === employee.department?._id || d._id === employee.department);
+  const education = employee.education || [];
+  const experience = employee.experience || [];
+  const skills = employee.skills || [];
+  const tools = employee.tools || [];
+  const certifications = employee.certifications || [];
 
   return (
     <>
@@ -241,34 +193,6 @@ export default function TeamMemberPage() {
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
-      <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <div className="p-4 sm:p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">
-                {isProfileComplete ? "Update Profile" : "Complete Profile"}
-            </h2>
-            <p className="text-gray-500 mb-6">
-                {isProfileComplete ? "Upload a new CV to update the profile details." : "Upload the team member's CV (PDF) to auto-populate their profile."}
-            </p>
-            <label htmlFor="cv-upload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <CloudUpload className="w-10 h-10 mb-3 text-gray-400" />
-                    <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                    <p className="text-xs text-gray-500">PDF only (MAX. 5MB)</p>
-                    {cvFile && <p className="mt-4 text-sm font-medium text-indigo-600">{cvFile.name}</p>}
-                </div>
-                <input id="cv-upload" type="file" className="hidden" accept=".pdf" onChange={handleFileChange} disabled={isUploading}/>
-            </label>
-            <div className="mt-6 flex justify-end">
-                <button onClick={handleCvUpload} disabled={!cvFile || isUploading} className="inline-flex items-center justify-center gap-3 bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:bg-indigo-300 disabled:cursor-not-allowed w-full sm:w-auto">
-                    {isUploading && <Loader2 className="w-5 h-5 animate-spin" />}
-                    {isUploading ? "Uploading..." : "Upload & Parse CV"}
-                </button>
-            </div>
-            {uploadError && <Alert type="error" message={uploadError} />}
-            {uploadSuccess && <Alert type="success" message={uploadSuccess} />}
-        </div>
-      </Modal>
-
       <div className="min-h-screen bg-slate-50 text-gray-800 flex justify-center">
         <div className="w-full max-w-5xl px-4 py-8 md:py-12">
           <div className="mb-6">
@@ -281,36 +205,21 @@ export default function TeamMemberPage() {
           <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg mb-8">
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <div className="flex-shrink-0">
-                  <div className="w-24 h-24 bg-indigo-500 text-white rounded-full flex items-center justify-center text-4xl font-bold ring-4 ring-white shadow-md">
-                    {teamMember.name ? teamMember.name[0] : "?"}
+                {employee.pic ? (
+                  <img src={employee.pic} alt={employee.name} className="w-24 h-24 rounded-full object-cover ring-4 ring-white shadow-md" />
+                ) : (
+                  <div className="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-4xl font-bold ring-4 ring-white shadow-md">
+                    {employee.name ? employee.name[0] : <User className="w-12 h-12"/>}
                   </div>
+                )}
               </div>
               <div className="flex-grow text-center sm:text-left min-w-0">
-                <h1 className="truncate text-3xl font-bold text-gray-900">{teamMember.name}</h1>
-                <p className="text-lg font-medium text-indigo-600">{teamMember.role}</p>
-                <div className="mt-4 flex flex-col items-center sm:items-start gap-2 text-gray-600">
-                    <div className="flex flex-wrap justify-center sm:justify-start items-center gap-x-6 gap-y-2">
-                        <span className="flex items-center gap-2 truncate"><Mail className="w-5 h-5 text-gray-400" />{teamMember.email}</span>
-                        <span className="flex items-center gap-2 truncate"><Building2 className="w-5 h-5 text-gray-400" />{teamMember.department?.departmentName}</span>
-                    </div>
-                    <div className="flex flex-wrap justify-center sm:justify-start items-center gap-x-6 gap-y-2">
-                        <span className="font-medium flex items-center gap-2 truncate"><User className="w-5 h-5 text-gray-400" />Reports To: <span className="font-normal">{teamMember.reportTo || '-'}</span></span>
-                        <span className="font-medium flex items-center gap-2">Invited: 
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${teamMember.invited ? "bg-green-100 text-green-800 border-green-300" : "bg-gray-100 text-gray-800 border-gray-300"}`}>
-                                {teamMember.invited ? "Yes" : "No"}
-                            </span>
-                        </span>
-                    </div>
+                <h1 className="truncate text-3xl font-bold text-gray-900">{employee.name}</h1>
+                <p className="text-lg font-medium text-indigo-600">{employee.role || 'Employee'}</p>
+                <div className="mt-4 flex flex-wrap justify-center sm:justify-start items-center gap-x-6 gap-y-2 text-gray-600">
+                    {employee.email && <span className="flex items-center gap-2 truncate"><Mail className="w-5 h-5 text-gray-400" />{employee.email}</span>}
+                    {department && <span className="flex items-center gap-2 truncate"><Building2 className="w-5 h-5 text-gray-400" />{department.departmentName}</span>}
                 </div>
-              </div>
-              <div className="w-full flex justify-center sm:w-auto sm:ml-auto mt-4 sm:mt-0">
-                <button 
-                  onClick={() => setIsModalOpen(true)}
-                  className="inline-flex items-center gap-2.5 bg-white text-indigo-700 px-4 py-2 rounded-lg font-semibold border-2 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all text-sm"
-                >
-                  {isProfileComplete ? <UserCheck className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-                  {isProfileComplete ? "Update Profile" : "Complete Profile"}
-                </button>
               </div>
             </div>
           </div>
@@ -346,95 +255,55 @@ export default function TeamMemberPage() {
             <div className="mt-8">
               <AnimatePresence mode="wait">
                 <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                  {activeTab === "education" && (
-                    <div>
-                      {education.length > 0 ? (
-                        education.map((edu, idx) => (
-                          <div key={idx} className={`relative pl-8 sm:pl-10 border-l-2 border-gray-200 ${idx === education.length - 1 ? 'pb-1' : 'pb-10'}`}>
-                            <div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div>
-                            <h3 className="text-lg font-bold text-gray-800">{edu.degree}</h3>
-                            <p className="font-medium text-gray-600">{edu.institution}</p>
-                            <p className="text-sm text-gray-500 mt-1">{edu.year}</p>
-                          </div>
-                        ))
-                      ) : (
-                        <EmptyState text="No Education History" icon={<BookOpen className="h-10 w-10 text-gray-400" />} />
-                      )}
+                  {activeTab === 'experience' && (experience.length > 0 ? experience.map((job, idx) => <div key={idx} className={`relative pl-8 sm:pl-10 border-l-2 border-gray-200 ${idx === experience.length - 1 ? 'pb-1' : 'pb-10'}`}><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{job.title}</h3><p className="font-medium text-gray-600">{job.company}</p><p className="text-sm text-gray-500 mt-1">{job.duration}</p>{job.description && <p className="text-gray-700 mt-2">{job.description}</p>}</div>) : <EmptyState text="No Work Experience" icon={<Briefcase className="h-10 w-10 text-gray-400" />} />)}
+                  {activeTab === 'education' && (education.length > 0 ? education.map((edu, idx) => <div key={idx} className={`relative pl-8 sm:pl-10 border-l-2 border-gray-200 ${idx === education.length - 1 ? 'pb-1' : 'pb-10'}`}><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{edu.degree}</h3><p className="font-medium text-gray-600">{edu.institution}</p><p className="text-sm text-gray-500 mt-1">{edu.year || edu.duration}</p></div>) : <EmptyState text="No Education History" icon={<BookOpen className="h-10 w-10 text-gray-400" />} />)}
+                  {activeTab === 'certifications' && (certifications.length > 0 ? certifications.map((cert, idx) => <div key={idx} className={`relative pl-8 sm:pl-10 border-l-2 border-gray-200 ${idx === certifications.length - 1 ? 'pb-1' : 'pb-10'}`}><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{cert.title}</h3><p className="font-medium text-gray-600">{cert.issuer || cert.location || 'N/A'}</p><p className="text-sm text-gray-500 mt-1">{cert.duration || cert.year}</p></div>) : <EmptyState text="No Certifications Listed" icon={<Award className="h-10 w-10 text-gray-400" />} />)}
+                  {activeTab === 'skills' && (skills.length > 0 ? <div className="flex flex-wrap gap-3">{skills.map((skill, idx) => <span key={idx} className="bg-indigo-100 text-indigo-800 text-sm font-medium px-4 py-2 rounded-full">{skill}</span>)}</div> : <EmptyState text="No Skills Listed" icon={<Lightbulb className="h-10 w-10 text-gray-400" />} />)}
+                  {activeTab === 'tools' && (tools.length > 0 ? <div className="flex flex-wrap gap-3">{tools.map((tool, idx) => <span key={idx} className="bg-indigo-100 text-indigo-800 text-sm font-medium px-4 py-2 rounded-full">{tool}</span>)}</div> : <EmptyState text="No Tools Listed" icon={<Wrench className="h-10 w-10 text-gray-400" />} />)}
+
+                  {activeTab === 'payroll' && (
+                    !employee.payroll ? <EmptyState text="No Payroll Information" icon={<DollarSign className="h-10 w-10 text-gray-400" />} /> :
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <StatCard icon={<DollarSign className="h-6 w-6"/>} label="Base Salary" value={`$${employee.payroll.baseSalary?.toLocaleString()}`} />
+                      <StatCard icon={<Gift className="h-6 w-6"/>} label="Bonus" value={`$${employee.payroll.bonus?.toLocaleString()}`} />
+                      <StatCard icon={<Package className="h-6 w-6"/>} label="Stock Options" value={employee.payroll.stockOptions} unit=" shares" />
+                      <StatCard icon={<Calendar className="h-6 w-6"/>} label="Last Raise Date" value={employee.payroll.lastRaiseDate ? new Date(employee.payroll.lastRaiseDate).toLocaleDateString() : 'N/A'} />
                     </div>
                   )}
-                  {activeTab === "experience" && (
-                    <div>
-                      {experience.length > 0 ? (
-                        experience.map((job, idx) => (
-                          <div key={idx} className={`relative pl-8 sm:pl-10 border-l-2 border-gray-200 ${idx === experience.length - 1 ? 'pb-1' : 'pb-10'}`}>
-                            <div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div>
-                            <h3 className="text-lg font-bold text-gray-800">{job.title}</h3>
-                            <p className="font-medium text-gray-600">{job.company}</p>
-                            <p className="text-sm text-gray-500 mt-1">{job.duration}</p>
-                          </div>
-                        ))
-                      ) : (
-                        <EmptyState text="No Work Experience" icon={<Briefcase className="h-10 w-10 text-gray-400" />} />
-                      )}
-                    </div>
-                  )}
-                  {activeTab === "job-description" && (
-                     <div className="space-y-4">
-                        {experience.some(job => job.description) ? (
-                            <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                                {experience.filter(job => job.description).map((job, idx) => (
-                                    <li key={idx}>{job.description}</li>
-                                ))}
-                            </ul>
-                        ) : (
-                           <EmptyState text="No Job Descriptions Available" icon={<FileText className="h-10 w-10 text-gray-400" />} />
-                        )}
-                    </div>
-                  )}
-                   {activeTab === "certifications" && (
-                     <div>
-                        {certifications.length > 0 ? (
-                            certifications.map((cert, idx) => (
-                                <div key={idx} className={`relative pl-8 sm:pl-10 border-l-2 border-gray-200 ${idx === certifications.length - 1 ? 'pb-1' : 'pb-10'}`}>
-                                    <div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div>
-                                    <h3 className="text-lg font-bold text-gray-800">{cert.title}</h3>
-                                    <p className="font-medium text-gray-600">{cert.location}</p>
-                                    <p className="text-sm text-gray-500 mt-1">{cert.duration}</p>
+
+                  {activeTab === 'performance' && (
+                    !employee.performance ? <EmptyState text="No Performance Data" icon={<TrendingUp className="h-10 w-10 text-gray-400" />} /> :
+                    <div className="space-y-6">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Overall Completion</label>
+                        <div className="mt-1 flex items-center gap-4">
+                          <div className="h-2.5 w-full rounded-full bg-gray-200"><div className="h-2.5 rounded-full bg-green-500" style={{ width: `${employee.performance.overallCompletion}%` }}></div></div>
+                          <span className="font-semibold text-green-600">{employee.performance.overallCompletion}%</span>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="mb-3 text-lg font-semibold text-gray-800">Active Goals</h3>
+                        <div className="space-y-4">
+                          {employee.performance.goals?.map((goal, idx) => {
+                            const status = statusConfig[goal.status] || statusConfig.default;
+                            return (
+                              <div key={idx} className="rounded-lg border border-gray-200 p-4">
+                                <div className="flex items-start justify-between">
+                                  <div>
+                                    <p className="font-semibold text-gray-800">{goal.name}</p>
+                                    <p className="text-sm text-gray-500">Target: {new Date(goal.targetDate).toLocaleDateString()}</p>
+                                  </div>
+                                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium capitalize ${status.styles}`}>{status.icon} {goal.status.replace('_', ' ')}</span>
                                 </div>
-                            ))
-                        ) : (
-                           <EmptyState text="No Certifications Listed" icon={<Award className="h-10 w-10 text-gray-400" />} />
-                        )}
-                    </div>
-                  )}
-                  {activeTab === "skills" && (
-                    <div>
-                      {skills.length > 0 ? (
-                        <div className="flex flex-wrap gap-3">
-                          {skills.map((skill, idx) => (
-                            <span key={idx} className="bg-indigo-100 text-indigo-800 text-sm font-medium px-4 py-2 rounded-full">
-                              {skill}
-                            </span>
-                          ))}
+                                <div className="mt-2 flex items-center gap-4">
+                                  <div className="h-2 w-full rounded-full bg-gray-200"><div className="h-2 rounded-full bg-indigo-600" style={{ width: `${goal.completion}%` }}></div></div>
+                                  <span className="text-sm font-medium text-gray-600">{goal.completion}%</span>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      ) : (
-                        <EmptyState text="No Skills Listed" icon={<Lightbulb className="h-10 w-10 text-gray-400" />} />
-                      )}
-                    </div>
-                  )}
-                  {activeTab === "tools" && (
-                    <div>
-                      {tools.length > 0 ? (
-                        <div className="flex flex-wrap gap-3">
-                          {tools.map((tool, idx) => (
-                            <span key={idx} className="bg-indigo-100 text-indigo-800 text-sm font-medium px-4 py-2 rounded-full">
-                              {tool}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <EmptyState text="No Tools Listed" icon={<Wrench className="h-10 w-10 text-gray-400" />} />
-                      )}
+                      </div>
                     </div>
                   )}
                 </motion.div>

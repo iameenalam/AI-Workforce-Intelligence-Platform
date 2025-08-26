@@ -34,7 +34,7 @@ The object must have these keys: "skills", "experience", "education", "certifica
 - "skills": An array of strings representing professional skills.
 - "experience": An array of objects, each with "title", "company", "duration", and a "description" of key contributions.
 - "education": An array of objects, each with "degree", "institution", and "year".
-- "certifications": An array of objects, each with "title", "location", and "duration".
+- "certifications": An array of objects, each with "title", "issuer", and "duration".
 - "tools": An array of strings listing software, technologies, or tools mentioned.
 Return only the raw JSON object.`;
 

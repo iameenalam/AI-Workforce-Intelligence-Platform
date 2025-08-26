@@ -6,9 +6,8 @@ import Cookies from "js-cookie";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, Building2, Briefcase, Mail, CloudUpload, CheckCircle2,
-  XCircle, BookOpen, Lightbulb, Loader2, X, UserPlus, UserCheck,
-  FileText, Award, Wrench, ChevronLeft, ChevronRight
+  ArrowLeft, Building2, Briefcase, Mail, BookOpen, Lightbulb,
+  Award, Wrench, User, Loader2, XCircle, ChevronLeft, ChevronRight
 } from "lucide-react";
 
 const Alert = ({ type, message }) => {
@@ -19,7 +18,7 @@ const Alert = ({ type, message }) => {
         isError ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"
       }`}
     >
-      {isError ? <XCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
+      {isError && <XCircle className="h-5 w-5" />}
       <p>{message}</p>
     </div>
   );
@@ -30,65 +29,31 @@ const EmptyState = ({ icon, text }) => (
     {icon}
     <p className="mt-4 font-medium text-gray-600">{text}</p>
     <p className="mt-1 text-sm text-gray-500">
-      Upload a CV to populate this section.
+      Information not available.
     </p>
   </div>
 );
 
-const Modal = ({ isOpen, onClose, children }) => {
-    useEffect(() => {
-        const handleEsc = (event) => {
-            if (event.key === 'Escape') onClose();
-        };
-        window.addEventListener('keydown', handleEsc);
-        return () => window.removeEventListener('keydown', handleEsc);
-    }, [onClose]);
-
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onClose}
-                    className="fixed inset-0 z-50 grid place-items-center bg-black/50 backdrop-blur-sm cursor-pointer p-4"
-                >
-                    <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.9, opacity: 0 }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="relative w-full max-w-lg rounded-2xl bg-white shadow-xl cursor-default"
-                    >
-                         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors">
-                            <X className="w-6 h-6" />
-                        </button>
-                        {children}
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
-};
-
-export default function CeoPage() {
-  const { id } = useParams();
+export default function CEOProfile() {
   const router = useRouter();
-  const [ceo, setCeo] = useState(null);
+  const { id } = useParams();
+  const [organization, setOrganization] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("experience");
-  const [cvFile, setCvFile] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState(null);
-  const [uploadSuccess, setUploadSuccess] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const tabsContainerRef = useRef(null);
   const [showScrollArrows, setShowScrollArrows] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const TABS = [
+    { value: "experience", label: "Experience", icon: <Briefcase /> },
+    { value: "education", label: "Education", icon: <BookOpen /> },
+    { value: "skills", label: "Skills", icon: <Lightbulb /> },
+    { value: "tools", label: "Tools", icon: <Wrench /> },
+    { value: "certifications", label: "Certifications", icon: <Award /> },
+  ];
 
   const checkScrollability = () => {
     const container = tabsContainerRef.current;
@@ -109,12 +74,16 @@ export default function CeoPage() {
       container.addEventListener('scroll', checkScrollability);
 
       return () => {
-        resizeObserver.disconnect();
-        container.removeEventListener('scroll', checkScrollability);
+        if (resizeObserver && container) {
+            resizeObserver.unobserve(container);
+        }
+        if (container) {
+            container.removeEventListener('scroll', checkScrollability);
+        }
       };
     }
-  }, [ceo]);
-
+  }, [organization]);
+  
   const handleArrowScroll = (direction) => {
     const container = tabsContainerRef.current;
     if (container) {
@@ -123,7 +92,11 @@ export default function CeoPage() {
     }
   };
 
-  const fetchCeo = async () => {
+  useEffect(() => {
+    if (id) fetchOrganization();
+  }, [id]);
+
+  const fetchOrganization = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -132,15 +105,15 @@ export default function CeoPage() {
         router.push("/login");
         return;
       }
-      const res = await fetch(`/api/organization/ceo?id=${id}`, {
+      const res = await fetch(`/api/organization/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || "Failed to fetch CEO data");
+        throw new Error(data.message || "Failed to fetch organization data");
       }
       const data = await res.json();
-      setCeo(data);
+      setOrganization(data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -148,75 +121,15 @@ export default function CeoPage() {
     }
   };
 
-  useEffect(() => {
-    if (id) fetchCeo();
-  }, [id]);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type === "application/pdf") {
-      setCvFile(file);
-      setUploadError(null);
-      setUploadSuccess("");
-    } else {
-      setCvFile(null);
-      setUploadError("Please select a valid PDF file.");
-    }
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setUploadError(null);
-    setUploadSuccess("");
-    setCvFile(null);
-  };
-
-  const handleCvUpload = async () => {
-    if (!cvFile) return;
-    setIsUploading(true);
-    setUploadError(null);
-    setUploadSuccess("");
-    const formData = new FormData();
-    formData.append("cv", cvFile);
-    try {
-      const token = Cookies.get("token");
-      const res = await fetch(`/api/organization/cv?id=${id}`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || "An unknown error occurred.");
-      setUploadSuccess(result.message || "Profile updated successfully!");
-      setCeo(result.ceo);
-      setTimeout(closeModal, 1500);
-    } catch (err) {
-      setUploadError(err.message);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   if (loading) return <div className="flex items-center justify-center h-screen bg-slate-50"><Loader2 className="h-12 w-12 animate-spin text-indigo-600" /></div>;
   if (error) return <div className="flex items-center justify-center h-screen bg-slate-50"><Alert type="error" message={error} /></div>;
-  if (!ceo) return <div className="flex items-center justify-center h-screen bg-slate-50 text-gray-700">No CEO found.</div>;
+  if (!organization) return <div className="flex items-center justify-center h-screen bg-slate-50 text-gray-700">No CEO found.</div>;
 
-  const education = ceo.ceoEducation || [];
-  const experience = ceo.ceoExperience || [];
-  const skills = ceo.ceoSkills || [];
-  const tools = ceo.ceoTools || [];
-  const certifications = ceo.ceoCertifications || [];
-  
-  const TABS = [
-    { value: "experience", label: "Experience", icon: <Briefcase /> },
-    { value: "education", label: "Education", icon: <BookOpen /> },
-    { value: "skills", label: "Skills", icon: <Lightbulb /> },
-    { value: "tools", label: "Tools", icon: <Wrench /> },
-    { value: "job-description", label: "Job Description", icon: <FileText /> },
-    { value: "certifications", label: "Certifications", icon: <Award /> },
-  ];
-
-  const isProfileComplete = education.length > 0 || experience.length > 0 || skills.length > 0;
+  const education = organization.ceoEducation || [];
+  const experience = organization.ceoExperience || [];
+  const skills = organization.ceoSkills || [];
+  const tools = organization.ceoTools || [];
+  const certifications = organization.ceoCertifications || [];
 
   return (
     <>
@@ -224,34 +137,6 @@ export default function CeoPage() {
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
-      <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <div className="p-4 sm:p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">
-                {isProfileComplete ? "Update Profile" : "Complete Profile"}
-            </h2>
-            <p className="text-gray-500 mb-6">
-                {isProfileComplete ? "Upload a new CV to update the profile details." : "Upload the CEO's CV (PDF) to auto-populate their profile details."}
-            </p>
-            <label htmlFor="cv-upload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <CloudUpload className="w-10 h-10 mb-3 text-gray-400" />
-                    <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                    <p className="text-xs text-gray-500">PDF only (MAX. 5MB)</p>
-                    {cvFile && <p className="mt-4 text-sm font-medium text-indigo-600">{cvFile.name}</p>}
-                </div>
-                <input id="cv-upload" type="file" className="hidden" accept=".pdf" onChange={handleFileChange} disabled={isUploading}/>
-            </label>
-            <div className="mt-6 flex justify-end">
-                <button onClick={handleCvUpload} disabled={!cvFile || isUploading} className="inline-flex items-center justify-center gap-3 bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:bg-indigo-300 disabled:cursor-not-allowed w-full sm:w-auto">
-                    {isUploading && <Loader2 className="w-5 h-5 animate-spin" />}
-                    {isUploading ? "Uploading..." : "Upload & Parse CV"}
-                </button>
-            </div>
-            {uploadError && <Alert type="error" message={uploadError} />}
-            {uploadSuccess && <Alert type="success" message={uploadSuccess} />}
-        </div>
-      </Modal>
-
       <div className="min-h-screen bg-slate-50 text-gray-800 flex justify-center">
         <div className="w-full max-w-5xl px-4 py-8 md:py-12">
           <div className="mb-6">
@@ -264,27 +149,21 @@ export default function CeoPage() {
           <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg mb-8">
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <div className="flex-shrink-0">
-                {ceo.ceoPic ? (
-                  <img src={ceo.ceoPic} alt={ceo.ceoName} className="w-24 h-24 rounded-full object-cover ring-4 ring-white shadow-md" />
+                {organization.ceoPic ? (
+                  <img src={organization.ceoPic} alt={organization.ceoName} className="w-24 h-24 rounded-full object-cover ring-4 ring-white shadow-md" />
                 ) : (
-                  <div className="w-24 h-24 bg-indigo-500 text-white rounded-full flex items-center justify-center text-4xl font-bold ring-4 ring-white shadow-md">
-                    {ceo.ceoName ? ceo.ceoName[0] : "?"}
+                  <div className="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-4xl font-bold ring-4 ring-white shadow-md">
+                    {organization.ceoName ? organization.ceoName[0] : <User className="w-12 h-12"/>}
                   </div>
                 )}
               </div>
               <div className="flex-grow text-center sm:text-left min-w-0">
-                <h1 className="truncate text-3xl font-bold text-gray-900">{ceo.ceoName}</h1>
+                <h1 className="truncate text-3xl font-bold text-gray-900">{organization.ceoName}</h1>
                 <p className="text-lg font-medium text-indigo-600">Chief Executive Officer</p>
                 <div className="mt-4 flex flex-wrap justify-center sm:justify-start items-center gap-x-6 gap-y-2 text-gray-600">
-                    <span className="flex items-center gap-2 truncate"><Mail className="w-5 h-5 text-gray-400" />{ceo.email}</span>
-                    <span className="flex items-center gap-2 truncate"><Building2 className="w-5 h-5 text-gray-400" />{ceo.industry}</span>
+                    <span className="flex items-center gap-2 truncate"><Mail className="w-5 h-5 text-gray-400" />{organization.email}</span>
+                    <span className="flex items-center gap-2 truncate"><Building2 className="w-5 h-5 text-gray-400" />{organization.industry}</span>
                 </div>
-              </div>
-              <div className="w-full flex justify-center sm:w-auto sm:ml-auto mt-4 sm:mt-0">
-                <button onClick={() => setIsModalOpen(true)} className="inline-flex items-center gap-2.5 bg-white text-indigo-700 px-4 py-2 rounded-lg font-semibold border-2 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all text-sm">
-                  {isProfileComplete ? <UserCheck className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-                  {isProfileComplete ? "Update Profile" : "Complete Profile"}
-                </button>
               </div>
             </div>
           </div>
@@ -320,81 +199,11 @@ export default function CeoPage() {
             <div className="mt-8">
               <AnimatePresence mode="wait">
                 <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                  {activeTab === "education" && (
-                    <div>
-                      {education.length > 0 ? (
-                        education.map((edu, idx) => (
-                          <div key={idx} className={`relative pl-8 sm:pl-10 border-l-2 border-gray-200 ${idx === education.length - 1 ? 'pb-1' : 'pb-10'}`}>
-                            <div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div>
-                            <h3 className="text-lg font-bold text-gray-800">{edu.degree}</h3>
-                            <p className="font-medium text-gray-600">{edu.institution}</p>
-                            <p className="text-sm text-gray-500 mt-1">{edu.year}</p>
-                          </div>
-                        ))
-                      ) : <EmptyState text="No Education History" icon={<BookOpen className="h-10 w-10 text-gray-400" />} />}
-                    </div>
-                  )}
-                  {activeTab === "experience" && (
-                    <div>
-                      {experience.length > 0 ? (
-                        experience.map((job, idx) => (
-                          <div key={idx} className={`relative pl-8 sm:pl-10 border-l-2 border-gray-200 ${idx === experience.length - 1 ? 'pb-1' : 'pb-10'}`}>
-                            <div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div>
-                            <h3 className="text-lg font-bold text-gray-800">{job.title}</h3>
-                            <p className="font-medium text-gray-600">{job.company}</p>
-                            <p className="text-sm text-gray-500 mt-1">{job.duration}</p>
-                          </div>
-                        ))
-                      ) : <EmptyState text="No Work Experience" icon={<Briefcase className="h-10 w-10 text-gray-400" />} />}
-                    </div>
-                  )}
-                  {activeTab === "job-description" && (
-                     <div className="space-y-4">
-                        {experience.some(job => job.description) ? (
-                            <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                                {experience.filter(job => job.description).map((job, idx) => (
-                                    <li key={idx}>{job.description}</li>
-                                ))}
-                            </ul>
-                        ) : <EmptyState text="No Job Descriptions Available" icon={<FileText className="h-10 w-10 text-gray-400" />} />}
-                    </div>
-                  )}
-                   {activeTab === "certifications" && (
-                     <div>
-                        {certifications.length > 0 ? (
-                            certifications.map((cert, idx) => (
-                                <div key={idx} className={`relative pl-8 sm:pl-10 border-l-2 border-gray-200 ${idx === certifications.length - 1 ? 'pb-1' : 'pb-10'}`}>
-                                    <div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div>
-                                    <h3 className="text-lg font-bold text-gray-800">{cert.title}</h3>
-                                    <p className="font-medium text-gray-600">{cert.location}</p>
-                                    <p className="text-sm text-gray-500 mt-1">{cert.duration}</p>
-                                </div>
-                            ))
-                        ) : <EmptyState text="No Certifications Listed" icon={<Award className="h-10 w-10 text-gray-400" />} />}
-                    </div>
-                  )}
-                  {activeTab === "skills" && (
-                    <div>
-                      {skills.length > 0 ? (
-                        <div className="flex flex-wrap gap-3">
-                          {skills.map((skill, idx) => (
-                            <span key={idx} className="bg-indigo-100 text-indigo-800 text-sm font-medium px-4 py-2 rounded-full">{skill}</span>
-                          ))}
-                        </div>
-                      ) : <EmptyState text="No Skills Listed" icon={<Lightbulb className="h-10 w-10 text-gray-400" />} />}
-                    </div>
-                  )}
-                  {activeTab === "tools" && (
-                    <div>
-                      {tools.length > 0 ? (
-                        <div className="flex flex-wrap gap-3">
-                          {tools.map((tool, idx) => (
-                            <span key={idx} className="bg-indigo-100 text-indigo-800 text-sm font-medium px-4 py-2 rounded-full">{tool}</span>
-                          ))}
-                        </div>
-                      ) : <EmptyState text="No Tools Listed" icon={<Wrench className="h-10 w-10 text-gray-400" />} />}
-                    </div>
-                  )}
+                  {activeTab === 'experience' && (experience.length > 0 ? experience.map((job, idx) => <div key={idx} className={`relative pl-8 sm:pl-10 border-l-2 border-gray-200 ${idx === experience.length - 1 ? 'pb-1' : 'pb-10'}`}><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{job.title}</h3><p className="font-medium text-gray-600">{job.company}</p><p className="text-sm text-gray-500 mt-1">{job.duration}</p>{job.description && <p className="text-gray-700 mt-2">{job.description}</p>}</div>) : <EmptyState text="No Work Experience" icon={<Briefcase className="h-10 w-10 text-gray-400" />} />)}
+                  {activeTab === 'education' && (education.length > 0 ? education.map((edu, idx) => <div key={idx} className={`relative pl-8 sm:pl-10 border-l-2 border-gray-200 ${idx === education.length - 1 ? 'pb-1' : 'pb-10'}`}><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{edu.degree}</h3><p className="font-medium text-gray-600">{edu.institution}</p><p className="text-sm text-gray-500 mt-1">{edu.year || edu.duration}</p></div>) : <EmptyState text="No Education History" icon={<BookOpen className="h-10 w-10 text-gray-400" />} />)}
+                  {activeTab === 'certifications' && (certifications.length > 0 ? certifications.map((cert, idx) => <div key={idx} className={`relative pl-8 sm:pl-10 border-l-2 border-gray-200 ${idx === certifications.length - 1 ? 'pb-1' : 'pb-10'}`}><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{cert.title}</h3><p className="font-medium text-gray-600">{cert.issuer || cert.location || 'N/A'}</p><p className="text-sm text-gray-500 mt-1">{cert.duration || cert.year}</p></div>) : <EmptyState text="No Certifications Listed" icon={<Award className="h-10 w-10 text-gray-400" />} />)}
+                  {activeTab === 'skills' && (skills.length > 0 ? <div className="flex flex-wrap gap-3">{skills.map((skill, idx) => <span key={idx} className="bg-indigo-100 text-indigo-800 text-sm font-medium px-4 py-2 rounded-full">{skill}</span>)}</div> : <EmptyState text="No Skills Listed" icon={<Lightbulb className="h-10 w-10 text-gray-400" />} />)}
+                  {activeTab === 'tools' && (tools.length > 0 ? <div className="flex flex-wrap gap-3">{tools.map((tool, idx) => <span key={idx} className="bg-indigo-100 text-indigo-800 text-sm font-medium px-4 py-2 rounded-full">{tool}</span>)}</div> : <EmptyState text="No Tools Listed" icon={<Wrench className="h-10 w-10 text-gray-400" />} />)}
                 </motion.div>
               </AnimatePresence>
             </div>

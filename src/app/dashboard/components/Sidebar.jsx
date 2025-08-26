@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Users, Building2, ArrowLeft, Settings as SettingsIcon, X } from "lucide-react";
+import { LayoutDashboard, Users, Building2, UserCog, ArrowLeft, X, DollarSign, TrendingUp, LogOut } from "lucide-react";
 
 export default function Sidebar({
     activeTab,
@@ -10,12 +10,16 @@ export default function Sidebar({
     setActiveTab,
     handleNavigate,
     isMobileMenuOpen,
-    setIsMobileMenuOpen
+    setIsMobileMenuOpen,
+    logoutHandler
 }) {
     const navItems = [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard, color: 'text-indigo-600', activeBg: 'bg-indigo-50' },
         { id: 'employees', label: 'Employees', icon: Users, color: 'text-purple-500', activeBg: 'bg-purple-50' },
         { id: 'departments', label: 'Departments', icon: Building2, color: 'text-rose-500', activeBg: 'bg-rose-50' },
+        { id: 'roles', label: 'Role Assignment', icon: UserCog, color: 'text-blue-600', activeBg: 'bg-blue-50' },
+        { id: 'performance', label: 'Performance', icon: TrendingUp, color: 'text-orange-600', activeBg: 'bg-orange-50' },
+        { id: 'payroll', label: 'Payroll', icon: DollarSign, color: 'text-green-600', activeBg: 'bg-green-50' },
     ];
 
     const handleNavClick = (tabId, isMobile = false) => {
@@ -50,16 +54,14 @@ export default function Sidebar({
                         <span className="hidden md:inline">Back to Chart</span>
                     </Button>
                 </a>
-                <button
-                    onClick={() => handleNavClick('settings', false)}
-                    title="Settings"
-                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 text-sm font-medium justify-center md:justify-start ${
-                        activeTab === 'settings' ? `bg-slate-100 text-gray-800` : "text-gray-600 hover:bg-slate-100 hover:text-gray-900"
-                    }`}
+                <Button
+                    variant="ghost"
+                    onClick={logoutHandler}
+                    className="w-full text-gray-600 hover:bg-red-50 hover:text-red-600 justify-center md:justify-start"
                 >
-                    <SettingsIcon className="h-5 w-5 flex-shrink-0" />
-                    <span className="hidden md:inline">Settings</span>
-                </button>
+                    <LogOut className="h-5 w-5 flex-shrink-0 mr-0 md:mr-2" />
+                    <span className="hidden md:inline">Logout</span>
+                </Button>
             </div>
         </>
     );
@@ -91,21 +93,23 @@ export default function Sidebar({
             </div>
 
             <div className="p-6 space-y-2 border-t border-slate-200">
-                <button
-                    onClick={() => handleNavClick('settings', true)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-lg text-left transition-all duration-200 ${
-                        activeTab === 'settings' ? 'bg-slate-100 text-gray-800' : 'text-gray-600 hover:bg-slate-100 hover:text-gray-900'
-                    }`}
-                >
-                    <SettingsIcon className="h-6 w-6" />
-                    <span className="text-lg font-medium">Settings</span>
-                </button>
                 <a href="/chart" className="w-full">
                     <Button variant="ghost" className="w-full flex items-center justify-start gap-4 p-4 text-lg font-medium text-gray-600 hover:bg-slate-100 hover:text-gray-900">
                         <ArrowLeft className="h-6 w-6" />
                         <span>Back to Chart</span>
                     </Button>
                 </a>
+                <Button
+                    variant="ghost"
+                    onClick={() => {
+                        logoutHandler();
+                        setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center justify-start gap-4 p-4 text-lg font-medium text-gray-600 hover:bg-red-50 hover:text-red-600"
+                >
+                    <LogOut className="h-6 w-6" />
+                    <span>Logout</span>
+                </Button>
             </div>
         </div>
     );

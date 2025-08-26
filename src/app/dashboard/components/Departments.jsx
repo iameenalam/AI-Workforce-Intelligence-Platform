@@ -51,8 +51,14 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, i
 };
 
 
-const DepartmentCard = ({ dept, memberCount, onNavigate, onEdit, onDelete }) => {
+const DepartmentCard = ({ dept, employees, onNavigate, onEdit, onDelete }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
+
+    const currentHOD = (employees || []).find(emp =>
+        emp.department &&
+        (emp.department._id === dept._id || emp.department === dept._id) &&
+        emp.role === "HOD"
+    );
 
     return (
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-lg hover:border-rose-300 transition-all duration-300">
@@ -91,12 +97,9 @@ const DepartmentCard = ({ dept, memberCount, onNavigate, onEdit, onDelete }) => 
                 <div className="space-y-3 text-sm">
                      <div className="flex items-center gap-3 text-slate-600">
                         <UserCircle className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                        <span>HOD: {dept.hodName || 'N/A'}</span>
+                        <span>HOD: {currentHOD?.name || dept.hodName || 'N/A'}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-slate-600">
-                        <Users className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                        <span>{memberCount[dept._id] || 0} Members</span>
-                    </div>
+
                      <div className="flex items-center gap-3 text-slate-600">
                         <Workflow className="w-4 h-4 text-slate-400 flex-shrink-0" />
                         <span>{dept.subfunctions?.length || 0} Sub-functions</span>
@@ -107,12 +110,17 @@ const DepartmentCard = ({ dept, memberCount, onNavigate, onEdit, onDelete }) => 
     );
 };
 
-export function Departments({ departments, teammembers, onNavigate, onEdit, onDelete }) {
+export function Departments({ departments, employees, onNavigate, onEdit, onDelete }) {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [departmentToDelete, setDepartmentToDelete] = useState(null);
 
     const memberCount = (departments || []).reduce((acc, dept) => {
-        acc[dept._id] = (dept.hodName ? 1 : 0) + (teammembers || []).filter(tm => tm.department === dept._id).length;
+        const deptEmployees = (employees || []).filter(emp =>
+            emp.department &&
+            (emp.department._id === dept._id || emp.department === dept._id) &&
+            emp.role !== "Unassigned"
+        );
+        acc[dept._id] = deptEmployees.length;
         return acc;
     }, {});
     
@@ -138,14 +146,14 @@ export function Departments({ departments, teammembers, onNavigate, onEdit, onDe
                 title={`Delete ${departmentToDelete?.departmentName}`}
                 message="Are you sure you want to delete this department? All associated data will be removed. This action cannot be undone."
             />
-            <div className="p-4 sm:p-6">
+            <div className="p-0 sm:p-6">
                  {(departments && departments.length > 0) ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                         {departments.map(dept => (
                            <DepartmentCard
                                 key={dept._id}
                                 dept={dept}
-                                memberCount={memberCount}
+                                employees={employees}
                                 onNavigate={onNavigate}
                                 onEdit={onEdit}
                                 onDelete={handleDeleteClick}
@@ -164,9 +172,16 @@ export function Departments({ departments, teammembers, onNavigate, onEdit, onDe
     );
 }
 
-export const DepartmentProfilePage = ({ department, teammembers, onBack, onNavigate }) => {
+export const DepartmentProfilePage = ({ department, teammembers, employees, onBack, onNavigate }) => {
     const relevantTeamMembers = teammembers?.filter(tm => tm.department === department._id) || [];
-    const totalTeamMembers = (department.hodName ? 1 : 0) + relevantTeamMembers.length;
+    const relevantEmployees = employees?.filter(emp =>
+        emp.department &&
+        (emp.department._id === department._id || emp.department === department._id) &&
+        emp.role !== "Unassigned"
+    ) || [];
+
+    const currentHOD = relevantEmployees.find(emp => emp.role === "HOD");
+    const totalTeamMembers = relevantEmployees.length + relevantTeamMembers.length;
 
     return (
         <div className="p-4 sm:p-8 bg-slate-50 min-h-screen">
@@ -190,7 +205,7 @@ export const DepartmentProfilePage = ({ department, teammembers, onBack, onNavig
                             <div className="flex-shrink-0 bg-indigo-100 text-indigo-600 rounded-full p-3"><UserCircle className="w-7 h-7" /></div>
                             <div>
                                 <p className="text-sm font-medium text-slate-500">Department Head</p>
-                                <p className="text-lg font-semibold text-gray-800">{department.hodName}</p>
+                                <p className="text-lg font-semibold text-gray-800">{currentHOD?.name || department.hodName || 'N/A'}</p>
                             </div>
                         </div>
                         <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 flex items-center gap-4">
@@ -205,15 +220,21 @@ export const DepartmentProfilePage = ({ department, teammembers, onBack, onNavig
                       <h3 className="text-lg font-semibold text-gray-800 mb-4">Sub-functions</h3>
                       {department.subfunctions?.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {department.subfunctions.map((sf, idx) => (
-                            <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between">
-                                <div>
-                                    <p className="font-semibold text-gray-800">{sf.name}</p>
-                                    <p className="text-sm text-slate-500">{teammembers.filter(tm => tm.subfunctionIndex === idx && tm.department === department._id).length} Members</p>
-                                </div>
-                                <ViewProfileButton onClick={() => onNavigate(`/subfunction/${department._id}/${idx}`)} />
-                            </div>
-                          ))}
+                          {department.subfunctions.map((sf, idx) => {
+                            const subfunctionTeamMembers = teammembers.filter(tm => tm.subfunctionIndex === idx && tm.department === department._id).length;
+                            const subfunctionEmployees = relevantEmployees.filter(emp => emp.subfunctionIndex === idx && emp.role !== "HOD").length;
+                            const totalSubfunctionMembers = subfunctionTeamMembers + subfunctionEmployees;
+
+                            return (
+                              <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between">
+                                  <div>
+                                      <p className="font-semibold text-gray-800">{sf.name}</p>
+                                      <p className="text-sm text-slate-500">{totalSubfunctionMembers} Members</p>
+                                  </div>
+                                  <ViewProfileButton onClick={() => onNavigate(`/subfunction/${department._id}/${idx}`)} />
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-100/50 py-12 text-center">
@@ -228,8 +249,15 @@ export const DepartmentProfilePage = ({ department, teammembers, onBack, onNavig
     );
 };
 
-export const SubfunctionProfilePage = ({ department, subfunction, teammembers, onBack, onNavigate, onEdit, onDelete }) => {
+export const SubfunctionProfilePage = ({ department, subfunction, teammembers, employees, onBack, onNavigate, onEdit, onDelete }) => {
     const subfunctionMembers = teammembers.filter(tm => tm.department === department._id && tm.subfunctionIndex === subfunction.index);
+    const subfunctionEmployees = employees?.filter(emp =>
+        emp.department &&
+        (emp.department._id === department._id || emp.department === department._id) &&
+        emp.subfunctionIndex === subfunction.index &&
+        emp.role !== "Unassigned" &&
+        emp.role !== "HOD"
+    ) || [];
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [memberToDelete, setMemberToDelete] = useState(null);
 
@@ -270,7 +298,7 @@ export const SubfunctionProfilePage = ({ department, subfunction, teammembers, o
                         </div>
                     </div>
                     <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-md">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Team Members ({subfunctionMembers.length})</h2>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Team Members ({subfunctionMembers.length + subfunctionEmployees.length})</h2>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
@@ -281,8 +309,19 @@ export const SubfunctionProfilePage = ({ department, subfunction, teammembers, o
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {subfunctionMembers.length > 0 ? subfunctionMembers.map(member => (
-                                        <tr key={member._id} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors">
+                                    {subfunctionEmployees.map(employee => (
+                                        <tr key={`emp-${employee._id}`} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors">
+                                            <td className="p-4 font-medium text-gray-800">{employee.name}</td>
+                                            <td className="p-4 text-slate-600">{employee.role}</td>
+                                            <td className="p-4 text-center">
+                                                <div className="flex justify-center gap-2">
+                                                    <ViewProfileButton onClick={() => onNavigate(`employee/${employee._id}`)} />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {subfunctionMembers.map(member => (
+                                        <tr key={`tm-${member._id}`} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors">
                                             <td className="p-4 font-medium text-gray-800">{member.name}</td>
                                             <td className="p-4 text-slate-600">{member.role}</td>
                                             <td className="p-4 text-center">
@@ -293,7 +332,8 @@ export const SubfunctionProfilePage = ({ department, subfunction, teammembers, o
                                                 </div>
                                             </td>
                                         </tr>
-                                    )) : (
+                                    ))}
+                                    {subfunctionMembers.length === 0 && subfunctionEmployees.length === 0 && (
                                         <tr>
                                             <td colSpan="3" className="text-center p-8 text-slate-500">No members in this sub-function.</td>
                                         </tr>

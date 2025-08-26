@@ -6,6 +6,7 @@ import { connectDb } from "@/connectDb";
 import { Organization } from "../../../../models/Organization";
 import { Department } from "../../../../models/Departments";
 import { TeamMember } from "../../../../models/TeamMember";
+import { Employee } from "../../../../models/Employee";
 import CheckAuth from "../../../../middlewares/isAuth";
 
 const conversationPath = path.join(process.cwd(), ".chatbot-cache", "conversation_history.json");
@@ -54,10 +55,11 @@ export async function POST(req) {
       return NextResponse.json({ reply: "Authentication failed. Please log in again." }, { status: 401 });
     }
 
-    const [organization, departments, teammembers] = await Promise.all([
+    const [organization, departments, teammembers, employees] = await Promise.all([
       Organization.findOne({ user: user._id }).lean(),
       Department.find({ user: user._id }).lean(),
       TeamMember.find({ user: user._id }).lean(),
+      Employee.find({ user: user._id }).populate('department', 'departmentName').lean(),
     ]);
 
     if (!organization) {
@@ -75,16 +77,26 @@ export async function POST(req) {
 
     const fullTeamData = JSON.stringify(teammembers.map(tm => cleanDoc(tm, ['organization', 'department'])), null, 2);
 
+    // Process employees data with enhanced information
+    const fullEmployeeData = JSON.stringify(employees.map(emp => {
+      const cleanedEmp = cleanDoc(emp, ['organization', 'user']);
+      // Add department name for better context
+      if (emp.department && emp.department.departmentName) {
+        cleanedEmp.departmentName = emp.department.departmentName;
+      }
+      return cleanedEmp;
+    }), null, 2);
+
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const history = loadHistory();
     const userHistory = history.filter((h) => h.userId === userId);
 
-    const systemPrompt = `You are an expert business assistant for ${organization.name}'s leadership, HR, and business users. You have access to detailed ORGANIZATION and EMPLOYEE data as context, including advanced fields such as performance reviews, KPIs, Red Flags, training history, peer feedback, risk scores, and more.
+    const systemPrompt = `You are an expert business assistant for ${organization.name}'s leadership, HR, and business users. You have access to comprehensive ORGANIZATION and EMPLOYEE data, including CEO profiles, department structures, HOD information, and detailed employee records with skills, experience, education, certifications, current role assignments, payroll information, and performance tracking data.
 
 **Core Task:**
 1.  **Analyze the User's Query:** Understand the user's specific question by looking at the last message in our conversation.
-2.  **Synthesize Data:** Scan all provided data—including CEO, HOD, and Team Member profiles—to find relevant facts.
-3.  **Formulate a Strategic Response:** Construct a comprehensive and direct answer based on the provided data.
+2.  **Synthesize Data:** Scan all provided data—including CEO, departments, HODs, employees, team members, payroll, and performance metrics—to find relevant facts.
+3.  **Formulate a Strategic Response:** Construct a comprehensive and direct answer based on the current organizational structure, employee information, compensation data, and performance tracking.
 
 ---
 ### CEO PROFILE & QUALIFICATIONS:
@@ -107,10 +119,30 @@ This section contains details for each department, including the professional ba
 ${fullDeptData}
 \`\`\`
 
-### FULL TEAM MEMBER DATA (including CV details):
-This section contains details for all team members, including their roles and professional backgrounds.
+### FULL TEAM MEMBER DATA (Legacy System):
+This section contains details for team members from the legacy system.
 \`\`\`json
 ${fullTeamData}
+\`\`\`
+
+### FULL EMPLOYEE DATA (Current System):
+This section contains comprehensive details for all current employees, including their roles, professional backgrounds, skills, experience, education, certifications, current assignments, payroll information (salary, bonuses, stock options), and performance tracking data (goals, completion rates, review schedules).
+
+**PAYROLL DATA INCLUDES:**
+- Base salary information
+- Bonus amounts
+- Stock option allocations
+- Last raise dates
+
+**PERFORMANCE DATA INCLUDES:**
+- Overall completion percentages
+- Individual goal tracking with completion rates
+- Goal statuses (not_started, in_progress, completed, overdue)
+- Review cadence and scheduling
+- Performance review dates
+
+\`\`\`json
+${fullEmployeeData}
 \`\`\`
 ---
 
@@ -120,6 +152,9 @@ ${fullTeamData}
 * **Data First, Then Insight:** Base your initial findings on the provided data. After presenting the facts, you may add a section for "Strategic Insights" or "Potential Risks".
 * **Signal External Knowledge:** You **must** clearly indicate when you are using external knowledge. Example: "While the data shows [fact X], general industry best practices suggest [insight Y]."
 * **Context is Key:** Apply external knowledge directly to the context of "${organization.name}".
+* **Payroll Analysis:** When discussing compensation, analyze salary ranges, bonus distributions, stock option allocations, and raise patterns across departments and roles.
+* **Performance Insights:** When discussing performance, analyze goal completion rates, review schedules, overdue goals, and performance trends across teams.
+* **HR Analytics:** Provide insights on compensation equity, performance distribution, goal achievement rates, and identify potential areas for improvement.
 * **Handling Off-Topic Queries:** If a query is not about the organization, respond with: "My purpose is to provide insights about ${organization.name}. I cannot answer questions on that topic."
 * **Clarity and Formatting:** Use Markdown extensively for readability.
 * **Handling Missing Data:** If you cannot find an answer in the data, state that clearly.

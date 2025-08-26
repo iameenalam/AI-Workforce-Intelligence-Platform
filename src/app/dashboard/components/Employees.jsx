@@ -1,11 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit, Trash2, Briefcase, BookOpen, Lightbulb, Wrench, FileText, Award, Mail, Building2, User, Users, UserCircle, X, Loader2, MoreVertical, Eye, AlertTriangle } from "lucide-react";
+import { Edit, Trash2, Briefcase, BookOpen, Lightbulb, Wrench, FileText, Award, Mail, Building2, User, Users, UserCircle, X, Loader2, MoreVertical, Eye, AlertTriangle, Plus, TrendingUp, DollarSign, Gift, Package, Calendar } from "lucide-react";
 import toast from 'react-hot-toast';
+import Cookies from 'js-cookie';
 import { InputField, AddItemButton, BackButton } from "./Reusable";
+import { Clock } from "lucide-react";
+import { CheckCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 const Button = ({ children, onClick, variant, className = '', disabled }) => {
     const baseStyle = "px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed";
@@ -46,7 +50,6 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, i
     );
 };
 
-
 const EmployeeCard = ({ member, deptMap, onNavigate, onEdit, onDelete, getProfileLink }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -55,9 +58,17 @@ const EmployeeCard = ({ member, deptMap, onNavigate, onEdit, onDelete, getProfil
             <div>
                 <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-2xl font-bold ring-4 ring-white flex-shrink-0">
-                            {member.name ? member.name[0] : "?"}
-                        </div>
+                        {member.pic ? (
+                            <img
+                                src={member.pic}
+                                alt={member.name}
+                                className="w-16 h-16 rounded-full object-cover ring-4 ring-white flex-shrink-0"
+                            />
+                        ) : (
+                            <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-2xl font-bold ring-4 ring-white flex-shrink-0">
+                                {member.name ? member.name[0] : "?"}
+                            </div>
+                        )}
                         <div>
                             <h3 className="text-xl font-bold text-gray-900 truncate">{member.name}</h3>
                             <p className="text-purple-600 font-medium">{member.role}</p>
@@ -100,9 +111,13 @@ const EmployeeCard = ({ member, deptMap, onNavigate, onEdit, onDelete, getProfil
 };
 
 
-export function Employees({ employees, departments, onNavigate, onEditHod, onDeleteHod, onEditTm, onDeleteTm }) {
+export function Employees({ employees, departments, onNavigate, onEditHod, onDeleteHod, onEditTm, onDeleteTm, onDeleteEmployee, onEmployeeUpdate }) {
+    const dispatch = useDispatch();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [memberToDelete, setMemberToDelete] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [employeeToEdit, setEmployeeToEdit] = useState(null);
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
     const deptMap = (departments || []).reduce((acc, dept) => {
         acc[dept._id] = dept.departmentName;
@@ -110,11 +125,8 @@ export function Employees({ employees, departments, onNavigate, onEditHod, onDel
     }, {});
 
     const getProfileLink = (emp) => {
-        switch(emp.type) {
-            case 'hod': return `hod/${emp.linkId}`;
-            case 'teammember': return `employee/${emp.linkId}`;
-            default: return '#';
-        }
+        // All employees now use the unified employee route
+        return `employee/${emp._id || emp.linkId}`;
     };
 
     const handleDeleteClick = (member) => {
@@ -122,12 +134,24 @@ export function Employees({ employees, departments, onNavigate, onEditHod, onDel
         setIsDeleteModalOpen(true);
     };
 
+    const handleEditClick = (member) => {
+        setEmployeeToEdit(member);
+        setIsEditModalOpen(true);
+    };
+
     const confirmDelete = () => {
         if (!memberToDelete) return;
         if (memberToDelete.type === 'hod') {
             onDeleteHod(memberToDelete.linkId);
-        } else {
+        } else if (memberToDelete.type === 'teammember') {
             onDeleteTm(memberToDelete._id);
+        } else {
+            if (onDeleteEmployee) {
+                onDeleteEmployee(memberToDelete._id || memberToDelete.linkId);
+            } else {
+                console.warn('Delete handler not provided for new employee type:', memberToDelete);
+                toast.error('Delete functionality not available');
+            }
         }
         setIsDeleteModalOpen(false);
         setMemberToDelete(null);
@@ -151,7 +175,15 @@ export function Employees({ employees, departments, onNavigate, onEditHod, onDel
                                 member={member}
                                 deptMap={deptMap}
                                 onNavigate={onNavigate}
-                                onEdit={() => member.type === 'hod' ? onEditHod(member.linkId) : onEditTm(member)}
+                                onEdit={() => {
+                                    if (member.type === 'hod') {
+                                        onEditHod(member.linkId);
+                                    } else if (member.type === 'teammember') {
+                                        onEditTm(member);
+                                    } else {
+                                        handleEditClick(member);
+                                    }
+                                }}
                                 onDelete={() => handleDeleteClick(member)}
                                 getProfileLink={getProfileLink}
                             />
@@ -165,6 +197,27 @@ export function Employees({ employees, departments, onNavigate, onEditHod, onDel
                     </div>
                 )}
             </div>
+
+            <AnimatePresence>
+                {isEditModalOpen && employeeToEdit && (
+                    <EditEmployeeModal
+                        employee={employeeToEdit}
+                        departments={departments}
+                        onClose={() => {
+                            setIsEditModalOpen(false);
+                            setEmployeeToEdit(null);
+                        }}
+                        onSave={(updatedEmployee) => {
+                            setIsEditModalOpen(false);
+                            setEmployeeToEdit(null);
+                            // The Redux update is handled inside the EditEmployeeModal
+                            if (onEmployeeUpdate) {
+                                onEmployeeUpdate(updatedEmployee);
+                            }
+                        }}
+                    />
+                )}
+            </AnimatePresence>
         </>
     );
 }
@@ -178,8 +231,11 @@ export const GenericProfilePage = ({ person, onBack, isCeoProfile, onEdit }) => 
         { value: "education", label: "Education", icon: <BookOpen className="w-5 h-5" /> },
         { value: "skills", label: "Skills", icon: <Lightbulb className="w-5 h-5" /> },
         { value: "tools", label: "Tools", icon: <Wrench className="w-5 h-5" /> },
-        { value: "job-description", label: "Job Description", icon: <FileText className="w-5 h-5" /> },
         { value: "certifications", label: "Certifications", icon: <Award className="w-5 h-5" /> },
+        ...(isCeoProfile ? [] : [
+            { value: "performance", label: "Performance", icon: <TrendingUp className="w-5 h-5" /> },
+            { value: "payroll", label: "Payroll", icon: <DollarSign className="w-5 h-5" /> }
+        ])
     ];
 
     const EmptyState = ({ text, icon }) => (
@@ -236,12 +292,102 @@ export const GenericProfilePage = ({ person, onBack, isCeoProfile, onEdit }) => 
                     <div className="mt-8">
                         <AnimatePresence mode="wait">
                             <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                                {activeTab === 'experience' && (experience.length > 0 ? experience.map((job, idx) => <div key={idx} className="relative pl-8 sm:pl-10 pb-8 border-l-2 border-slate-200 last:pb-0"><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{job.title}</h3><p className="font-medium text-gray-600">{job.company}</p><p className="text-sm text-gray-500 mt-1">{job.duration}</p></div>) : <EmptyState text="No Work Experience" icon={<Briefcase className="h-10 w-10 text-gray-400" />} />)}
-                                {activeTab === 'education' && (education.length > 0 ? education.map((edu, idx) => <div key={idx} className="relative pl-8 sm:pl-10 pb-8 border-l-2 border-slate-200 last:pb-0"><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{edu.degree}</h3><p className="font-medium text-gray-600">{edu.institution}</p><p className="text-sm text-gray-500 mt-1">{edu.year}</p></div>) : <EmptyState text="No Education History" icon={<BookOpen className="h-10 w-10 text-gray-400" />} />)}
+                                {activeTab === 'experience' && (experience.length > 0 ? experience.map((job, idx) => <div key={idx} className="relative pl-8 sm:pl-10 pb-8 border-l-2 border-slate-200 last:pb-0"><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{job.title}</h3><p className="font-medium text-gray-600">{job.company}</p><p className="text-sm text-gray-500 mt-1">{job.duration}</p>{job.description && <p className="text-gray-600 mt-2">{job.description}</p>}</div>) : <EmptyState text="No Work Experience" icon={<Briefcase className="h-10 w-10 text-gray-400" />} />)}
+                                {activeTab === 'education' && (education.length > 0 ? education.map((edu, idx) => <div key={idx} className="relative pl-8 sm:pl-10 pb-8 border-l-2 border-slate-200 last:pb-0"><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{edu.degree}</h3><p className="font-medium text-gray-600">{edu.institution}</p><p className="text-sm text-gray-500 mt-1">{edu.duration || edu.year}</p></div>) : <EmptyState text="No Education History" icon={<BookOpen className="h-10 w-10 text-gray-400" />} />)}
                                 {activeTab === 'skills' && (skills.length > 0 ? <div className="flex flex-wrap gap-3">{skills.map((skill, idx) => <span key={idx} className="bg-indigo-100 text-indigo-700 text-sm font-medium px-4 py-2 rounded-full">{skill}</span>)}</div> : <EmptyState text="No Skills Listed" icon={<Lightbulb className="h-10 w-10 text-gray-400" />} />)}
                                 {activeTab === 'tools' && (tools.length > 0 ? <div className="flex flex-wrap gap-3">{tools.map((tool, idx) => <span key={idx} className="bg-indigo-100 text-indigo-700 text-sm font-medium px-4 py-2 rounded-full">{tool}</span>)}</div> : <EmptyState text="No Tools Listed" icon={<Wrench className="h-10 w-10 text-gray-400" />} />)}
-                                {activeTab === 'job-description' && (experience.some(job => job.description) ? (<ul className="list-disc pl-5 space-y-2 text-gray-600">{experience.filter(job => job.description).map((job, idx) => (<li key={idx}>{job.description}</li>))}</ul>) : <EmptyState text="No Job Descriptions Available" icon={<FileText className="h-10 w-10 text-gray-400" />} />)}
-                                {activeTab === 'certifications' && (certifications.length > 0 ? certifications.map((cert, idx) => <div key={idx} className="relative pl-8 sm:pl-10 pb-8 border-l-2 border-slate-200 last:pb-0"><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{cert.title}</h3><p className="font-medium text-gray-600">{cert.location}</p><p className="text-sm text-gray-500 mt-1">{cert.duration}</p></div>) : <EmptyState text="No Certifications Listed" icon={<Award className="h-10 w-10 text-gray-400" />} />)}
+
+                                {activeTab === 'certifications' && (certifications.length > 0 ? certifications.map((cert, idx) => <div key={idx} className="relative pl-8 sm:pl-10 pb-8 border-l-2 border-slate-200 last:pb-0"><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{cert.title}</h3><p className="font-medium text-gray-600">{cert.issuer || 'N/A'}</p><p className="text-sm text-gray-500 mt-1">{cert.duration}</p></div>) : <EmptyState text="No Certifications Listed" icon={<Award className="h-10 w-10 text-gray-400" />} />)}
+
+                                {activeTab === 'payroll' && (
+                                    !person.payroll ? <EmptyState text="No Payroll Information" icon={<DollarSign className="h-10 w-10 text-gray-400" />} /> :
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
+                                            <div className="flex items-center gap-3">
+                                                <DollarSign className="h-6 w-6 text-green-600" />
+                                                <div>
+                                                    <p className="text-sm text-gray-500">Base Salary</p>
+                                                    <p className="text-lg font-semibold text-gray-900">${person.payroll.baseSalary?.toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
+                                            <div className="flex items-center gap-3">
+                                                <Gift className="h-6 w-6 text-blue-600" />
+                                                <div>
+                                                    <p className="text-sm text-gray-500">Bonus</p>
+                                                    <p className="text-lg font-semibold text-gray-900">${person.payroll.bonus?.toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
+                                            <div className="flex items-center gap-3">
+                                                <Package className="h-6 w-6 text-purple-600" />
+                                                <div>
+                                                    <p className="text-sm text-gray-500">Stock Options</p>
+                                                    <p className="text-lg font-semibold text-gray-900">{person.payroll.stockOptions?.toLocaleString()} shares</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
+                                            <div className="flex items-center gap-3">
+                                                <Calendar className="h-6 w-6 text-orange-600" />
+                                                <div>
+                                                    <p className="text-sm text-gray-500">Last Raise Date</p>
+                                                    <p className="text-lg font-semibold text-gray-900">{person.payroll.lastRaiseDate ? new Date(person.payroll.lastRaiseDate).toLocaleDateString() : 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'performance' && (
+                                    !person.performance ? <EmptyState text="No Performance Data" icon={<TrendingUp className="h-10 w-10 text-gray-400" />} /> :
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-700">Overall Completion</label>
+                                            <div className="mt-1 flex items-center gap-4">
+                                                <div className="h-2.5 w-full rounded-full bg-gray-200"><div className="h-2.5 rounded-full bg-green-500" style={{ width: `${person.performance.overallCompletion}%` }}></div></div>
+                                                <span className="font-semibold text-green-600">{person.performance.overallCompletion}%</span>
+                                            </div>
+                                            {person.performance.nextReviewDate && (
+                                                <div className="mt-2 text-xs text-gray-500">
+                                                    Next Review: {new Date(person.performance.nextReviewDate).toLocaleDateString()}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h3 className="mb-3 text-lg font-semibold text-gray-800">Active Goals</h3>
+                                            <div className="space-y-4">
+                                                {person.performance.goals?.map((goal, idx) => {
+                                                    const statusConfig = {
+                                                        not_started: { icon: <Clock className="h-4 w-4" />, styles: "bg-gray-100 text-gray-800" },
+                                                        in_progress: { icon: <TrendingUp className="h-4 w-4" />, styles: "bg-blue-100 text-blue-800" },
+                                                        completed: { icon: <CheckCircle className="h-4 w-4" />, styles: "bg-green-100 text-green-800" },
+                                                        overdue: { icon: <AlertCircle className="h-4 w-4" />, styles: "bg-red-100 text-red-800" },
+                                                        default: { icon: <Clock className="h-4 w-4" />, styles: "bg-gray-100 text-gray-800" }
+                                                    };
+                                                    const status = statusConfig[goal.status] || statusConfig.default;
+                                                    return (
+                                                        <div key={idx} className="rounded-lg border border-gray-200 p-4">
+                                                            <div className="flex items-start justify-between">
+                                                                <div>
+                                                                    <p className="font-semibold text-gray-800">{goal.name}</p>
+                                                                    <p className="text-sm text-gray-500">Target: {new Date(goal.targetDate).toLocaleDateString()}</p>
+                                                                </div>
+                                                                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium capitalize ${status.styles}`}>{status.icon} {goal.status.replace('_', ' ')}</span>
+                                                            </div>
+                                                            <div className="mt-2 flex items-center gap-4">
+                                                                <div className="h-2 w-full rounded-full bg-gray-200"><div className="h-2 rounded-full bg-indigo-600" style={{ width: `${goal.completion}%` }}></div></div>
+                                                                <span className="text-sm font-medium text-gray-600">{goal.completion}%</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </motion.div>
                         </AnimatePresence>
                     </div>
@@ -423,12 +569,12 @@ export const EditHodModal = ({ isOpen, onClose, department, onSave }) => {
                                     {(formData.hodCertifications || []).map((cert, index) => (
                                         <div key={index} className="bg-slate-50 p-4 rounded-lg border border-slate-200 relative space-y-2">
                                             <InputField label="Title" value={cert.title} onChange={e => handleArrayChange('hodCertifications', index, 'title', e.target.value)} />
-                                            <InputField label="Location" value={cert.location} onChange={e => handleArrayChange('hodCertifications', index, 'location', e.target.value)} />
+                                            <InputField label="Issuer" value={cert.issuer} onChange={e => handleArrayChange('hodCertifications', index, 'issuer', e.target.value)} />
                                             <InputField label="Duration" value={cert.duration} onChange={e => handleArrayChange('hodCertifications', index, 'duration', e.target.value)} />
                                             <button onClick={() => removeArrayItem('hodCertifications', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><Trash2 size={16} /></button>
                                         </div>
                                     ))}
-                                    <AddItemButton onClick={() => addArrayItem('hodCertifications', { title: '', location: '', duration: '' })}>Add Certification</AddItemButton>
+                                    <AddItemButton onClick={() => addArrayItem('hodCertifications', { title: '', issuer: '', duration: '' })}>Add Certification</AddItemButton>
                                 </div>
                             ) : (
                                 <div>
@@ -579,12 +725,12 @@ export const EditTeammemberModal = ({ isOpen, onClose, teammember, onSave }) => 
                                     {(formData.certifications || []).map((cert, index) => (
                                         <div key={index} className="bg-slate-50 p-4 rounded-lg border border-slate-200 relative space-y-2">
                                             <InputField label="Title" value={cert.title} onChange={e => handleArrayChange('certifications', index, 'title', e.target.value)} />
-                                            <InputField label="Location" value={cert.location} onChange={e => handleArrayChange('certifications', index, 'location', e.target.value)} />
+                                            <InputField label="Issuer" value={cert.issuer} onChange={e => handleArrayChange('certifications', index, 'issuer', e.target.value)} />
                                             <InputField label="Duration" value={cert.duration} onChange={e => handleArrayChange('certifications', index, 'duration', e.target.value)} />
                                             <button onClick={() => removeArrayItem('certifications', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><Trash2 size={16} /></button>
                                         </div>
                                     ))}
-                                    <AddItemButton onClick={() => addArrayItem('certifications', { title: '', location: '', duration: '' })}>Add Certification</AddItemButton>
+                                    <AddItemButton onClick={() => addArrayItem('certifications', { title: '', issuer: '', duration: '' })}>Add Certification</AddItemButton>
                                 </div>
                             ) : (
                                 <div>
@@ -605,5 +751,445 @@ export const EditTeammemberModal = ({ isOpen, onClose, teammember, onSave }) => 
                 </motion.div>
             )}
         </AnimatePresence>
+    );
+};
+
+const EditEmployeeModal = ({ employee, departments, onClose, onSave }) => {
+    const dispatch = useDispatch();
+    const [formData, setFormData] = useState({
+        name: employee.name || '',
+        email: employee.email || '',
+        experience: employee.experience || [],
+        education: employee.education || [],
+        skills: employee.skills || [],
+        tools: employee.tools || [],
+        certifications: employee.certifications || []
+    });
+    const [loading, setLoading] = useState(false);
+    const [editMode, setEditMode] = useState('manual');
+    const [cvFile, setCvFile] = useState(null);
+    const [picFile, setPicFile] = useState(null);
+    const [picPreview, setPicPreview] = useState(employee.pic || null);
+
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleCvFileChange = (e) => {
+        const file = e.target.files[0];
+        setCvFile(file);
+    };
+
+    const handlePicChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setPicFile(file);
+            const reader = new FileReader();
+            reader.onload = (e) => setPicPreview(e.target.result);
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleRemovePic = () => {
+        setPicFile(null);
+        setPicPreview(null);
+    };
+
+    const handleArrayChange = (arrayName, index, field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [arrayName]: prev[arrayName].map((item, i) =>
+                i === index ? { ...item, [field]: value } : item
+            )
+        }));
+    };
+
+    const addArrayItem = (arrayName, newItem) => {
+        setFormData(prev => ({
+            ...prev,
+            [arrayName]: [...prev[arrayName], newItem]
+        }));
+    };
+
+    const removeArrayItem = (arrayName, index) => {
+        setFormData(prev => ({
+            ...prev,
+            [arrayName]: prev[arrayName].filter((_, i) => i !== index)
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            const token = Cookies.get("token");
+
+            if (editMode === 'cv' && cvFile) {
+                const cvFormData = new FormData();
+                cvFormData.append('cv', cvFile);
+                cvFormData.append('employeeId', employee._id);
+
+                const cvResponse = await fetch('/api/employees/cv', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: cvFormData
+                });
+
+                if (cvResponse.ok) {
+                    const result = await cvResponse.json();
+                    toast.success("Employee profile updated with CV data");
+
+                    // Update Redux store immediately
+                    dispatch({ type: 'EMPLOYEE_UPDATE_SUCCESS', payload: result.employee });
+
+                    onSave(result.employee);
+                } else {
+                    const error = await cvResponse.json();
+                    toast.error(error.message || "Failed to upload CV");
+                }
+            } else {
+                const response = await fetch(`/api/employees/${employee._id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const updatedEmployee = result.employee;
+                    toast.success("Employee updated successfully");
+
+                    // Update Redux store immediately
+                    dispatch({ type: 'EMPLOYEE_UPDATE_SUCCESS', payload: updatedEmployee });
+
+                    onSave(updatedEmployee);
+                } else {
+                    const error = await response.json();
+                    toast.error(error.message || "Failed to update employee");
+                }
+            }
+        } catch (error) {
+            console.error("Error updating employee:", error);
+            toast.error("Failed to update employee");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        >
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white w-full max-w-3xl rounded-2xl shadow-xl max-h-[90vh] flex flex-col"
+            >
+                <div className="flex justify-between items-center p-4 border-b border-slate-200">
+                    <h2 className="text-xl font-bold text-gray-800">Edit Employee Profile</h2>
+                    <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+                        <X />
+                    </button>
+                </div>
+
+                <div className="p-6 overflow-y-auto space-y-6">
+                <form id="employee-edit-form" onSubmit={handleSubmit} className="space-y-6">
+                    <div className="flex gap-2 rounded-lg bg-slate-100 p-1">
+                        <button
+                            type="button"
+                            onClick={() => setEditMode('manual')}
+                            className={`w-full p-2 rounded-md text-sm font-semibold transition-colors ${editMode === 'manual' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-slate-200'}`}
+                        >
+                            Manual Edit
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setEditMode('cv')}
+                            className={`w-full p-2 rounded-md text-sm font-semibold transition-colors ${editMode === 'cv' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-slate-200'}`}
+                        >
+                            Update with CV
+                        </button>
+                    </div>
+
+                    {editMode === 'manual' ? (
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-sm font-medium text-gray-700 block mb-1.5">Employee Name</label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => handleInputChange('name', e.target.value)}
+                                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium text-gray-700 block mb-1.5">Email</label>
+                                <input
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => handleInputChange('email', e.target.value)}
+                                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-sm font-medium text-gray-700 block mb-1.5">Employee Picture</label>
+                                <div className="flex items-center gap-4">
+                                    {picPreview ? (
+                                        <div className="relative">
+                                            <img src={picPreview} alt="Employee" className="w-20 h-20 rounded-full object-cover" />
+                                            <button type="button" onClick={handleRemovePic} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600">
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                            <UserCircle size={32} />
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handlePicChange}
+                                        className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Skills (comma separated)</label>
+                                    <input
+                                        type="text"
+                                        value={Array.isArray(formData.skills) ? formData.skills.join(', ') : formData.skills || ''}
+                                        onChange={(e) => handleInputChange('skills', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                        placeholder="JavaScript, React, Node.js"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Tools (comma separated)</label>
+                                    <input
+                                        type="text"
+                                        value={Array.isArray(formData.tools) ? formData.tools.join(', ') : formData.tools || ''}
+                                        onChange={(e) => handleInputChange('tools', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                        placeholder="VS Code, Git, Docker"
+                                    />
+                                </div>
+                            </div>
+
+                    <div>
+                        <h3 className="text-lg font-semibold text-indigo-600 border-b border-indigo-200 pb-2 mt-6">Experience</h3>
+                        {formData.experience.map((exp, index) => (
+                            <div key={index} className="bg-slate-50 p-4 rounded-lg border border-slate-200 relative space-y-2">
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Title</label>
+                                    <input
+                                        type="text"
+                                        value={exp.title || ''}
+                                        onChange={(e) => handleArrayChange('experience', index, 'title', e.target.value)}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Company</label>
+                                    <input
+                                        type="text"
+                                        value={exp.company || ''}
+                                        onChange={(e) => handleArrayChange('experience', index, 'company', e.target.value)}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Duration</label>
+                                    <input
+                                        type="text"
+                                        value={exp.duration || ''}
+                                        onChange={(e) => handleArrayChange('experience', index, 'duration', e.target.value)}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Description</label>
+                                    <textarea
+                                        placeholder="Job Description"
+                                        value={exp.description || ''}
+                                        onChange={(e) => handleArrayChange('experience', index, 'description', e.target.value)}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeArrayItem('experience', index)}
+                                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => addArrayItem('experience', { title: '', company: '', duration: '', description: '' })}
+                            className="w-full mt-3 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Plus size={16} />
+                            Add Experience
+                        </button>
+                    </div>
+
+                    <div>
+                        <h3 className="text-lg font-semibold text-indigo-600 border-b border-indigo-200 pb-2 mt-6">Education</h3>
+                        {formData.education.map((edu, index) => (
+                            <div key={index} className="bg-slate-50 p-4 rounded-lg border border-slate-200 relative space-y-2">
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Degree</label>
+                                    <input
+                                        type="text"
+                                        value={edu.degree || ''}
+                                        onChange={(e) => handleArrayChange('education', index, 'degree', e.target.value)}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Institution</label>
+                                    <input
+                                        type="text"
+                                        value={edu.institution || ''}
+                                        onChange={(e) => handleArrayChange('education', index, 'institution', e.target.value)}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Duration</label>
+                                    <input
+                                        type="text"
+                                        value={edu.duration || edu.year || ''}
+                                        onChange={(e) => handleArrayChange('education', index, 'duration', e.target.value)}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeArrayItem('education', index)}
+                                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => addArrayItem('education', { degree: '', institution: '', duration: '', year: '' })}
+                            className="w-full mt-3 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Plus size={16} />
+                            Add Education
+                        </button>
+                    </div>
+
+                    <div>
+                        <h3 className="text-lg font-semibold text-indigo-600 border-b border-indigo-200 pb-2 mt-6">Certifications</h3>
+                        {formData.certifications.map((cert, index) => (
+                            <div key={index} className="bg-slate-50 p-4 rounded-lg border border-slate-200 relative space-y-2">
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Title</label>
+                                    <input
+                                        type="text"
+                                        value={cert.title || ''}
+                                        onChange={(e) => handleArrayChange('certifications', index, 'title', e.target.value)}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Issuer</label>
+                                    <input
+                                        type="text"
+                                        value={cert.issuer || ''}
+                                        onChange={(e) => handleArrayChange('certifications', index, 'issuer', e.target.value)}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Duration</label>
+                                    <input
+                                        type="text"
+                                        value={cert.duration || cert.year || ''}
+                                        onChange={(e) => handleArrayChange('certifications', index, 'duration', e.target.value)}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeArrayItem('certifications', index)}
+                                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => addArrayItem('certifications', { title: '', issuer: '', duration: '' })}
+                            className="w-full mt-3 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Plus size={16} />
+                            Add Certification
+                        </button>
+                    </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <label className="text-sm font-medium text-gray-700 block mb-1.5">Upload New CV</label>
+                            <p className="text-xs text-gray-500 mb-2">This will parse the CV and replace existing data.</p>
+                            <input
+                                type="file"
+                                accept=".pdf,.doc,.docx"
+                                onChange={handleCvFileChange}
+                                className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                            />
+                            {cvFile && (
+                                <div className="mt-4 bg-slate-100 p-3 rounded-lg text-sm">
+                                    Selected: <span className="font-medium text-indigo-600">{cvFile.name}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </form>
+                </div>
+
+                <div className="p-4 border-t border-slate-200 flex justify-end gap-3">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={loading}
+                        className="border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-6 py-2 rounded-lg font-medium transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        form="employee-edit-form"
+                        disabled={loading}
+                        className="w-40 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                        {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                        {loading ? 'Saving...' : 'Save Changes'}
+                    </button>
+                </div>
+            </motion.div>
+        </motion.div>
     );
 };

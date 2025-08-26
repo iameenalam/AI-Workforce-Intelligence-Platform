@@ -9,6 +9,7 @@ import { ArrowLeft, Loader2, UserCircle, Users, Lightbulb, Target, Network, Serv
 import { getOrganization } from "@/redux/action/org";
 import { getDepartments } from "@/redux/action/departments";
 import { getTeammembers } from "@/redux/action/teammembers";
+import { getEmployees } from "@/redux/action/employees";
 
 const TABS = [
   { value: "overview", label: "Overview" },
@@ -36,6 +37,7 @@ export default function DepartmentPage() {
   const { organization } = useSelector((state) => state.organization);
   const { departments, loading: deptsLoading } = useSelector((state) => state.departments);
   const { teammembers, loading: teamLoading } = useSelector((state) => state.teammembers);
+  const { employees, loading: employeesLoading } = useSelector((state) => state.employees);
   
   // --- CORRECTED DATA FETCHING LOGIC ---
   // This effect ensures the base organization context is loaded.
@@ -50,11 +52,21 @@ export default function DepartmentPage() {
     if (organization?._id) {
       dispatch(getDepartments({ organizationId: organization._id }));
       dispatch(getTeammembers({ organizationId: organization._id }));
+      dispatch(getEmployees());
     }
   }, [dispatch, organization?._id]); // Depends on the stable organization ID
 
   const department = departments?.find(d => d._id === id);
   const relevantTeamMembers = teammembers?.filter(tm => tm.department === id) || [];
+  const relevantEmployees = employees?.filter(emp =>
+    emp.department &&
+    (emp.department._id === id || emp.department === id) &&
+    emp.role !== "Unassigned"
+  ) || [];
+
+  // Find current HOD from employees
+  const currentHOD = relevantEmployees.find(emp => emp.role === "HOD");
+  const totalMembers = relevantTeamMembers.length + relevantEmployees.length;
   
   useEffect(() => {
     if (!department) return;
@@ -80,7 +92,7 @@ export default function DepartmentPage() {
   }, [department]);
 
   // The loading state now correctly waits for the department data to be found after fetches.
-  const loading = deptsLoading || teamLoading || !department;
+  const loading = deptsLoading || teamLoading || employeesLoading || !department;
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen bg-slate-50"><Loader2 className="h-12 w-12 animate-spin text-indigo-600" /></div>;
@@ -101,10 +113,11 @@ export default function DepartmentPage() {
   }
 
   const { departmentName, departmentDetails, hodName, subfunctions = [] } = department;
-  const totalTeamMembers = 1 + relevantTeamMembers.length; 
 
   const getSubfunctionMemberCount = (sfIndex) => {
-    return relevantTeamMembers.filter(tm => tm.subfunctionIndex === sfIndex).length;
+    const teamMemberCount = relevantTeamMembers.filter(tm => tm.subfunctionIndex === sfIndex).length;
+    const employeeCount = relevantEmployees.filter(emp => emp.subfunctionIndex === sfIndex && emp.role !== "HOD").length; // Exclude HOD
+    return teamMemberCount + employeeCount;
   };
 
   return (
@@ -159,14 +172,14 @@ export default function DepartmentPage() {
                             <div className="flex-shrink-0 bg-indigo-100 text-indigo-600 rounded-full p-3"><UserCircle className="w-7 h-7" /></div>
                             <div>
                                 <p className="text-sm font-medium text-gray-500">Department Head</p>
-                                <p className="text-lg font-semibold text-gray-800">{hodName}</p>
+                                <p className="text-lg font-semibold text-gray-800">{currentHOD?.name || hodName || 'N/A'}</p>
                             </div>
                         </div>
                         <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-6 flex items-center gap-4">
                             <div className="flex-shrink-0 bg-indigo-100 text-indigo-600 rounded-full p-3"><Users className="w-7 h-7" /></div>
                             <div>
                                 <p className="text-sm font-medium text-gray-500">Total Team Members</p>
-                                <p className="text-lg font-semibold text-gray-800">{totalTeamMembers} Members</p>
+                                <p className="text-lg font-semibold text-gray-800">{totalMembers} Members</p>
                             </div>
                         </div>
                     </div>

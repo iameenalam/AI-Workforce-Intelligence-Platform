@@ -5,14 +5,18 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Check, UploadCloud, FileText, X } from "lucide-react";
 
 export default function OrgForm({ onClose }) {
   const { isAuth } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const router = useRouter();
   const ceoFileInputRef = useRef();
+  const ceoCvInputRef = useRef();
   const orgLogoInputRef = useRef();
+
+  const [currentStep, setCurrentStep] = useState(0);
+  const [animationDirection, setAnimationDirection] = useState("forward");
 
   const [form, setForm] = useState({
     name: "",
@@ -33,16 +37,37 @@ export default function OrgForm({ onClose }) {
   const [orgLogoPreview, setOrgLogoPreview] = useState(null);
   const [ceoPic, setCeoPic] = useState(null);
   const [ceoPicPreview, setCeoPicPreview] = useState(null);
+  const [ceoCv, setCeoCv] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [checkingOrg, setCheckingOrg] = useState(true);
+  const [stepError, setStepError] = useState("");
+
+  const formSteps = [
+    { id: 'name', label: "What is your organization's name?", type: 'text', required: true },
+    { id: 'organizationLogo', label: 'Upload your organization\'s logo.', type: 'file', required: false, fileType: 'logo' },
+    { id: 'ceoName', label: "What is the CEO's full name?", type: 'text', required: true },
+    { id: 'ceoPic', label: 'Please provide a picture of the CEO.', type: 'file', required: false, fileType: 'ceoPic' },
+    { id: 'email', label: "What is the CEO's email address?", type: 'email', required: true },
+    { id: 'ceoCv', label: 'Optionally, upload the CEO\'s CV.', type: 'file', required: false, fileType: 'ceoCv' },
+    { id: 'industry', label: 'Which industry does your organization belong to?', type: 'select', required: true, options: ['Healthcare and Social Assistance', 'Finance and Insurance', 'Professional, Scientific and Technical Services', 'Information Technology (IT) and Software', 'Telecommunications'] },
+    { id: 'companySize', label: 'What is the size of your company?', type: 'select', required: true, options: ['150-300', '300-450', '450-600', '600-850', '850-1000', '1000+', '5000+'] },
+    { id: 'location', label: 'Where is your main office located?', type: 'group', fields: [
+      { id: 'city', placeholder: 'City *', required: true },
+      { id: 'country', placeholder: 'Country *', required: true }
+    ]},
+    { id: 'yearFounded', label: 'What year was the organization founded?', type: 'number', required: true },
+    { id: 'organizationType', label: 'What is the organization type?', type: 'select', required: true, options: ['Private', 'Public', 'Non-Profit', 'Government'] },
+    { id: 'numberOfOffices', label: 'How many offices do you have?', type: 'number', required: true, min: 0 },
+    { id: 'hrToolsUsed', label: 'What primary HR tools do you use?', type: 'text', required: true, placeholder: 'e.g. BambooHR, Workday' },
+    { id: 'hiringLevel', label: 'Describe your current hiring level.', type: 'select', required: true, options: ['Low', 'Moderate', 'High'] },
+    { id: 'workModel', label: "What is your company's work model?", type: 'select', required: true, options: ['Onsite', 'Remote', 'Hybrid', 'Mixed'] },
+  ];
 
   useEffect(() => {
     if (!isAuth) {
       router.push("/login");
       return;
     }
-    
     const checkOrganization = async () => {
       try {
         const token = Cookies.get("token");
@@ -58,71 +83,100 @@ export default function OrgForm({ onClose }) {
           router.replace("/chart");
         }
       } catch (err) {
-        // It's okay if it fails, means no org exists. The form will be shown.
-      } finally {
-        setCheckingOrg(false);
       }
     };
-    
     checkOrganization();
   }, [isAuth, router, onClose]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    if (stepError) setStepError("");
   };
 
-  const handleCeoFileChange = (e) => {
+  const handleFileChange = (e, fileType) => {
     const file = e.target.files[0];
-    if (file) {
+    if (!file) return;
+
+    if (fileType === 'logo') {
+      setOrgLogo(file);
+      setOrgLogoPreview(URL.createObjectURL(file));
+    } else if (fileType === 'ceoPic') {
       setCeoPic(file);
       setCeoPicPreview(URL.createObjectURL(file));
+    } else if (fileType === 'ceoCv') {
+      if (file.type !== "application/pdf") {
+        setStepError("CV must be a PDF file.");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setStepError("CV file size must be less than 5MB.");
+        return;
+      }
+      setCeoCv(file);
+    }
+    if (stepError) setStepError("");
+  };
+
+  const validateStep = () => {
+    const currentField = formSteps[currentStep];
+    if (!currentField.required) return true;
+
+    if (currentField.type === 'group') {
+        for (const field of currentField.fields) {
+            if (field.required && !form[field.id]) {
+                setStepError(`Please fill in the ${field.id}.`);
+                return false;
+            }
+        }
+    } else {
+        const value = form[currentField.id];
+        if (value === null || value === undefined || value.trim() === "") {
+            setStepError("This field is required.");
+            return false;
+        }
+        if (currentField.type === 'email') {
+            const emailRegex = /^\S+@\S+\.\S+$/;
+            if (!emailRegex.test(value)) {
+                setStepError("Please enter a valid email address.");
+                return false;
+            }
+        }
+    }
+    return true;
+  };
+
+  const handleNext = () => {
+    if (validateStep()) {
+      setStepError("");
+      if (currentStep < formSteps.length - 1) {
+        setAnimationDirection("forward");
+        setCurrentStep((prev) => prev + 1);
+      }
     }
   };
 
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if(file) {
-      setOrgLogo(file);
-      setOrgLogoPreview(URL.createObjectURL(file));
+  const handleBack = () => {
+    setStepError("");
+    if (currentStep > 0) {
+      setAnimationDirection("backward");
+      setCurrentStep((prev) => prev - 1);
     }
   };
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    if (!validateStep()) return;
     setError("");
-
-    if (
-      !form.name || !form.ceoName || !form.email || !form.industry || !form.companySize ||
-      !form.city || !form.country || !form.yearFounded || !form.organizationType ||
-      form.numberOfOffices === "" || !form.hrToolsUsed || !form.hiringLevel ||
-      !form.workModel
-    ) {
-      setError("Please fill in all required fields.");
-      return;
-    }
-
-    const emailRegex = /^\S+@\S+\.\S+$/;
-    if (!emailRegex.test(form.email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
 
     try {
       setLoading(true);
       const token = Cookies.get("token");
-
       const formData = new FormData();
-      Object.entries(form).forEach(([key, val]) => {
-        formData.append(key, val);
-      });
-      
-      if (ceoPic) {
-        formData.append("ceoPic", ceoPic);
-      }
-      if (orgLogo) {
-        formData.append("organizationLogo", orgLogo);
-      }
+      Object.entries(form).forEach(([key, val]) => formData.append(key, val));
+      if (ceoPic) formData.append("ceoPic", ceoPic);
+      if (ceoCv) formData.append("ceoCv", ceoCv);
+      if (orgLogo) formData.append("organizationLogo", orgLogo);
 
       const { data } = await axios.post("/api/organization", formData, {
         headers: { Authorization: `Bearer ${token}` },
@@ -137,163 +191,151 @@ export default function OrgForm({ onClose }) {
       }
     } catch (err) {
       const message = err.response?.data?.message || "An unexpected error occurred.";
-      if (message === "User already has an organization") {
-        if (onClose) onClose();
-        router.replace("/chart");
-      } else {
-        setError(message);
-      }
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  const FileInputButton = ({ label, file, preview, onButtonClick, onFileChange, inputRef, required = false }) => (
-    <div>
-        <label className="block font-medium text-gray-700 mb-1">{label}{required && ' *'}</label>
-        <div className="flex items-center gap-3">
-            <button type="button" className="flex-1 w-full text-center justify-center relative flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium shadow-sm cursor-pointer hover:bg-gray-100 transition" onClick={onButtonClick}>
-                <span className="mr-2"><svg width="18" height="18" fill="none" className="inline-block"><path d="M5 12l2-2 3 3 4-4" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><rect x="3" y="3" width="12" height="12" rx="3" stroke="#374151" strokeWidth="2" /></svg></span>
-                {file ? "Change File" : "Choose File"}
-            </button>
-            <input ref={inputRef} type="file" accept="image/*" onChange={onFileChange} className="hidden" />
-            {preview && <img src={preview} alt="Preview" className="rounded shadow h-10 w-10 object-cover border border-gray-200" />}
-        </div>
-    </div>
-  );
+  const renderStepContent = () => {
+    const step = formSteps[currentStep];
+    const commonInputClass = "w-full text-xl sm:text-2xl bg-transparent border-b-2 border-gray-300 focus:border-gray-900 transition-colors duration-300 outline-none py-2";
+
+    switch (step.type) {
+      case 'text':
+      case 'email':
+      case 'number':
+        return <input name={step.id} type={step.type} value={form[step.id]} onChange={handleChange} placeholder="Type your answer here..." className={commonInputClass} autoFocus onKeyDown={(e) => e.key === 'Enter' && handleNext()} />;
+      
+      case 'select':
+        return (
+          <select name={step.id} value={form[step.id]} onChange={handleChange} className={`${commonInputClass} cursor-pointer`}>
+            <option value="">Select an option</option>
+            {step.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
+        );
+      
+      case 'group':
+        return (
+          <div className="flex flex-col sm:flex-row gap-4">
+            {step.fields.map(field => (
+              <input key={field.id} name={field.id} type="text" value={form[field.id]} onChange={handleChange} placeholder={field.placeholder} className={`${commonInputClass} text-center`} />
+            ))}
+          </div>
+        );
+
+      case 'file':
+        let file, preview, ref, accept, fileTypeText;
+        if (step.fileType === 'logo') { [file, preview, ref, accept, fileTypeText] = [orgLogo, orgLogoPreview, orgLogoInputRef, 'image/*', 'an image']; }
+        else if (step.fileType === 'ceoPic') { [file, preview, ref, accept, fileTypeText] = [ceoPic, ceoPicPreview, ceoFileInputRef, 'image/*', 'an image']; }
+        else { [file, preview, ref, accept, fileTypeText] = [ceoCv, null, ceoCvInputRef, '.pdf', 'a PDF']; }
+        
+        return (
+          <div className="w-full text-center">
+            <input ref={ref} type="file" accept={accept} onChange={(e) => handleFileChange(e, step.fileType)} className="hidden" />
+            {!file ? (
+              <button type="button" onClick={() => ref.current?.click()} className="inline-flex items-center gap-3 px-6 py-3 bg-gray-100 hover:bg-gray-200 transition-colors rounded-lg font-semibold text-gray-800">
+                <UploadCloud size={20} /> Choose {fileTypeText} to upload
+              </button>
+            ) : (
+              <div className="flex flex-col items-center gap-4">
+                {preview && <img src={preview} alt="Preview" className="rounded-lg shadow-md h-24 w-24 object-cover border-2 border-white" />}
+                {step.fileType === 'ceoCv' && <FileText className="w-16 h-16 text-gray-500" />}
+                <div className="flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-lg text-sm font-medium">
+                  <Check size={16} />
+                  <span>{file.name}</span>
+                  <button type="button" onClick={() => {
+                      if (step.fileType === 'logo') { setOrgLogo(null); setOrgLogoPreview(null); }
+                      else if (step.fileType === 'ceoPic') { setCeoPic(null); setCeoPicPreview(null); }
+                      else { setCeoCv(null); }
+                  }} className="ml-2 text-red-500 hover:text-red-700">
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+            {step.fileType === 'ceoCv' && <p className="text-xs text-gray-500 mt-2">Max 5MB. CV will be parsed automatically.</p>}
+          </div>
+        );
+      default: return null;
+    }
+  };
+
+  const progress = ((currentStep + 1) / formSteps.length) * 100;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-2 sm:p-4">
-      <div className="relative w-full max-w-3xl h-full flex flex-col">
-        <div className="relative flex-1 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden flex flex-col">
-          {checkingOrg ? (
-            <div className="flex-grow flex items-center justify-center">
-              <Loader2 className="h-12 w-12 animate-spin text-indigo-600" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 font-sans">
+      <div className="relative w-full max-w-2xl h-[70vh] max-h-[600px] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <button type="button" onClick={onClose} aria-label="Close" className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-20">
+          <X size={24} />
+        </button>
+        
+        <div className="p-6 sm:p-8 border-b">
+            <h2 className="text-xl font-bold text-gray-800">Organizational Details</h2>
+            <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
+                <div className="bg-gray-800 h-1.5 rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%` }}></div>
             </div>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-10 relative overflow-hidden">
+          {error && <div className="absolute top-4 w-full px-10"><div className="p-3 bg-red-100 text-red-700 font-medium text-center rounded-lg text-sm">{error}</div></div>}
+          <div key={currentStep} className={`w-full text-center animate-step-${animationDirection}`}>
+            <label className="block text-xl sm:text-2xl font-bold text-gray-800 mb-8">
+              {currentStep + 1}. {formSteps[currentStep].label}
+            </label>
+            {renderStepContent()}
+            {stepError && <p className="text-red-500 text-sm mt-3 animate-shake">{stepError}</p>}
+          </div>
+        </div>
+
+        <div className="p-6 bg-gray-50 border-t flex items-center justify-between">
+          <Button variant="ghost" onClick={handleBack} disabled={currentStep === 0} className="disabled:opacity-50">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+          </Button>
+          
+          {currentStep < formSteps.length - 1 ? (
+            <Button onClick={handleNext} className="bg-gray-800 hover:bg-gray-900 text-white">
+              Next <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           ) : (
-            <>
-              <div className="p-4 sm:p-6 border-b border-gray-200">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  aria-label="Close"
-                  className="absolute top-3 right-4 text-gray-400 hover:text-red-500 transition-colors cursor-pointer text-3xl font-bold rounded-full bg-gray-100 hover:bg-red-100 w-10 h-10 flex items-center justify-center z-10 shadow"
-                  style={{ lineHeight: "1" }}
-                >
-                  &times;
-                </button>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-1 text-center">
-                  Organizational Details
-                </h1>
-                <p className="text-gray-600 text-center text-sm sm:text-base">
-                  Please fill out your organizational details below.
-                </p>
-              </div>
-
-              <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 p-4 sm:p-6">
-                {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 font-medium text-center rounded-lg">{error}</div>}
-                <form id="organization-form" className="space-y-4 text-gray-900" onSubmit={submitHandler} autoComplete="off">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block font-medium text-gray-700 mb-1">Organization Name *</label>
-                            <input name="name" type="text" value={form.name} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" required />
-                        </div>
-                        <FileInputButton label="Organization Logo" file={orgLogo} preview={orgLogoPreview} onButtonClick={() => orgLogoInputRef.current?.click()} onFileChange={handleLogoChange} inputRef={orgLogoInputRef} />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block font-medium text-gray-700 mb-1">CEO Name *</label>
-                            <input name="ceoName" type="text" value={form.ceoName} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" required />
-                        </div>
-                        <FileInputButton label="CEO Picture" file={ceoPic} preview={ceoPicPreview} onButtonClick={() => ceoFileInputRef.current?.click()} onFileChange={handleCeoFileChange} inputRef={ceoFileInputRef} required={false} />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                        <label className="block font-medium text-gray-700 mb-1">CEO Email *</label>
-                        <input name="email" type="email" value={form.email} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" required />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                        <label className="block font-medium text-gray-700 mb-1">Industry *</label>
-                        <select name="industry" value={form.industry} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none cursor-pointer bg-white" required>
-                            <option value="">Select</option><option>Healthcare and Social Assistance</option><option>Finance and Insurance</option><option>Professional, Scientific and Technical Services</option><option>Information Technology (IT) and Software</option><option>Telecommunications</option>
-                        </select>
-                        </div>
-                        <div>
-                        <label className="block font-medium text-gray-700 mb-1">Company Size *</label>
-                        <select name="companySize" value={form.companySize} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none cursor-pointer bg-white" required>
-                            <option value="">Select</option><option>150-300</option><option>300-450</option><option>450-600</option><option>600-850</option><option>850-1000</option><option>1000+</option><option>5000+</option>
-                        </select>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                        <label className="block font-medium text-gray-700 mb-1">City *</label>
-                        <input name="city" type="text" placeholder="City" value={form.city} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" required />
-                        </div>
-                        <div>
-                        <label className="block font-medium text-gray-700 mb-1">Country *</label>
-                        <input name="country" type="text" placeholder="Country" value={form.country} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" required />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                        <label className="block font-medium text-gray-700 mb-1">Year Founded *</label>
-                        <input name="yearFounded" type="number" value={form.yearFounded} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" required />
-                        </div>
-                        <div>
-                        <label className="block font-medium text-gray-700 mb-1">Organization Type *</label>
-                        <select name="organizationType" value={form.organizationType} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none cursor-pointer bg-white" required>
-                            <option value="">Select</option><option>Private</option><option>Public</option><option>Non-Profit</option><option>Government</option>
-                        </select>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                        <label className="block font-medium text-gray-700 mb-1">Number of Offices *</label>
-                        <input name="numberOfOffices" type="number" value={form.numberOfOffices} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" required min={0} />
-                        </div>
-                        <div>
-                        <label className="block font-medium text-gray-700 mb-1">HR Tools Used *</label>
-                        <input name="hrToolsUsed" type="text" placeholder="e.g. BambooHR, Workday" value={form.hrToolsUsed} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" required />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                        <label className="block font-medium text-gray-700 mb-1">Hiring Level *</label>
-                        <select name="hiringLevel" value={form.hiringLevel} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none cursor-pointer bg-white" required>
-                            <option value="">Select</option><option>Low</option><option>Moderate</option><option>High</option>
-                        </select>
-                        </div>
-                        <div>
-                        <label className="block font-medium text-gray-700 mb-1">Work Model *</label>
-                        <select name="workModel" value={form.workModel} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none cursor-pointer bg-white" required>
-                            <option value="">Select</option><option>Onsite</option><option>Remote</option><option>Hybrid</option><option>Mixed</option>
-                        </select>
-                        </div>
-                    </div>
-                </form>
-              </div>
-
-              <div className="p-4 sm:p-6 border-t border-gray-200 bg-gray-50">
-                <Button form="organization-form" type="submit" className="w-full font-bold bg-gray-900 hover:bg-black text-white text-base shadow cursor-pointer" disabled={loading}>
-                  {loading ? "Creating..." : "Create Organization"}
-                </Button>
-              </div>
-            </>
+            <Button onClick={submitHandler} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white">
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+              {loading ? "Creating..." : "Create Organization"}
+            </Button>
           )}
         </div>
       </div>
       <style jsx>{`
-        .scrollbar-thin { scrollbar-width: thin; scrollbar-color: #d1d5db white; }
-        .scrollbar-thumb-gray-300::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-        .scrollbar-thin::-webkit-scrollbar { width: 8px; }
+        @keyframes slide-in-from-right {
+          0% { transform: translateX(50px); opacity: 0; }
+          100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slide-out-to-left {
+          0% { transform: translateX(0); opacity: 1; }
+          100% { transform: translateX(-50px); opacity: 0; }
+        }
+        @keyframes slide-in-from-left {
+          0% { transform: translateX(-50px); opacity: 0; }
+          100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slide-out-to-right {
+          0% { transform: translateX(0); opacity: 1; }
+          100% { transform: translateX(50px); opacity: 0; }
+        }
+        .animate-step-forward {
+          animation: slide-in-from-right 0.4s ease-out forwards;
+        }
+        .animate-step-backward {
+          animation: slide-in-from-left 0.4s ease-out forwards;
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+          20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
       `}</style>
     </div>
   );

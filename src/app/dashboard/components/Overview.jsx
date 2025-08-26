@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Network, User, Users, Building2, Workflow, MapPin, Calendar, Building, Laptop, Scaling, Mail, BookOpen, Lightbulb, Wrench, FileText, Award, Briefcase, UserCircle, Edit, Trash2, X, Loader2, PlusCircle, ArrowLeft, Eye, AlertTriangle } from "lucide-react";
+import { Network, User, Users, Building2, Workflow, MapPin, Calendar, Building, Laptop, Scaling, Mail, BookOpen, Lightbulb, Wrench, FileText, Award, Briefcase, UserCircle, Edit, Trash2, X, Loader2, PlusCircle, ArrowLeft, Eye, AlertTriangle, DollarSign, Gift, Package, TrendingUp, Clock, CheckCircle, Play } from "lucide-react";
 import toast from 'react-hot-toast';
 
 const Button = ({ children, onClick, variant, className = '', disabled, size = 'md' }) => {
@@ -146,7 +146,7 @@ export function Overview({ organization, departments, onNavigate, setActiveTab, 
     );
 }
 
-export const OrganizationProfilePage = ({ organization, departments, teammembers, onBack, onEdit, onDelete }) => {
+export const OrganizationProfilePage = ({ organization, departments, employees, onBack, onEdit, onDelete }) => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     if (!organization) {
@@ -157,9 +157,10 @@ export const OrganizationProfilePage = ({ organization, departments, teammembers
         );
     }
 
-    const totalHods = departments?.length || 0;
-    const totalTeamMembers = teammembers?.length || 0;
-    const totalEmployees = totalHods + totalTeamMembers;
+    // Count employees with assigned roles
+    const assignedEmployees = employees?.filter(emp => emp.role !== "Unassigned" && emp.department) || [];
+    const totalEmployees = assignedEmployees.length;
+    const totalHods = assignedEmployees.filter(emp => emp.role === "HOD").length;
     const totalSubFunctions = departments?.reduce((acc, dept) => acc + (dept.subfunctions?.length || 0), 0);
 
     const InfoCard = ({ icon, label, value }) => (
@@ -234,7 +235,7 @@ export const OrganizationProfilePage = ({ organization, departments, teammembers
 };
 
 export const GenericProfilePage = ({ person, onBack, isCeoProfile, onEdit }) => {
-    const { name, role, email, departmentName, reportsTo, pic, education = [], experience = [], skills = [], tools = [], certifications = [] } = person;
+    const { name, role, email, industry, departmentName, reportsTo, pic, education = [], experience = [], skills = [], tools = [], certifications = [] } = person;
     const [activeTab, setActiveTab] = useState("experience");
     
     const TABS = [
@@ -242,8 +243,11 @@ export const GenericProfilePage = ({ person, onBack, isCeoProfile, onEdit }) => 
         { value: "education", label: "Education", icon: <BookOpen className="w-5 h-5" /> },
         { value: "skills", label: "Skills", icon: <Lightbulb className="w-5 h-5" /> },
         { value: "tools", label: "Tools", icon: <Wrench className="w-5 h-5" /> },
-        { value: "job-description", label: "Job Description", icon: <FileText className="w-5 h-5" /> },
         { value: "certifications", label: "Certifications", icon: <Award className="w-5 h-5" /> },
+        ...(isCeoProfile ? [] : [
+            { value: "performance", label: "Performance", icon: <TrendingUp className="w-5 h-5" /> },
+            { value: "payroll", label: "Payroll", icon: <DollarSign className="w-5 h-5" /> }
+        ])
     ];
 
     const EmptyState = ({ text, icon }) => (
@@ -252,6 +256,45 @@ export const GenericProfilePage = ({ person, onBack, isCeoProfile, onEdit }) => 
             <p className="mt-4 font-semibold text-gray-700">{text}</p>
         </div>
     );
+
+    const StatCard = ({ icon, label, value, unit = "" }) => (
+        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+                    {icon}
+                </div>
+                <div>
+                    <p className="text-sm font-medium text-gray-600">{label}</p>
+                    <p className="text-lg font-bold text-gray-900">
+                        {value}{unit}
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+
+    const statusConfig = {
+        not_started: {
+            icon: <Clock className="h-4 w-4" />,
+            styles: "bg-gray-100 text-gray-800"
+        },
+        in_progress: {
+            icon: <Play className="h-4 w-4" />,
+            styles: "bg-blue-100 text-blue-800"
+        },
+        completed: {
+            icon: <CheckCircle className="h-4 w-4" />,
+            styles: "bg-green-100 text-green-800"
+        },
+        overdue: {
+            icon: <AlertTriangle className="h-4 w-4" />,
+            styles: "bg-red-100 text-red-800"
+        },
+        default: {
+            icon: <Clock className="h-4 w-4" />,
+            styles: "bg-gray-100 text-gray-800"
+        }
+    };
 
     return (
         <div className="p-4 sm:p-8">
@@ -273,6 +316,7 @@ export const GenericProfilePage = ({ person, onBack, isCeoProfile, onEdit }) => 
                             <p className="text-lg font-medium text-indigo-600">{role}</p>
                             <div className="mt-4 flex flex-wrap justify-center sm:justify-start items-center gap-x-6 gap-y-2 text-gray-600">
                                 <span className="flex items-center gap-2 truncate"><Mail className="w-5 h-5 text-gray-400" />{email}</span>
+                                {isCeoProfile && industry && <span className="flex items-center gap-2 truncate"><Building2 className="w-5 h-5 text-gray-400" />{industry}</span>}
                                 {departmentName && <span className="flex items-center gap-2 truncate"><Building2 className="w-5 h-5 text-gray-400" />{departmentName}</span>}
                                 {reportsTo && <span className="flex items-center gap-2 truncate"><User className="w-5 h-5 text-gray-400" />Reports To: <span className="font-normal ml-1">{reportsTo}</span></span>}
                             </div>
@@ -300,12 +344,63 @@ export const GenericProfilePage = ({ person, onBack, isCeoProfile, onEdit }) => 
                     <div className="mt-8">
                         <AnimatePresence mode="wait">
                             <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                                {activeTab === 'experience' && (experience.length > 0 ? experience.map((job, idx) => <div key={idx} className="relative pl-8 sm:pl-10 pb-8 border-l-2 border-slate-200 last:pb-0"><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{job.title}</h3><p className="font-medium text-gray-600">{job.company}</p><p className="text-sm text-gray-500 mt-1">{job.duration}</p></div>) : <EmptyState text="No Work Experience" icon={<Briefcase className="h-10 w-10 text-gray-400" />} />)}
+                                {activeTab === 'experience' && (experience.length > 0 ? experience.map((job, idx) => <div key={idx} className="relative pl-8 sm:pl-10 pb-8 border-l-2 border-slate-200 last:pb-0"><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{job.title}</h3><p className="font-medium text-gray-600">{job.company}</p><p className="text-sm text-gray-500 mt-1">{job.duration}</p>{job.description && <p className="text-gray-600 mt-2">{job.description}</p>}</div>) : <EmptyState text="No Work Experience" icon={<Briefcase className="h-10 w-10 text-gray-400" />} />)}
                                 {activeTab === 'education' && (education.length > 0 ? education.map((edu, idx) => <div key={idx} className="relative pl-8 sm:pl-10 pb-8 border-l-2 border-slate-200 last:pb-0"><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{edu.degree}</h3><p className="font-medium text-gray-600">{edu.institution}</p><p className="text-sm text-gray-500 mt-1">{edu.year}</p></div>) : <EmptyState text="No Education History" icon={<BookOpen className="h-10 w-10 text-gray-400" />} />)}
                                 {activeTab === 'skills' && (skills.length > 0 ? <div className="flex flex-wrap gap-3">{skills.map((skill, idx) => <span key={idx} className="bg-indigo-100 text-indigo-700 text-sm font-medium px-4 py-2 rounded-full">{skill}</span>)}</div> : <EmptyState text="No Skills Listed" icon={<Lightbulb className="h-10 w-10 text-gray-400" />} />)}
                                 {activeTab === 'tools' && (tools.length > 0 ? <div className="flex flex-wrap gap-3">{tools.map((tool, idx) => <span key={idx} className="bg-indigo-100 text-indigo-700 text-sm font-medium px-4 py-2 rounded-full">{tool}</span>)}</div> : <EmptyState text="No Tools Listed" icon={<Wrench className="h-10 w-10 text-gray-400" />} />)}
-                                {activeTab === 'job-description' && (experience.some(job => job.description) ? (<ul className="list-disc pl-5 space-y-2 text-gray-600">{experience.filter(job => job.description).map((job, idx) => (<li key={idx}>{job.description}</li>))}</ul>) : <EmptyState text="No Job Descriptions Available" icon={<FileText className="h-10 w-10 text-gray-400" />} />)}
-                                {activeTab === 'certifications' && (certifications.length > 0 ? certifications.map((cert, idx) => <div key={idx} className="relative pl-8 sm:pl-10 pb-8 border-l-2 border-slate-200 last:pb-0"><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{cert.title}</h3><p className="font-medium text-gray-600">{cert.location}</p><p className="text-sm text-gray-500 mt-1">{cert.duration}</p></div>) : <EmptyState text="No Certifications Listed" icon={<Award className="h-10 w-10 text-gray-400" />} />)}
+
+                                {activeTab === 'certifications' && (certifications.length > 0 ? certifications.map((cert, idx) => <div key={idx} className="relative pl-8 sm:pl-10 pb-8 border-l-2 border-slate-200 last:pb-0"><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{cert.title}</h3><p className="font-medium text-gray-600">{cert.issuer || 'N/A'}</p><p className="text-sm text-gray-500 mt-1">{cert.duration}</p></div>) : <EmptyState text="No Certifications Listed" icon={<Award className="h-10 w-10 text-gray-400" />} />)}
+
+                                {activeTab === 'payroll' && (
+                                    !person.payroll ? <EmptyState text="No Payroll Information" icon={<DollarSign className="h-10 w-10 text-gray-400" />} /> :
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                        <StatCard icon={<DollarSign className="h-6 w-6"/>} label="Base Salary" value={`$${person.payroll.baseSalary?.toLocaleString()}`} />
+                                        <StatCard icon={<Gift className="h-6 w-6"/>} label="Bonus" value={`$${person.payroll.bonus?.toLocaleString()}`} />
+                                        <StatCard icon={<Package className="h-6 w-6"/>} label="Stock Options" value={person.payroll.stockOptions} unit=" shares" />
+                                        <StatCard icon={<Calendar className="h-6 w-6"/>} label="Last Raise Date" value={person.payroll.lastRaiseDate ? new Date(person.payroll.lastRaiseDate).toLocaleDateString() : 'N/A'} />
+                                    </div>
+                                )}
+
+                                {activeTab === 'performance' && (
+                                    !person.performance ? <EmptyState text="No Performance Data" icon={<TrendingUp className="h-10 w-10 text-gray-400" />} /> :
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-700">Overall Completion</label>
+                                            <div className="mt-1 flex items-center gap-4">
+                                                <div className="h-2.5 w-full rounded-full bg-gray-200"><div className="h-2.5 rounded-full bg-green-500" style={{ width: `${person.performance.overallCompletion}%` }}></div></div>
+                                                <span className="font-semibold text-green-600">{person.performance.overallCompletion}%</span>
+                                            </div>
+                                            {person.performance.nextReviewDate && (
+                                                <div className="mt-2 text-xs text-gray-500">
+                                                    Next Review: {new Date(person.performance.nextReviewDate).toLocaleDateString()}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h3 className="mb-3 text-lg font-semibold text-gray-800">Active Goals</h3>
+                                            <div className="space-y-4">
+                                                {person.performance.goals?.map((goal, idx) => {
+                                                    const status = statusConfig[goal.status] || statusConfig.default;
+                                                    return (
+                                                        <div key={idx} className="rounded-lg border border-gray-200 p-4">
+                                                            <div className="flex items-start justify-between">
+                                                                <div>
+                                                                    <p className="font-semibold text-gray-800">{goal.name}</p>
+                                                                    <p className="text-sm text-gray-500">Target: {new Date(goal.targetDate).toLocaleDateString()}</p>
+                                                                </div>
+                                                                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium capitalize ${status.styles}`}>{status.icon} {goal.status.replace('_', ' ')}</span>
+                                                            </div>
+                                                            <div className="mt-2 flex items-center gap-4">
+                                                                <div className="h-2 w-full rounded-full bg-gray-200"><div className="h-2 rounded-full bg-indigo-600" style={{ width: `${goal.completion}%` }}></div></div>
+                                                                <span className="text-sm font-medium text-gray-600">{goal.completion}%</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </motion.div>
                         </AnimatePresence>
                     </div>
@@ -508,17 +603,21 @@ export const EditCeoModal = ({ isOpen, onClose, organization, onSave }) => {
                                             <InputField label="Title" value={exp.title} onChange={e => handleArrayChange('ceoExperience', index, 'title', e.target.value)} />
                                             <InputField label="Company" value={exp.company} onChange={e => handleArrayChange('ceoExperience', index, 'company', e.target.value)} />
                                             <InputField label="Duration" value={exp.duration} onChange={e => handleArrayChange('ceoExperience', index, 'duration', e.target.value)} />
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-700 block mb-1.5">Description</label>
+                                                <textarea placeholder="Job Description" value={exp.description || ''} onChange={e => handleArrayChange('ceoExperience', index, 'description', e.target.value)} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" />
+                                            </div>
                                             <button onClick={() => removeArrayItem('ceoExperience', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><Trash2 size={16} /></button>
                                         </div>
                                     ))}
-                                    <AddItemButton onClick={() => addArrayItem('ceoExperience', { title: '', company: '', duration: '' })}>Add Experience</AddItemButton>
+                                    <AddItemButton onClick={() => addArrayItem('ceoExperience', { title: '', company: '', duration: '', description: '' })}>Add Experience</AddItemButton>
                                     
                                     <h3 className="text-lg font-semibold text-indigo-600 border-b border-indigo-200 pb-2 mt-6">Education</h3>
                                     {(formData.ceoEducation || []).map((edu, index) => (
                                         <div key={index} className="bg-slate-50 p-4 rounded-lg border border-slate-200 relative space-y-2">
                                             <InputField label="Degree" value={edu.degree} onChange={e => handleArrayChange('ceoEducation', index, 'degree', e.target.value)} />
                                             <InputField label="Institution" value={edu.institution} onChange={e => handleArrayChange('ceoEducation', index, 'institution', e.target.value)} />
-                                            <InputField label="Year" value={edu.year} onChange={e => handleArrayChange('ceoEducation', index, 'year', e.target.value)} />
+                                            <InputField label="Duration" value={edu.year} onChange={e => handleArrayChange('ceoEducation', index, 'year', e.target.value)} />
                                             <button onClick={() => removeArrayItem('ceoEducation', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><Trash2 size={16} /></button>
                                         </div>
                                     ))}
@@ -528,12 +627,12 @@ export const EditCeoModal = ({ isOpen, onClose, organization, onSave }) => {
                                     {(formData.ceoCertifications || []).map((cert, index) => (
                                         <div key={index} className="bg-slate-50 p-4 rounded-lg border border-slate-200 relative space-y-2">
                                             <InputField label="Title" value={cert.title} onChange={e => handleArrayChange('ceoCertifications', index, 'title', e.target.value)} />
-                                            <InputField label="Location" value={cert.location} onChange={e => handleArrayChange('ceoCertifications', index, 'location', e.target.value)} />
+                                            <InputField label="Issuer" value={cert.issuer} onChange={e => handleArrayChange('ceoCertifications', index, 'issuer', e.target.value)} />
                                             <InputField label="Duration" value={cert.duration} onChange={e => handleArrayChange('ceoCertifications', index, 'duration', e.target.value)} />
                                             <button onClick={() => removeArrayItem('ceoCertifications', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><Trash2 size={16} /></button>
                                         </div>
                                     ))}
-                                    <AddItemButton onClick={() => addArrayItem('ceoCertifications', { title: '', location: '', duration: '' })}>Add Certification</AddItemButton>
+                                    <AddItemButton onClick={() => addArrayItem('ceoCertifications', { title: '', issuer: '', duration: '' })}>Add Certification</AddItemButton>
                                 </div>
                             ) : (
                                 <div>

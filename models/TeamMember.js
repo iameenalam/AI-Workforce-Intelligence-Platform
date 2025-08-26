@@ -15,7 +15,7 @@ const EducationSchema = new mongoose.Schema({
 
 const CertificationSchema = new mongoose.Schema({
     title: String,
-    location: String,
+    issuer: String,
     duration: String,
 }, { _id: false });
 

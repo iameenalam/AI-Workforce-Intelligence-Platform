@@ -3,6 +3,9 @@ import userReducer from "./reducer/userReducer";
 import organizationReducer from "./reducer/orgReducer";
 import teammembersReducer from "./reducer/teammembersReducer";
 import departmentsReducer from "./reducer/departmentsReducer";
+import { employeesReducer } from "./reducer/employeesReducer";
+import { payrollReducer } from "./reducer/payrollReducer";
+import { performanceReducer } from "./reducer/performanceReducer";
 
 const store = configureStore({
   reducer: {
@@ -10,6 +13,9 @@ const store = configureStore({
     organization: organizationReducer,
     teammembers: teammembersReducer,
     departments: departmentsReducer,
+    employees: employeesReducer,
+    payroll: payrollReducer,
+    performance: performanceReducer,
   },
 });
 

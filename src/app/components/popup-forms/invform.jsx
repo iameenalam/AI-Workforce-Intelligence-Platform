@@ -1,161 +1,155 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { useDispatch, useSelector } from "react-redux";
-import { inviteTeammembers } from "@/redux/action/teammembers";
+import { CloudUpload, X, UserPlus } from "lucide-react";
+import toast from 'react-hot-toast';
 
 export default function InvForm({ onClose }) {
-  const dispatch = useDispatch();
-  const { btnLoading, message } = useSelector((state) => state.teammembers);
+  const [btnLoading, setBtnLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const [departments, setDepartments] = useState([]);
-  const [expanded, setExpanded] = useState({});
-  const [subExpanded, setSubExpanded] = useState({});
-  const [members, setMembers] = useState({});
-  const [teammembers, setTeammembers] = useState({});
-  const [selected, setSelected] = useState([]);
-  const [pending, setPending] = useState({});
+  const [employees, setEmployees] = useState([{ id: Date.now(), name: "", email: "", pic: null, picPreview: null, cv: null }]);
+  const fileInputRefs = useRef([]);
+  const cvInputRefs = useRef([]);
 
-  useEffect(() => {
-    if (message && !btnLoading) {
-      const nextPending = { ...pending };
-      selected.forEach((id) => {
-        for (const key in nextPending) {
-          nextPending[key] = nextPending[key].filter((m) => m._localId !== id);
-        }
-      });
-      setPending(nextPending);
-      setSelected([]);
-      onClose?.();
+  const addEmployeeForm = () => {
+    const newEmployee = { id: Date.now(), name: "", email: "", pic: null, picPreview: null, cv: null };
+    setEmployees([...employees, newEmployee]);
+  };
+
+  const removeEmployeeForm = (index) => {
+    if (employees.length > 1) {
+      const updatedEmployees = employees.filter((_, i) => i !== index);
+      setEmployees(updatedEmployees);
+      fileInputRefs.current = fileInputRefs.current.filter((_, i) => i !== index);
+      cvInputRefs.current = cvInputRefs.current.filter((_, i) => i !== index);
     }
-  }, [message, btnLoading, onClose, selected, pending]);
-
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      const token = Cookies.get("token");
-      const { data } = await axios.get("/api/departments/all", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setDepartments(data);
-    };
-    fetchDepartments();
-  }, []);
-
-  const fetchTeammembers = async (departmentId, subIdx) => {
-    const token = Cookies.get("token");
-    const { data } = await axios.get(
-      `/api/teammembers?departmentId=${departmentId}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setTeammembers((prev) => ({
-      ...prev,
-      [`${departmentId}-${subIdx}`]: data.filter(
-        (tm) => tm.subfunctionIndex === subIdx
-      ),
-    }));
   };
 
-  const handleExpand = (deptId) =>
-    setExpanded((prev) => ({ ...prev, [deptId]: !prev[deptId] }));
-  const handleSubExpand = (deptId, subIdx) => {
-    setSubExpanded((prev) => ({
-      ...prev,
-      [`${deptId}-${subIdx}`]: !prev[`${deptId}-${subIdx}`],
-    }));
-    if (!subExpanded[`${deptId}-${subIdx}`]) fetchTeammembers(deptId, subIdx);
+  const handleEmployeeChange = (index, field, value) => {
+    const updatedEmployees = [...employees];
+    updatedEmployees[index][field] = value;
+    setEmployees(updatedEmployees);
   };
 
-  const handleMemberChange = (deptId, subIdx, field, value) => {
-    setMembers((prev) => ({
-      ...prev,
-      [`${deptId}-${subIdx}`]: {
-        ...prev[`${deptId}-${subIdx}`],
-        [field]: value,
-      },
-    }));
+  const handlePicChange = (index, file) => {
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Image size must be less than 5MB");
+        return;
+      }
+      if (!file.type.startsWith("image/")) {
+        setError("Please select an image file");
+        return;
+      }
+
+      const updatedEmployees = [...employees];
+      updatedEmployees[index].pic = file;
+      updatedEmployees[index].picPreview = URL.createObjectURL(file);
+      setEmployees(updatedEmployees);
+      setError("");
+    }
   };
 
-  const handleAddMember = (deptId, subIdx) => {
-    const member = members[`${deptId}-${subIdx}`];
-    if (!member?.name || !member?.email) return alert("Fill all fields");
-    const localId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    const key = `${deptId}-${subIdx}`;
-    const newEntry = {
-      ...member,
-      _localId: localId,
-      department: deptId,
-      subfunctionIndex: subIdx,
-    };
-    const nextPending = {
-      ...pending,
-      [key]: [...(pending[key] || []), newEntry],
-    };
-    setPending(nextPending);
-    setMembers((prev) => ({ ...prev, [key]: {} }));
-  };
+  const handleCvChange = (index, file) => {
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError("CV size must be less than 5MB");
+        return;
+      }
+      if (file.type !== "application/pdf") {
+        setError("Please select a PDF file for CV");
+        return;
+      }
 
-  const handleSelect = (id) => {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+      const updatedEmployees = [...employees];
+      updatedEmployees[index].cv = file;
+      setEmployees(updatedEmployees);
+      setError("");
+    }
   };
 
   const handleInvite = async () => {
-    const toInvite = [];
-    Object.entries(pending).forEach(([key, arr]) => {
-      arr.forEach((m) => {
-        if (selected.includes(m._localId)) {
-          toInvite.push(m);
-        }
-      });
-    });
-    if (toInvite.length === 0) return alert("Select teammembers to invite.");
-    const token = Cookies.get("token");
-    const createdIds = [];
-    for (const member of toInvite) {
-      try {
-        const { data } = await axios.post(
-          "/api/teammembers",
-          {
-            name: member.name,
-            email: member.email,
-            departmentId: member.department,
-            subfunctionIndex: member.subfunctionIndex,
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        if (data?.teammember?._id) createdIds.push(data.teammember._id);
-      } catch (e) {}
+    for (let i = 0; i < employees.length; i++) {
+      const emp = employees[i];
+      if (!emp.name.trim() || !emp.email.trim()) {
+        setError(`Please fill in all required fields for employee ${i + 1}`);
+        return;
+      }
+
+      const emailRegex = /^\S+@\S+\.\S+$/;
+      if (!emailRegex.test(emp.email)) {
+        setError(`Please enter a valid email address for employee ${i + 1}`);
+        return;
+      }
     }
-    if (createdIds.length) {
-      dispatch(inviteTeammembers(createdIds));
+
+    setBtnLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const token = Cookies.get("token");
+      const invitedEmployees = [];
+
+      for (const emp of employees) {
+        const formData = new FormData();
+        formData.append("name", emp.name);
+        formData.append("email", emp.email);
+        if (emp.pic) {
+          formData.append("pic", emp.pic);
+        }
+
+        const { data } = await axios.post("/api/employees", formData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (data?.employee) {
+          invitedEmployees.push(data.employee);
+
+          if (emp.cv) {
+            try {
+              await new Promise(resolve => setTimeout(resolve, 500));
+              const cvFormData = new FormData();
+              cvFormData.append("cv", emp.cv);
+              cvFormData.append("employeeId", data.employee._id);
+              await axios.post("/api/employees/cv", cvFormData, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+            } catch (cvError) {
+              toast.error(`CV upload failed for ${emp.name}: ${cvError.response?.data?.message || cvError.message}`);
+            }
+          }
+        }
+      }
+
+      setSuccess(`Successfully invited ${invitedEmployees.length} employee(s)!`);
+      toast.success(`Successfully invited ${invitedEmployees.length} employee(s)!`);
+
+      const cvUploaded = employees.filter(emp => emp.cv).length;
+      if (cvUploaded > 0) {
+        toast.success(`${cvUploaded} CV(s) uploaded and processed!`);
+      }
+
+      setTimeout(() => {
+        onClose?.();
+      }, 1500);
+
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Failed to invite employees";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setBtnLoading(false);
     }
   };
 
-  function getAllMembersForDisplay(key) {
-    const backend = teammembers[key] || [];
-    const pendingArr = pending[key] || [];
-    return [
-      ...backend.map((tm) => ({
-        ...tm,
-        isBackend: true,
-        id: tm._id,
-        status: tm.invited ? "Invited" : "Not Invited",
-      })),
-      ...pendingArr.map((pm) => ({
-        ...pm,
-        isBackend: false,
-        id: pm._localId,
-        status: "Pending",
-      })),
-    ];
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-2 sm:p-4">
-      <div className="relative w-full max-w-4xl h-full flex flex-col">
+      <div className="relative w-full max-w-3xl max-h-[90vh] flex flex-col">
         <div className="relative flex-1 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden flex flex-col">
           <div className="p-4 sm:p-6 border-b border-gray-200">
             <button
@@ -168,152 +162,162 @@ export default function InvForm({ onClose }) {
               &times;
             </button>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-1 text-center">
-              Invite Team Members
+              Invite Employees
             </h1>
             <p className="text-gray-600 text-center text-sm sm:text-base">
-              Add and select team members to send invitations.
+              Add employees to your organization. They will be added to the unassigned pool.
             </p>
           </div>
 
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 p-4 sm:p-6">
-            <div className="flex flex-col gap-6">
-              {departments.map((dept, deptIdx) => (
-                <div
-                  key={dept._id}
-                  className="border rounded-2xl shadow-sm bg-white p-4 sm:p-6"
-                >
-                  <div
-                    className="cursor-pointer flex items-center gap-3 group"
-                    onClick={() => handleExpand(dept._id)}
-                  >
-                    <span className="text-2xl font-bold text-gray-700 group-hover:text-black transition">
-                      {expanded[dept._id] ? "▼" : "►"}
-                    </span>
-                    <span className="text-lg font-semibold text-gray-900">
-                      Department {deptIdx + 1}:
-                    </span>
-                    <span className="text-lg font-bold text-gray-700">
-                      {dept.departmentName}
-                    </span>
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 font-medium text-center rounded-lg">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 font-medium text-center rounded-lg">
+                {success}
+              </div>
+            )}
+            <div className="space-y-4">
+              {employees.map((employee, index) => (
+                <div key={employee.id} className="border border-gray-200 bg-gray-50 p-4 rounded-xl relative">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold text-gray-800">Employee #{index + 1}</h2>
+                    {employees.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeEmployeeForm(index)}
+                        className="text-gray-400 hover:text-red-500 transition-colors font-bold text-2xl rounded-full bg-gray-200 hover:bg-red-100 w-8 h-8 flex items-center justify-center cursor-pointer shadow-sm"
+                        aria-label="Remove Employee"
+                        style={{ lineHeight: "1" }}
+                      >
+                        &times;
+                      </button>
+                    )}
                   </div>
-                  {expanded[dept._id] &&
-                    dept.subfunctions?.map((sf, idx) => {
-                      const key = `${dept._id}-${idx}`;
-                      const allMembers = getAllMembersForDisplay(key);
-                      return (
-                        <div
-                          key={idx}
-                          className="ml-3 sm:ml-6 mt-5 mb-4 border-l-4 border-gray-200 pl-2 sm:pl-4 relative"
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-1">Name *</label>
+                      <input type="text" value={employee.name} onChange={(e) => handleEmployeeChange(index, "name", e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" placeholder="Enter employee name" required />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-1">Email *</label>
+                      <input type="email" value={employee.email} onChange={(e) => handleEmployeeChange(index, "email", e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" placeholder="Enter employee email" required />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-1">Profile Picture (Optional)</label>
+                        <input
+                          type="file"
+                          ref={(el) => (fileInputRefs.current[index] = el)}
+                          onChange={(e) => handlePicChange(index, e.target.files[0])}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => fileInputRefs.current[index]?.click()}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors border border-gray-300"
                         >
-                          <div
-                            className="cursor-pointer flex items-center group"
-                            onClick={() => handleSubExpand(dept._id, idx)}
-                          >
-                            <span className="text-xl font-semibold text-gray-700 group-hover:text-black transition mr-2">
-                              {subExpanded[key] ? "▼" : "►"}
-                            </span>
-                            <span className="font-medium text-gray-800 mr-2">
-                              Subfunction {idx + 1}:
-                            </span>
-                            <span className="font-semibold text-gray-900">
-                              {sf.name}
-                            </span>
-                          </div>
-                          {subExpanded[key] && (
-                            <div className="mt-4 p-2 sm:p-3 bg-gray-50 rounded-xl shadow-inner border border-gray-200">
-                              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3">
-                                <input
-                                  type="text"
-                                  placeholder="Name"
-                                  value={members[key]?.name || ""}
-                                  onChange={(e) =>
-                                    handleMemberChange(
-                                      dept._id,
-                                      idx,
-                                      "name",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 w-full text-sm"
-                                />
-                                <input
-                                  type="email"
-                                  placeholder="Email"
-                                  value={members[key]?.email || ""}
-                                  onChange={(e) =>
-                                    handleMemberChange(
-                                      dept._id,
-                                      idx,
-                                      "email",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 w-full text-sm"
-                                />
-                                <Button
-                                  size="sm"
-                                  type="button"
-                                  onClick={() => handleAddMember(dept._id, idx)}
-                                  className="w-full sm:w-auto bg-gray-800 hover:bg-black text-white font-semibold text-sm cursor-pointer px-6"
-                                >
-                                  Add
-                                </Button>
-                              </div>
+                          <CloudUpload className="w-4 h-4" />
+                          Choose Image
+                        </button>
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-1">CV (Optional)</label>
+                        <input
+                          type="file"
+                          ref={(el) => (cvInputRefs.current[index] = el)}
+                          onChange={(e) => handleCvChange(index, e.target.files[0])}
+                          accept=".pdf"
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => cvInputRefs.current[index]?.click()}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors border border-gray-300"
+                        >
+                          <CloudUpload className="w-4 h-4" />
+                          Choose PDF
+                        </button>
+                      </div>
+                    </div>
 
-                              {allMembers.length > 0 ? (
-                                <div className="border rounded-lg overflow-hidden shadow-sm bg-white">
-                                  <div className="hidden sm:grid grid-cols-12 font-semibold text-xs text-gray-600 bg-gray-100 px-4 py-2 border-b">
-                                    <div className="col-span-1 text-center">Select</div>
-                                    <div className="col-span-4">Name</div>
-                                    <div className="col-span-4">Email</div>
-                                    <div className="col-span-3">Status</div>
-                                  </div>
-                                  {allMembers.map((tm) => (
-                                    <div key={tm.id} className="sm:grid sm:grid-cols-12 items-center text-sm px-4 py-2 border-b last:border-b-0 hover:bg-gray-50 transition-all">
-                                      <div className="sm:col-span-1 flex sm:justify-center items-center mb-2 sm:mb-0">
-                                        <input
-                                          type="checkbox"
-                                          checked={selected.includes(tm.id)}
-                                          onChange={() => handleSelect(tm.id)}
-                                          disabled={tm.isBackend && tm.invited}
-                                          className="accent-gray-800 w-4 h-4 cursor-pointer"
-                                        />
-                                      </div>
-                                      <div className="sm:col-span-4 font-medium text-gray-800 truncate">
-                                        <span className="sm:hidden font-semibold">Name: </span>{tm.name}
-                                      </div>
-                                      <div className="sm:col-span-4 text-gray-700 truncate">
-                                       <span className="sm:hidden font-semibold">Email: </span>{tm.email}
-                                      </div>
-                                      <div className="sm:col-span-3 text-gray-600">
-                                        <span className="sm:hidden font-semibold">Status: </span>{tm.status}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className="text-center text-gray-400 py-4 text-sm">
-                                  No team members added yet.
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                    <div className="mt-2 flex items-start justify-between min-h-[44px]">
+                      <div className="flex-1">
+                        {employee.picPreview && (
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={employee.picPreview}
+                              alt="Preview"
+                              className="w-10 h-10 rounded-full object-cover border border-gray-300"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updatedEmployees = [...employees];
+                                updatedEmployees[index].pic = null;
+                                updatedEmployees[index].picPreview = null;
+                                setEmployees(updatedEmployees);
+                              }}
+                              className="text-red-500 hover:text-red-700 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex-1 text-right">
+                        {employee.cv && (
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="text-sm text-gray-600 font-medium truncate">{employee.cv.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updatedEmployees = [...employees];
+                                updatedEmployees[index].cv = null;
+                                setEmployees(updatedEmployees);
+                              }}
+                              className="text-red-500 hover:text-red-700 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">PDF only, max 5MB.</p>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               ))}
             </div>
           </div>
 
           <div className="p-4 sm:p-6 border-t border-gray-200 bg-gray-50">
-            <div className="flex justify-center">
-              <Button
-                className="w-full sm:w-auto px-10 py-3 bg-gray-900 hover:bg-black text-white rounded-lg font-bold shadow-md transition-all text-base cursor-pointer"
-                onClick={handleInvite}
-                disabled={btnLoading || selected.length === 0}
-              >
-                {btnLoading ? "Sending..." : `Send Invitation (${selected.length})`}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <button type="button" onClick={addEmployeeForm} className="w-full sm:w-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-bold text-base shadow-sm cursor-pointer transition border border-gray-300 flex items-center justify-center gap-2">
+                <UserPlus className="w-4 h-4" />
+                Add Another Employee
+              </button>
+              <Button onClick={handleInvite} className="w-full sm:w-auto font-bold bg-gray-900 hover:bg-black text-white px-8 py-2 rounded-lg transition-colors flex items-center justify-center gap-2" disabled={btnLoading}>
+                {btnLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Inviting...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4" />
+                    Invite Employee(s)
+                  </>
+                )}
               </Button>
             </div>
           </div>
