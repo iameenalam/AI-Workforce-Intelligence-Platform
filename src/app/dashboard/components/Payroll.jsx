@@ -37,22 +37,43 @@ const Button = ({ children, onClick, variant = 'primary', className = '', disabl
     );
 };
 
-const InputField = ({ label, name, type = "text", value, onChange, placeholder, required = false }) => (
-    <div className="relative">
-        <label className="text-xs font-medium text-gray-600 absolute -top-2 left-2 bg-white px-1 z-10">
-            {label} {required && <span className="text-red-500">*</span>}
-        </label>
-        <input
-            type={type}
-            name={name}
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            required={required}
-            className="w-full bg-white border-2 border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
-        />
-    </div>
-);
+const InputField = ({ label, name, type = "text", value, onChange, placeholder, required = false }) => {
+    const handleInputChange = (e) => {
+        if (type === 'number') {
+            const sanitizedValue = e.target.value.replace(/[^0-9]/g, '');
+            const syntheticEvent = {
+                target: {
+                    name: e.target.name,
+                    value: sanitizedValue
+                }
+            };
+            onChange(syntheticEvent);
+        } else {
+            onChange(e);
+        }
+    };
+
+    const isNumberInput = type === 'number';
+
+    return (
+        <div className="relative">
+            <label className="text-xs font-medium text-gray-600 absolute -top-2 left-2 bg-white px-1 z-10">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
+            <input
+                type={isNumberInput ? "text" : type}
+                inputMode={isNumberInput ? "numeric" : undefined}
+                pattern={isNumberInput ? "[0-9]*" : undefined}
+                name={name}
+                value={value}
+                onChange={handleInputChange}
+                placeholder={placeholder}
+                required={required}
+                className="w-full bg-white border-2 border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
+            />
+        </div>
+    );
+};
 
 const EmptyState = ({ text, icon }) => (
     <motion.div
