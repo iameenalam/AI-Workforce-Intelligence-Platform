@@ -6,14 +6,6 @@ import { TrendingUp, Plus, Edit, Trash2, X, Loader2, Save, Clock, CheckCircle, A
 import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
 
-const useDispatch = () => (action) => console.log("Dispatched:", action);
-const useSelector = (selector) => selector({ performance: { message: null, error: null } });
-const createPerformance = (data) => ({ type: 'performance/create', payload: data });
-const updatePerformance = (data) => ({ type: 'performance/update', payload: data });
-const deletePerformance = (id) => ({ type: 'performance/delete', payload: id });
-const clearPerformanceMessage = () => ({ type: 'performance/clearMessage' });
-const clearPerformanceError = () => ({ type: 'performance/clearError' });
-
 const Button = ({ children, onClick, variant = 'primary', className = '', disabled, size = 'md' }) => {
     const baseStyle = "rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 focus:outline-none focus:ring-4";
     const sizeStyles = {
@@ -76,8 +68,7 @@ const statusConfig = {
     default: { icon: <Clock className="h-4 w-4" />, styles: "bg-gray-100 text-gray-800" }
 };
 
-const PerformanceModal = ({ isOpen, onClose, employee, onSave }) => {
-    const dispatch = useDispatch();
+const PerformanceModal = ({ isOpen, onClose, employee, onSaveSuccess }) => {
     const [formData, setFormData] = useState({ reviewCadence: '2', goals: [] });
     const [loading, setLoading] = useState(false);
 
@@ -101,37 +92,35 @@ const PerformanceModal = ({ isOpen, onClose, employee, onSave }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        const performanceData = { employeeId: employee._id, ...formData };
+
+        const apiData = {
+            employeeId: employee._id,
+            reviewCadence: formData.reviewCadence,
+            goals: formData.goals.map(g => ({ ...g, completion: Number(g.completion) }))
+        };
+        const token = Cookies.get("token");
+        const isUpdating = !!employee?.performance;
+        const url = "/api/employees/performance";
+        const method = isUpdating ? "PUT" : "POST";
 
         try {
-            if (employee?.performance) {
-                dispatch(updatePerformance(performanceData));
+            const response = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify(apiData),
+            });
+            
+            const result = await response.json();
+
+            if (!response.ok) {
+                toast.error(result.message || "An error occurred.");
             } else {
-                dispatch(createPerformance(performanceData));
+                toast.success(result.message);
+                onSaveSuccess(result.employee);
+                onClose();
             }
-
-            const calculateNextReviewDate = (cadence) => {
-                const monthsUntilNext = 12 / cadence;
-                const nextDate = new Date();
-                nextDate.setMonth(nextDate.getMonth() + monthsUntilNext);
-                return nextDate.toISOString();
-            };
-
-            const updatedEmployee = {
-                ...employee,
-                performance: {
-                    ...formData,
-                    overallCompletion: formData.goals.length > 0 ?
-                        Math.round(formData.goals.reduce((sum, goal) => sum + (goal.completion || 0), 0) / formData.goals.length) : 0,
-                    lastReviewDate: new Date().toISOString(),
-                    nextReviewDate: calculateNextReviewDate(Number(formData.reviewCadence) || 2)
-                }
-            };
-
-            onSave(updatedEmployee);
-            onClose();
         } catch (error) {
-            toast.error("Failed to save performance information");
+            toast.error("Failed to save performance data.");
         } finally {
             setLoading(false);
         }
@@ -189,7 +178,7 @@ const PerformanceModal = ({ isOpen, onClose, employee, onSave }) => {
                         </div>
                     </div>
                     <div className="flex gap-3 pt-4">
-                        <Button type="submit" onClick={handleSubmit} disabled={loading} className="flex-1">
+                        <Button type="submit" disabled={loading} className="flex-1">
                             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
                             {loading ? 'Saving...' : 'Save Changes'}
                         </Button>
@@ -202,8 +191,6 @@ const PerformanceModal = ({ isOpen, onClose, employee, onSave }) => {
 };
 
 export const Performance = ({ employees, onEmployeeUpdate }) => {
-    const dispatch = useDispatch();
-    const { message, error } = useSelector((state) => state.performance);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
@@ -213,28 +200,43 @@ export const Performance = ({ employees, onEmployeeUpdate }) => {
     const employeesWithPerformance = employees?.filter(emp => emp.performance) || [];
     const employeesWithoutPerformance = employees?.filter(emp => !emp.performance) || [];
 
-    useEffect(() => {
-        if (message) { toast.success(message); dispatch(clearPerformanceMessage()); }
-        if (error) { toast.error(error); dispatch(clearPerformanceError()); }
-    }, [message, error, dispatch]);
-
     const handleSetupPerformance = (employee) => { setSelectedEmployee(employee); setIsModalOpen(true); };
     const handleEditPerformance = (employee) => { setSelectedEmployee(employee); setIsModalOpen(true); };
     const handleDeletePerformance = (employee) => { setEmployeeToDelete(employee); setDeleteModalOpen(true); };
 
-    const handleSavePerformance = (updatedEmployee) => {
+    const handleSaveSuccess = (updatedEmployee) => {
         if (onEmployeeUpdate) onEmployeeUpdate(updatedEmployee);
         setIsModalOpen(false);
         setSelectedEmployee(null);
+        setSelectedEmployeeId('');
     };
 
-    const confirmDeletePerformance = () => {
-        if (employeeToDelete) {
-            dispatch(deletePerformance(employeeToDelete._id));
-            if (onEmployeeUpdate) onEmployeeUpdate({ ...employeeToDelete, performance: null });
+    const confirmDeletePerformance = async () => {
+        if (!employeeToDelete) return;
+
+        const token = Cookies.get("token");
+        const url = `/api/employees/performance?employeeId=${employeeToDelete._id}`;
+
+        try {
+            const response = await fetch(url, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                toast.error(result.message || "Failed to delete performance data.");
+            } else {
+                toast.success(result.message);
+                if (onEmployeeUpdate) onEmployeeUpdate({ ...employeeToDelete, performance: null });
+            }
+        } catch (error) {
+            toast.error("An error occurred while deleting performance data.");
+        } finally {
+            setDeleteModalOpen(false);
+            setEmployeeToDelete(null);
         }
-        setDeleteModalOpen(false);
-        setEmployeeToDelete(null);
     };
 
     const launchAdHocReview = async (employee) => {
@@ -245,11 +247,12 @@ export const Performance = ({ employees, onEmployeeUpdate }) => {
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ title: "Ad Hoc Performance Review", message: `Ad hoc performance review launched for ${employee.name}`, type: "performance_review", employeeId: employee._id }),
             });
+            const result = await response.json();
             if (response.ok) {
                 toast.success(`Ad hoc review launched for ${employee.name}`);
                 window.dispatchEvent(new CustomEvent('refreshNotifications'));
             } else {
-                toast.error("Failed to launch ad hoc review");
+                toast.error(result.message || "Failed to launch ad hoc review");
             }
         } catch (error) {
             toast.error("Failed to launch ad hoc review");
@@ -265,9 +268,10 @@ export const Performance = ({ employees, onEmployeeUpdate }) => {
                         <select
                             value={selectedEmployeeId}
                             onChange={(e) => {
-                                setSelectedEmployeeId(e.target.value);
-                                if (e.target.value) {
-                                    const employee = employees?.find(emp => emp._id === e.target.value);
+                                const employeeId = e.target.value;
+                                setSelectedEmployeeId(employeeId);
+                                if (employeeId) {
+                                    const employee = employees?.find(emp => emp._id === employeeId);
                                     if (employee) {
                                         employee.performance ? handleEditPerformance(employee) : handleSetupPerformance(employee);
                                     }
@@ -358,7 +362,7 @@ export const Performance = ({ employees, onEmployeeUpdate }) => {
             )}
 
             <AnimatePresence>
-                {isModalOpen && selectedEmployee && <PerformanceModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setSelectedEmployee(null); }} employee={selectedEmployee} onSave={handleSavePerformance} />}
+                {isModalOpen && selectedEmployee && <PerformanceModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setSelectedEmployee(null); setSelectedEmployeeId(''); }} employee={selectedEmployee} onSaveSuccess={handleSaveSuccess} />}
                 {deleteModalOpen && employeeToDelete && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setDeleteModalOpen(false)}>
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-md rounded-2xl shadow-xl flex flex-col" onClick={(e) => e.stopPropagation()}>

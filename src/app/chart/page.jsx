@@ -20,7 +20,7 @@ import Popup from "../components/popup-forms/Popup";
 import { toast, Toaster } from "react-hot-toast";
 import { getUser } from "@/redux/action/user";
 import { useHasMounted } from "@/hooks/useHasMounted";
-import { UserPlus, LogOut, FoldVertical, UnfoldVertical, Network, Building2, Workflow, ExternalLink, LayoutDashboard, MoreVertical } from "lucide-react";
+import { LogOut, FoldVertical, UnfoldVertical, Network, Building2, Workflow, ExternalLink, LayoutDashboard, MoreVertical } from "lucide-react";
 import ChatbotBubble from "../components/chatbotorg/ChatbotBubble";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -155,6 +155,7 @@ export default function ChartPage() {
   const menuRef = useRef(null);
   const hasMounted = useHasMounted();
   const windowSize = useWindowSize();
+  const deptToastId = useRef(null);
 
   const { isAuth } = useSelector((state) => state.user);
   const { organization, loading: orgLoading, loaded: orgLoaded } = useSelector((state) => state.organization);
@@ -183,8 +184,23 @@ export default function ChartPage() {
   }, [isAuth, dispatch, router, hasMounted]);
 
   useEffect(() => { if (orgMsg) { toast.success(orgMsg); dispatch(clearOrgMessage()); dispatch(getOrganization()); } }, [orgMsg, dispatch]);
-  useEffect(() => { if (deptMsg) { toast.success(deptMsg); if (organization?._id) dispatch(getDepartments({ organizationId: organization._id })); dispatch(clearDeptMessage()); } }, [deptMsg, organization, dispatch]);
-  useEffect(() => { if (empMsg) { toast.success(empMsg); dispatch(getEmployees()); dispatch(clearEmployeesMessage()); } }, [empMsg, dispatch]);
+
+  useEffect(() => {
+    if (deptMsg) {
+      const message = "Department(s) updated successfully.";
+      if (deptToastId.current) {
+        toast.success(message, { id: deptToastId.current });
+      } else {
+        deptToastId.current = toast.success(message);
+      }
+      dispatch(clearDeptMessage());
+      const timer = setTimeout(() => {
+        deptToastId.current = null;
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [deptMsg, dispatch]);
+
   useEffect(() => { if (isAuth && !organization && !orgLoading && !orgLoaded) dispatch(getOrganization()); }, [isAuth, organization, orgLoading, orgLoaded, dispatch]);
   useEffect(() => {
     if (organization?._id) {
@@ -238,7 +254,6 @@ export default function ChartPage() {
   };
   const getSubfunctionKey = (deptId, sfIndex) => `${deptId}__${sfIndex}`;
   const handleDeptFormClose = () => { setDeptFormOpen(false); if (organization?._id) dispatch(getDepartments({ organizationId: organization._id })); };
-  const handleInvFormClose = () => { setInvFormOpen(false); dispatch(getEmployees()); };
 
   const handleExpandAll = () => {
     setOrgCollapsed(false);

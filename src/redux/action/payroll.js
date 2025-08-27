@@ -15,7 +15,6 @@ import {
     CLEAR_PAYROLL_ERROR
 } from "../reducer/payrollReducer";
 
-// Get payroll data for an employee
 export const getPayroll = (employeeId) => async (dispatch) => {
     try {
         dispatch({ type: PAYROLL_REQUEST });
@@ -54,7 +53,6 @@ export const getPayroll = (employeeId) => async (dispatch) => {
     }
 };
 
-// Create payroll data for an employee
 export const createPayroll = (payrollData) => async (dispatch) => {
     try {
         dispatch({ type: PAYROLL_CREATE_REQUEST });
@@ -97,7 +95,6 @@ export const createPayroll = (payrollData) => async (dispatch) => {
     }
 };
 
-// Update payroll data for an employee
 export const updatePayroll = (payrollData) => async (dispatch) => {
     try {
         dispatch({ type: PAYROLL_UPDATE_REQUEST });
@@ -140,7 +137,6 @@ export const updatePayroll = (payrollData) => async (dispatch) => {
     }
 };
 
-// Delete payroll data for an employee
 export const deletePayroll = (employeeId) => async (dispatch) => {
     try {
         dispatch({ type: PAYROLL_DELETE_REQUEST });
@@ -182,12 +178,10 @@ export const deletePayroll = (employeeId) => async (dispatch) => {
     }
 };
 
-// Clear payroll message
 export const clearPayrollMessage = () => (dispatch) => {
     dispatch({ type: CLEAR_PAYROLL_MESSAGE });
 };
 
-// Clear payroll error
 export const clearPayrollError = () => (dispatch) => {
     dispatch({ type: CLEAR_PAYROLL_ERROR });
 };

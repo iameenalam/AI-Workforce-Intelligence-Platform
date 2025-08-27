@@ -123,7 +123,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         employee: populatedEmployee,
-        message: "Employee invited successfully",
+        message: "Employee(s) invited successfully",
       },
       { status: 201 }
     );

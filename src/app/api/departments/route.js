@@ -53,7 +53,7 @@ export async function POST(request) {
 
     const departmentName = formdata.get("departmentName");
     const departmentDetails = formdata.get("departmentDetails");
-    const subfunctionsRaw = formdata.get("subfunctions"); // JSON string of subfunctions
+    const subfunctionsRaw = formdata.get("subfunctions"); 
 
     if (!departmentName) {
       return NextResponse.json(
@@ -102,7 +102,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         department,
-        message: "Department created successfully",
+        message: "Department(s) created successfully",
       },
       { status: 201 }
     );

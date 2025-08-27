@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import { Search, Loader2, UserPlus, Plus } from "lucide-react";
 
 import { getUser } from "@/redux/action/user";
@@ -116,14 +116,15 @@ export default function HRDashboard() {
   }, [activeTab]);
 
   useEffect(() => {
-    if (message) { toast.success(message); dispatch(clearMessage()); }
-    if (error) { toast.error(error); dispatch(clearError()); }
-    if (tmMessage) { toast.success(tmMessage); dispatch(clearTmMessage()); }
-    if (tmError) { toast.error(tmError); dispatch(clearTmError()); }
-    if (orgMessage) { toast.success(orgMessage); dispatch(clearOrgMessage()); }
-    if (orgError) { toast.error(orgError); dispatch(clearOrgError()); }
-    if (empMessage) { toast.success(empMessage); dispatch(clearEmployeesMessage()); }
-    if (empError) { toast.error(empError); dispatch(clearEmployeesMessage()); }
+    const toastId = 'hr-dashboard-toast';
+    if (message) { toast.success(message, { id: toastId }); dispatch(clearMessage()); }
+    if (error) { toast.error(error, { id: toastId }); dispatch(clearError()); }
+    if (tmMessage) { toast.success(tmMessage, { id: toastId }); dispatch(clearTmMessage()); }
+    if (tmError) { toast.error(tmError, { id: toastId }); dispatch(clearTmError()); }
+    if (orgMessage) { toast.success(orgMessage, { id: toastId }); dispatch(clearOrgMessage()); }
+    if (orgError) { toast.error(orgError, { id: toastId }); dispatch(clearOrgError()); }
+    if (empMessage) { toast.success(empMessage, { id: toastId }); dispatch(clearEmployeesMessage()); }
+    if (empError) { toast.error(empError, { id: toastId }); dispatch(clearEmployeesMessage()); }
   }, [message, error, tmMessage, tmError, orgMessage, orgError, empMessage, empError, dispatch]);
 
   useEffect(() => {
@@ -154,7 +155,6 @@ export default function HRDashboard() {
   }, [dispatch, organization]);
 
   const handleNavigate = (path) => {
-    console.log("Navigating to:", path);
     if (path.startsWith('department/')) {
       router.push(`/${path}`);
     } else {
@@ -406,11 +406,9 @@ export default function HRDashboard() {
                             {!isLoading && activeTab === 'departments' && <Departments departments={filteredDepartments} employees={employeesOnly} onNavigate={handleNavigate} onEdit={handleEditDept} onDelete={handleDeleteDept} />}
                             {!isLoading && activeTab === 'roles' && <RoleAssignment />}
                             {!isLoading && activeTab === 'performance' && <Performance employees={employeesOnly} onEmployeeUpdate={(updatedEmployee) => {
-                                // Update the employee in Redux store
                                 dispatch({ type: 'EMPLOYEE_UPDATE_SUCCESS', payload: updatedEmployee });
                             }} />}
                             {!isLoading && activeTab === 'payroll' && <Payroll employees={employeesOnly} onEmployeeUpdate={(updatedEmployee) => {
-                                // Update the employee in Redux store
                                 dispatch({ type: 'EMPLOYEE_UPDATE_SUCCESS', payload: updatedEmployee });
                             }} />}
                         </div>
@@ -424,6 +422,7 @@ export default function HRDashboard() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 text-gray-800">
+        <Toaster position="top-right" />
         <Navbar
             logoutHandler={logoutHandler}
             onMenuClick={() => setIsMobileMenuOpen(true)}
