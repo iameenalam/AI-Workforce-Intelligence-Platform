@@ -13,29 +13,50 @@ import {
     clearPayrollError
 } from "../../../redux/action/payroll";
 
-const Button = ({ children, onClick, variant = 'primary', className = '', disabled, size = 'md' }) => {
-    const baseStyle = "rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 focus:outline-none focus:ring-4";
+const Button = ({ children, onClick, variant, className = '', disabled, size }) => {
+    const baseStyle = "font-semibold transition-colors flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed";
     const sizeStyles = {
-        sm: "px-3 py-1.5 text-xs",
-        md: "px-5 py-2.5 text-sm",
-        lg: "px-7 py-3 text-base"
+        sm: 'px-2 py-1 rounded-md text-sm',
+        default: 'px-4 py-2 rounded-lg',
     };
     const variantStyles = {
-        primary: "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg focus:ring-indigo-300",
-        secondary: "bg-slate-100 hover:bg-slate-200 text-slate-800 focus:ring-slate-200",
-        danger: "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg focus:ring-red-300"
+        ghost: 'bg-transparent hover:bg-slate-100',
+        primary: 'bg-indigo-600 text-white hover:bg-indigo-700',
+        danger: 'bg-red-600 text-white hover:bg-red-700',
     };
-    
+    const variantStyle = variantStyles[variant] || variantStyles.primary;
+    const sizeStyle = sizeStyles[size] || sizeStyles.default;
+    return <button onClick={onClick} className={`${baseStyle} ${variantStyle} ${sizeStyle} ${className}`} disabled={disabled}>{children}</button>;
+};
+
+const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, isLoading }) => {
+    if (!isOpen) return null;
+
     return (
-        <button
-            onClick={onClick}
-            disabled={disabled}
-            className={`${baseStyle} ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
-        >
-            {children}
-        </button>
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-md rounded-2xl shadow-xl flex flex-col">
+                        <div className="p-6 text-center">
+                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                                <AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" />
+                            </div>
+                            <h3 className="mt-4 text-lg font-semibold text-gray-900">{title}</h3>
+                            <p className="mt-2 text-sm text-gray-500">{message}</p>
+                        </div>
+                        <div className="p-4 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
+                            <Button variant="ghost" className="border border-slate-300 text-gray-800" onClick={onClose} disabled={isLoading}>Cancel</Button>
+                            <Button variant="danger" onClick={onConfirm} className="w-28" disabled={isLoading}>
+                                {isLoading ? <Loader2 className="animate-spin" /> : 'Delete'}
+                            </Button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 };
+
 
 const InputField = ({ label, name, type = "text", value, onChange, placeholder, required = false }) => {
     const handleInputChange = (e) => {
@@ -56,8 +77,8 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder, 
     const isNumberInput = type === 'number';
 
     return (
-        <div className="relative">
-            <label className="text-xs font-medium text-gray-600 absolute -top-2 left-2 bg-white px-1 z-10">
+        <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
                 {label} {required && <span className="text-red-500">*</span>}
             </label>
             <input
@@ -69,7 +90,7 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder, 
                 onChange={handleInputChange}
                 placeholder={placeholder}
                 required={required}
-                className="w-full bg-white border-2 border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
             />
         </div>
     );
@@ -103,6 +124,8 @@ const PayrollModal = ({ isOpen, onClose, employee, onSave }) => {
             setFormData({ baseSalary: '', bonus: '', stockOptions: '' });
         }
     }, [employee]);
+
+    if (!isOpen) return null;
 
     const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -138,31 +161,32 @@ const PayrollModal = ({ isOpen, onClose, employee, onSave }) => {
         }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-md rounded-2xl shadow-xl">
-                <div className="flex justify-between items-center p-6 border-b border-slate-200">
-                    <h2 className="text-xl font-bold text-gray-800">{employee?.payroll ? 'Edit' : 'Add'} Payroll Information</h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-800 transition-colors"><X className="h-6 w-6" /></button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    <InputField label="Base Salary ($)" name="baseSalary" type="number" value={formData.baseSalary} onChange={handleChange} placeholder="e.g., 90000" required />
-                    <InputField label="Bonus ($)" name="bonus" type="number" value={formData.bonus} onChange={handleChange} placeholder="e.g., 5000" />
-                    <InputField label="Stock Options (Shares)" name="stockOptions" type="number" value={formData.stockOptions} onChange={handleChange} placeholder="e.g., 1000" />
-                
-                    <div className="flex gap-3 pt-4">
-                        <Button type="submit" onClick={handleSubmit} disabled={loading} className="flex-1">
-                            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                            {loading ? 'Saving...' : 'Save Changes'}
-                        </Button>
-                        <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
+        <AnimatePresence>
+        {isOpen && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-lg rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
+                    <div className="flex justify-between items-center p-4 border-b border-slate-200">
+                        <h2 className="text-xl font-bold text-gray-800">{employee?.payroll ? 'Edit' : 'Add'} Payroll</h2>
+                        <button onClick={onClose} className="text-gray-500 hover:text-gray-800"><X /></button>
                     </div>
-                </form>
+                    <form onSubmit={handleSubmit} className="flex-grow flex flex-col">
+                        <div className="p-6 overflow-y-auto space-y-4">
+                            <InputField label="Base Salary ($)" name="baseSalary" type="number" value={formData.baseSalary} onChange={handleChange} placeholder="e.g., 90000" required />
+                            <InputField label="Bonus ($)" name="bonus" type="number" value={formData.bonus} onChange={handleChange} placeholder="e.g., 5000" />
+                            <InputField label="Stock Options (Shares)" name="stockOptions" type="number" value={formData.stockOptions} onChange={handleChange} placeholder="e.g., 1000" />
+                        </div>
+                        <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3 rounded-b-2xl">
+                            <Button variant="ghost" className="border border-slate-300" onClick={onClose} disabled={loading}>Cancel</Button>
+                            <Button type="submit" variant="primary" disabled={loading}>
+                                {loading ? <Loader2 className="animate-spin" /> : 'Save Changes'}
+                            </Button>
+                        </div>
+                    </form>
+                </motion.div>
             </motion.div>
-        </motion.div>
+        )}
+        </AnimatePresence>
     );
 };
 
@@ -282,24 +306,20 @@ export const Payroll = ({ employees, onEmployeeUpdate }) => {
                 <EmptyState text="No Payroll Data Available" icon={<DollarSign className="h-20 w-20 text-gray-300 mx-auto" />} />
             )}
 
-            <AnimatePresence>
-                {isModalOpen && selectedEmployee && <PayrollModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setSelectedEmployee(null); }} employee={selectedEmployee} onSave={handleSavePayroll} />}
-                {deleteModalOpen && employeeToDelete && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setDeleteModalOpen(false)}>
-                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-md rounded-2xl shadow-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
-                            <div className="p-6 text-center">
-                                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100"><AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" /></div>
-                                <h3 className="mt-4 text-lg font-semibold text-gray-900">Delete Payroll Information</h3>
-                                <p className="mt-2 text-sm text-gray-500">Are you sure you want to remove payroll for <strong>{employeeToDelete.name}</strong>? This action is permanent.</p>
-                            </div>
-                            <div className="p-4 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
-                                <Button variant="secondary" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
-                                <Button variant="danger" onClick={confirmDeletePayroll}>Confirm Delete</Button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <DeleteConfirmationModal
+                isOpen={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                onConfirm={confirmDeletePayroll}
+                title="Delete Payroll Information"
+                message={`Are you sure you want to remove payroll for ${employeeToDelete?.name}? This action is permanent.`}
+            />
+
+            <PayrollModal 
+                isOpen={isModalOpen} 
+                onClose={() => { setIsModalOpen(false); setSelectedEmployee(null); }} 
+                employee={selectedEmployee} 
+                onSave={handleSavePayroll} 
+            />
         </div>
     );
 };

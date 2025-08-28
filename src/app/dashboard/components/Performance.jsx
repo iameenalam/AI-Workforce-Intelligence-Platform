@@ -6,29 +6,21 @@ import { TrendingUp, Plus, Edit, Trash2, X, Loader2, Save, Clock, CheckCircle, A
 import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
 
-const Button = ({ children, onClick, variant = 'primary', className = '', disabled, size = 'md' }) => {
-    const baseStyle = "rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 focus:outline-none focus:ring-4";
+const Button = ({ children, onClick, variant, className = '', disabled, size }) => {
+    const baseStyle = "font-semibold transition-colors flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed";
     const sizeStyles = {
-        sm: "px-3 py-1.5 text-xs",
-        md: "px-5 py-2.5 text-sm",
-        lg: "px-7 py-3 text-base"
+        sm: 'px-2 py-1 rounded-md text-sm',
+        default: 'px-4 py-2 rounded-lg',
     };
     const variantStyles = {
-        primary: "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg focus:ring-indigo-300",
-        secondary: "bg-slate-100 hover:bg-slate-200 text-slate-800 focus:ring-slate-200",
-        ghost: "bg-transparent hover:bg-slate-100 text-slate-600 focus:ring-slate-200",
-        danger: "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg focus:ring-red-300"
+        ghost: 'bg-transparent hover:bg-slate-100',
+        primary: 'bg-indigo-600 text-white hover:bg-indigo-700',
+        danger: 'bg-red-600 text-white hover:bg-red-700',
+        secondary: 'bg-slate-100 hover:bg-slate-200 text-slate-800',
     };
-    
-    return (
-        <button
-            onClick={onClick}
-            disabled={disabled}
-            className={`${baseStyle} ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
-        >
-            {children}
-        </button>
-    );
+    const variantStyle = variantStyles[variant] || variantStyles.primary;
+    const sizeStyle = sizeStyles[size] || sizeStyles.default;
+    return <button onClick={onClick} className={`${baseStyle} ${variantStyle} ${sizeStyle} ${className}`} disabled={disabled}>{children}</button>;
 };
 
 const InputField = ({ label, name, type = "text", value, onChange, placeholder, required = false }) => (
@@ -85,7 +77,7 @@ const PerformanceModal = ({ isOpen, onClose, employee, onSaveSuccess }) => {
     }, [employee]);
 
     const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    const addGoal = () => setFormData(prev => ({ ...prev, goals: [...prev.goals, { name: '', targetDate: '', completion: 0, status: 'not_started' }] }));
+    const addGoal = () => setFormData(prev => ({ ...prev, goals: [...prev.goals, { name: '', targetDate: '', completion: '', status: 'not_started' }] }));
     const updateGoal = (index, field, value) => setFormData(prev => ({ ...prev, goals: prev.goals.map((goal, i) => i === index ? { ...goal, [field]: value } : goal) }));
     const removeGoal = (index) => setFormData(prev => ({ ...prev, goals: prev.goals.filter((_, i) => i !== index) }));
 
@@ -129,64 +121,69 @@ const PerformanceModal = ({ isOpen, onClose, employee, onSaveSuccess }) => {
     if (!isOpen) return null;
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-2xl rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center p-6 border-b border-slate-200">
-                    <h2 className="text-xl font-bold text-gray-800">{employee?.performance ? 'Edit' : 'Set Up'} Performance Tracking</h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-800 transition-colors"><X className="h-6 w-6" /></button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                     <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1.5">Review Cadence (per year)</label>
-                        <select name="reviewCadence" value={formData.reviewCadence} onChange={handleChange} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                            <option value="1">1 (Annual)</option>
-                            <option value="2">2 (Semi-annual)</option>
-                            <option value="4">4 (Quarterly)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold text-gray-800">Goals</h3>
-                            <Button type="button" size="sm" onClick={addGoal}><Plus className="h-4 w-4" /> Add Goal</Button>
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-2xl rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
+                        <div className="flex justify-between items-center p-4 border-b border-slate-200">
+                            <h2 className="text-xl font-bold text-gray-800">{employee?.performance ? 'Edit' : 'Set Up'} Performance Tracking</h2>
+                            <button onClick={onClose} className="text-gray-500 hover:text-gray-800"><X /></button>
                         </div>
-                        <div className="space-y-4">
-                            <AnimatePresence>
-                                {formData.goals.map((goal, index) => (
-                                    <motion.div key={index} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} layout className="bg-slate-50 p-4 rounded-xl border border-slate-200 relative">
-                                        <button type="button" onClick={() => removeGoal(index)} className="absolute top-3 right-3 text-red-500 hover:text-red-700 transition-colors"><Trash2 className="h-5 w-5" /></button>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pr-8">
-                                            <InputField label="Goal Name" value={goal.name} onChange={(e) => updateGoal(index, 'name', e.target.value)} placeholder="e.g., Launch new feature" required />
-                                            <InputField label="Target Date" type="date" value={goal.targetDate} onChange={(e) => updateGoal(index, 'targetDate', e.target.value)} required />
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
-                                            <InputField label="Completion (%)" type="number" value={goal.completion} onChange={(e) => updateGoal(index, 'completion', parseInt(e.target.value) || 0)} placeholder="0" min="0" max="100" />
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-700 block mb-1.5">Status</label>
-                                                <select value={goal.status} onChange={(e) => updateGoal(index, 'status', e.target.value)} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                                                    <option value="not_started">Not Started</option>
-                                                    <option value="in_progress">In Progress</option>
-                                                    <option value="completed">Completed</option>
-                                                    <option value="overdue">Overdue</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </AnimatePresence>
-                             {formData.goals.length === 0 && <p className="text-center text-gray-500 py-4">No goals added yet. Click 'Add Goal' to start.</p>}
-                        </div>
-                    </div>
-                    <div className="flex gap-3 pt-4">
-                        <Button type="submit" disabled={loading} className="flex-1">
-                            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                            {loading ? 'Saving...' : 'Save Changes'}
-                        </Button>
-                        <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
-                    </div>
-                </form>
-            </motion.div>
-        </motion.div>
+                        <form onSubmit={handleSubmit} className="flex-grow contents">
+                            <div className="p-6 overflow-y-auto space-y-6">
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-1.5">Review Cadence (per year)</label>
+                                    <select name="reviewCadence" value={formData.reviewCadence} onChange={handleChange} className="w-full bg-white border-2 border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300">
+                                        <option value="1">1 (Annual)</option>
+                                        <option value="2">2 (Semi-annual)</option>
+                                        <option value="4">4 (Quarterly)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-lg font-semibold text-gray-800">Goals</h3>
+                                        <Button type="button" size="sm" variant="primary" onClick={addGoal}><Plus className="h-4 w-4" /> Add Goal</Button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <AnimatePresence>
+                                            {formData.goals.map((goal, index) => (
+                                                <motion.div key={index} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} layout className="bg-slate-50 p-4 rounded-xl border border-slate-200 relative">
+                                                    <button type="button" onClick={() => removeGoal(index)} className="absolute top-3 right-3 text-red-500 hover:text-red-700 transition-colors"><Trash2 className="h-5 w-5" /></button>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pr-8">
+                                                        <InputField label="Goal Name" value={goal.name} onChange={(e) => updateGoal(index, 'name', e.target.value)} placeholder="e.g., Launch new feature" required />
+                                                        <InputField label="Target Date" type="date" value={goal.targetDate} onChange={(e) => updateGoal(index, 'targetDate', e.target.value)} required />
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
+                                                        <InputField label="Completion (%)" type="number" value={goal.completion} onChange={(e) => updateGoal(index, 'completion', parseInt(e.target.value) || 0)} placeholder="0" min="0" max="100" />
+                                                        <div className="relative">
+                                                            <label className="text-xs font-medium text-gray-600 absolute -top-2 left-2 bg-white px-1">Status</label>
+                                                            <select value={goal.status} onChange={(e) => updateGoal(index, 'status', e.target.value)} className="w-full bg-white border-2 border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300">
+                                                                <option value="not_started">Not Started</option>
+                                                                <option value="in_progress">In Progress</option>
+                                                                <option value="completed">Completed</option>
+                                                                <option value="overdue">Overdue</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                        </AnimatePresence>
+                                        {formData.goals.length === 0 && <p className="text-center text-gray-500 py-4">No goals added yet. Click 'Add Goal' to start.</p>}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3 rounded-b-2xl">
+                                <Button type="button" variant="ghost" className="border border-slate-300 text-gray-800" onClick={onClose} disabled={loading}>Cancel</Button>
+                                <Button type="submit" variant="primary" disabled={loading}>
+                                    {loading ? <Loader2 className="animate-spin" /> : null}
+                                    {loading ? 'Saving...' : 'Save Changes'}
+                                </Button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 };
 
@@ -196,6 +193,7 @@ export const Performance = ({ employees, onEmployeeUpdate }) => {
     const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [employeeToDelete, setEmployeeToDelete] = useState(null);
+    const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
     const employeesWithPerformance = employees?.filter(emp => emp.performance) || [];
     const employeesWithoutPerformance = employees?.filter(emp => !emp.performance) || [];
@@ -213,7 +211,7 @@ export const Performance = ({ employees, onEmployeeUpdate }) => {
 
     const confirmDeletePerformance = async () => {
         if (!employeeToDelete) return;
-
+        setIsDeleteLoading(true);
         const token = Cookies.get("token");
         const url = `/api/employees/performance?employeeId=${employeeToDelete._id}`;
 
@@ -236,6 +234,7 @@ export const Performance = ({ employees, onEmployeeUpdate }) => {
         } finally {
             setDeleteModalOpen(false);
             setEmployeeToDelete(null);
+            setIsDeleteLoading(false);
         }
     };
 
@@ -364,16 +363,20 @@ export const Performance = ({ employees, onEmployeeUpdate }) => {
             <AnimatePresence>
                 {isModalOpen && selectedEmployee && <PerformanceModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setSelectedEmployee(null); setSelectedEmployeeId(''); }} employee={selectedEmployee} onSaveSuccess={handleSaveSuccess} />}
                 {deleteModalOpen && employeeToDelete && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setDeleteModalOpen(false)}>
-                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-md rounded-2xl shadow-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-md rounded-2xl shadow-xl flex flex-col">
                             <div className="p-6 text-center">
-                                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100"><AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" /></div>
+                                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                                    <AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" />
+                                </div>
                                 <h3 className="mt-4 text-lg font-semibold text-gray-900">Delete Performance Tracking</h3>
                                 <p className="mt-2 text-sm text-gray-500">Are you sure you want to remove performance tracking for <strong>{employeeToDelete.name}</strong>? This action is permanent.</p>
                             </div>
                             <div className="p-4 bg-slate-50 flex justify-end gap-3 rounded-b-2xl">
-                                <Button variant="secondary" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
-                                <Button variant="danger" onClick={confirmDeletePerformance}>Confirm Delete</Button>
+                                <Button variant="ghost" className="border border-slate-300 text-gray-800" onClick={() => setDeleteModalOpen(false)} disabled={isDeleteLoading}>Cancel</Button>
+                                <Button variant="danger" onClick={confirmDeletePerformance} className="w-28" disabled={isDeleteLoading}>
+                                    {isDeleteLoading ? <Loader2 className="animate-spin" /> : 'Delete'}
+                                </Button>
                             </div>
                         </motion.div>
                     </motion.div>
