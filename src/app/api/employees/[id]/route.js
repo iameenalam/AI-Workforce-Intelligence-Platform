@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import { Employee } from "../../../../../models/Employee";
 import jwt from "jsonwebtoken";
 
-// GET - Fetch a specific employee
-export async function GET(request, { params }) {
+export async function GET(request, context) {
   try {
+    const { id } = await context.params;
     await connectDb();
 
     const authHeader = request.headers.get("authorization") || "";
@@ -16,50 +16,33 @@ export async function GET(request, { params }) {
 
     jwt.verify(token, process.env.JWT_SEC);
 
-    const { id } = params;
     if (!id) {
-      return NextResponse.json(
-        { message: "Missing employee ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Missing employee ID" }, { status: 400 });
     }
 
-    // Validate MongoDB ObjectId format
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-      return NextResponse.json(
-        { message: "Invalid employee ID format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid employee ID format" }, { status: 400 });
     }
 
-    console.log("Fetching employee with ID:", id);
     const employee = await Employee.findById(id)
       .populate("organization", "name ceoName")
       .populate("department", "departmentName subfunctions")
       .lean();
 
-    console.log("Employee found:", employee ? "Yes" : "No");
-
     if (!employee) {
-      return NextResponse.json(
-        { message: "Employee not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "Employee not found" }, { status: 404 });
     }
 
     return NextResponse.json(employee, { status: 200 });
   } catch (error) {
     console.error("Error fetching employee:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch employee" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Failed to fetch employee" }, { status: 500 });
   }
 }
 
-// PUT - Update a specific employee
-export async function PUT(request, { params }) {
+export async function PUT(request, context) {
   try {
+    const { id } = await context.params;
     await connectDb();
 
     const authHeader = request.headers.get("authorization") || "";
@@ -71,12 +54,8 @@ export async function PUT(request, { params }) {
     const decoded = jwt.verify(token, process.env.JWT_SEC);
     const userId = decoded.id;
 
-    const { id } = params;
     if (!id) {
-      return NextResponse.json(
-        { message: "Missing employee ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Missing employee ID" }, { status: 400 });
     }
 
     const updateData = await request.json();
@@ -90,31 +69,19 @@ export async function PUT(request, { params }) {
       .populate("department", "departmentName subfunctions");
 
     if (!employee) {
-      return NextResponse.json(
-        { message: "Employee not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "Employee not found" }, { status: 404 });
     }
 
-    return NextResponse.json(
-      {
-        employee,
-        message: "Employee updated successfully",
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({ employee, message: "Employee updated successfully" }, { status: 200 });
   } catch (error) {
     console.error("Error updating employee:", error);
-    return NextResponse.json(
-      { message: "Failed to update employee" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Failed to update employee" }, { status: 500 });
   }
 }
 
-// DELETE - Delete a specific employee
-export async function DELETE(request, { params }) {
+export async function DELETE(request, context) {
   try {
+    const { id } = await context.params;
     await connectDb();
 
     const authHeader = request.headers.get("authorization") || "";
@@ -126,35 +93,19 @@ export async function DELETE(request, { params }) {
     const decoded = jwt.verify(token, process.env.JWT_SEC);
     const userId = decoded.id;
 
-    const { id } = params;
     if (!id) {
-      return NextResponse.json(
-        { message: "Missing employee ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Missing employee ID" }, { status: 400 });
     }
 
-    const employee = await Employee.findOneAndDelete({
-      _id: id,
-      user: userId,
-    });
+    const employee = await Employee.findOneAndDelete({ _id: id, user: userId });
 
     if (!employee) {
-      return NextResponse.json(
-        { message: "Employee not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "Employee not found" }, { status: 404 });
     }
 
-    return NextResponse.json(
-      { message: "Employee deleted successfully" },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "Employee deleted successfully" }, { status: 200 });
   } catch (error) {
     console.error("Error deleting employee:", error);
-    return NextResponse.json(
-      { message: "Failed to delete employee" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Failed to delete employee" }, { status: 500 });
   }
 }

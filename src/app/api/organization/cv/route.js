@@ -100,7 +100,7 @@ export async function PUT(request) {
 
     return NextResponse.json(
       {
-        organization: updatedCeoProfile, // Return the full organization object for consistency
+        organization: updatedCeoProfile, 
         message: "Profile successfully updated with CV data.",
       },
       { status: 200 }

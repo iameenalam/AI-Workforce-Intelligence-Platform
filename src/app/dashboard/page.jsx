@@ -9,7 +9,7 @@ import { Search, Loader2, UserPlus, Plus } from "lucide-react";
 
 import { getUser } from "@/redux/action/user";
 import { getOrganization, updateOrganization, deleteOrganization, updateCeo } from "@/redux/action/org";
-import { getDepartments, updateDepartment, deleteDepartment, updateHod, deleteHod } from "@/redux/action/departments";
+import { getDepartments, updateDepartment, deleteDepartment } from "@/redux/action/departments";
 import { getEmployees, deleteEmployee } from "@/redux/action/employees";
 
 import { logoutSuccess } from "@/redux/reducer/userReducer";
@@ -21,7 +21,7 @@ import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 
 import { Overview, OrganizationProfilePage, GenericProfilePage as CeoProfilePage, EditOrganizationModal, EditCeoModal } from "./components/Overview";
-import { Employees, GenericProfilePage as EmployeeProfilePage, EditHodModal } from "./components/Employees";
+import { Employees, GenericProfilePage as EmployeeProfilePage } from "./components/Employees";
 import { Departments, DepartmentProfilePage, SubfunctionProfilePage, EditDepartmentModal } from "./components/Departments";
 import { RoleAssignment } from "./components/RoleAssignment";
 
@@ -97,8 +97,6 @@ export default function HRDashboard() {
 
   const [editingDepartment, setEditingDepartment] = useState(null);
   const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
-  const [editingHod, setEditingHod] = useState(null);
-  const [isHodModalOpen, setIsHodModalOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
   const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
   const [editingCeo, setEditingCeo] = useState(null);
@@ -158,10 +156,6 @@ export default function HRDashboard() {
   const handleEditDept = (dept) => { setEditingDepartment(dept); setIsDeptModalOpen(true); };
   const handleDeleteDept = (id) => dispatch(deleteDepartment(id));
   const handleSaveDept = (id, data) => dispatch(updateDepartment(id, data));
-
-  const handleEditHod = (deptId) => { const dept = departments.find(d => d._id === deptId); setEditingHod(dept); setIsHodModalOpen(true); };
-  const handleDeleteHod = (deptId) => dispatch(deleteHod(deptId));
-  const handleSaveHod = (id, data, isCvUpload) => dispatch(updateHod(id, data, isCvUpload));
 
   const handleDeleteEmployee = async (employeeId) => {
     try {
@@ -359,7 +353,7 @@ export default function HRDashboard() {
                         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-lg min-h-[calc(100vh-200px)] p-4 sm:p-6">
                             {isLoading && loadingComponent}
                             {!isLoading && activeTab === 'overview' && <Overview organization={organization} departments={departments} totalEmployees={employeesOnly.length} onNavigate={handleNavigate} setActiveTab={setActiveTab} />}
-                            {!isLoading && activeTab === 'employees' && <Employees employees={filteredEmployees} departments={departments} onNavigate={handleNavigate} onEditHod={handleEditHod} onDeleteHod={handleDeleteHod} onDeleteEmployee={handleDeleteEmployee} />}
+                            {!isLoading && activeTab === 'employees' && <Employees employees={filteredEmployees} departments={departments} onNavigate={handleNavigate} onDeleteEmployee={handleDeleteEmployee} />}
                             {!isLoading && activeTab === 'departments' && <Departments departments={filteredDepartments} employees={employeesOnly} onNavigate={handleNavigate} onEdit={handleEditDept} onDelete={handleDeleteDept} />}
                             {!isLoading && activeTab === 'roles' && <RoleAssignment />}
                             {!isLoading && activeTab === 'performance' && <Performance employees={employeesOnly} onEmployeeUpdate={(updatedEmployee) => {
@@ -400,7 +394,6 @@ export default function HRDashboard() {
         </div>
 
         <EditDepartmentModal isOpen={isDeptModalOpen} onClose={() => setIsDeptModalOpen(false)} department={editingDepartment} onSave={handleSaveDept} />
-        <EditHodModal isOpen={isHodModalOpen} onClose={() => setIsHodModalOpen(false)} department={editingHod} onSave={handleSaveHod} />
         <EditOrganizationModal isOpen={isOrgModalOpen} onClose={() => setIsOrgModalOpen(false)} organization={editingOrg} onSave={handleSaveOrg} />
         <EditCeoModal isOpen={isCeoModalOpen} onClose={() => setIsCeoModalOpen(false)} organization={editingCeo} onSave={handleSaveCeo} />
 

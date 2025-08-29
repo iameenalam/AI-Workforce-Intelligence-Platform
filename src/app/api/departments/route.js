@@ -1,4 +1,3 @@
-// src/app/api/departments/route.js
 import { connectDb } from "@/connectDb";
 import { NextResponse } from "next/server";
 import { Department } from "../../../../models/Departments";
