@@ -2314,5 +2314,29 @@
     "role": "assistant",
     "content": "The Web Development department at Disrupt.com currently has one employee listed in the provided data:\n\n1. **Khan** - Head of Department (HOD)\n\nThis indicates that, based on the available data, the Web Development department is led by Khan.",
     "timestamp": "2025-08-26T11:35:48.438Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "who is ameen",
+    "timestamp": "2025-08-29T11:10:08.714Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "Ameen is a team member in the Finance department at Disrupt.com. Here are some details about Ameen:\n\n- **Role:** Team Member\n- **Skills:** JavaScript, TypeScript, CSS, Java, C++, C, SQL, React.js, Next.js, Node.js, Tailwind CSS, React Native, Problem-Solving, Critical Thinking, Teamwork, Time Management\n- **Tools:** Visual Studio Code, NetBeans, Dev C++, MySQL, Stripe, Kinde-Auth, Upstash, Prisma, Neon PostgreSQL, MongoDB, Express.js\n- **Certifications:** \n  - The Complete 2023 Web Development Bootcamp (Udemy)\n  - Web Development with React (NED)\n  - Google UX Design (Coursera)\n- **Experience:** Web Developer (Freelancer)\n- **Education:** Bachelor of Science in Software Engineering (Institute of Business Management)\n\nAmeen reports to Alam, the Head of the Finance department.",
+    "timestamp": "2025-08-29T11:10:08.714Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "who is ameen",
+    "timestamp": "2025-08-29T11:11:14.964Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "Ameen is a team member in the Finance department at Disrupt.com. Here are some key details about Ameen:\n\n- **Role:** Team Member in the Finance department\n- **Skills:** Proficient in JavaScript, TypeScript, CSS, Java, C++, C, SQL, React.js, Next.js, Node.js, Tailwind CSS, React Native, with strong problem-solving, critical thinking, teamwork, and time management skills.\n- **Tools:** Utilizes tools such as Visual Studio Code, NetBeans, Dev C++, MySQL, Stripe, Kinde-Auth, Upstash, Prisma, Neon PostgreSQL, MongoDB, and Express.js.\n- **Certifications:**\n  - The Complete 2023 Web Development Bootcamp (Udemy)\n  - Web Development with React (NED)\n  - Google UX Design (Coursera)\n- **Experience:** Works as a Web Developer (Freelancer), developing and maintaining responsive websites and building full-stack web applications.\n- **Education:** Pursuing a Bachelor of Science in Software Engineering at the Institute of Business Management.\n\nAmeen reports to Alam, who is the Head of the Finance department.",
+    "timestamp": "2025-08-29T11:11:14.964Z"
   }
 ]

@@ -5,7 +5,6 @@ import OpenAI from "openai";
 import { connectDb } from "@/connectDb";
 import { Organization } from "../../../../models/Organization";
 import { Department } from "../../../../models/Departments";
-import { TeamMember } from "../../../../models/TeamMember";
 import { Employee } from "../../../../models/Employee";
 import CheckAuth from "../../../../middlewares/isAuth";
 
@@ -55,10 +54,9 @@ export async function POST(req) {
       return NextResponse.json({ reply: "Authentication failed. Please log in again." }, { status: 401 });
     }
 
-    const [organization, departments, teammembers, employees] = await Promise.all([
+    const [organization, departments, employees] = await Promise.all([
       Organization.findOne({ user: user._id }).lean(),
       Department.find({ user: user._id }).lean(),
-      TeamMember.find({ user: user._id }).lean(),
       Employee.find({ user: user._id }).populate('department', 'departmentName').lean(),
     ]);
 
@@ -75,12 +73,8 @@ export async function POST(req) {
     });
     const fullDeptData = JSON.stringify(fullDeptDataWithReporting, null, 2);
 
-    const fullTeamData = JSON.stringify(teammembers.map(tm => cleanDoc(tm, ['organization', 'department'])), null, 2);
-
-    // Process employees data with enhanced information
     const fullEmployeeData = JSON.stringify(employees.map(emp => {
       const cleanedEmp = cleanDoc(emp, ['organization', 'user']);
-      // Add department name for better context
       if (emp.department && emp.department.departmentName) {
         cleanedEmp.departmentName = emp.department.departmentName;
       }
@@ -95,7 +89,7 @@ export async function POST(req) {
 
 **Core Task:**
 1.  **Analyze the User's Query:** Understand the user's specific question by looking at the last message in our conversation.
-2.  **Synthesize Data:** Scan all provided data—including CEO, departments, HODs, employees, team members, payroll, and performance metrics—to find relevant facts.
+2.  **Synthesize Data:** Scan all provided data—including CEO, departments, HODs, employees, payroll, and performance metrics—to find relevant facts.
 3.  **Formulate a Strategic Response:** Construct a comprehensive and direct answer based on the current organizational structure, employee information, compensation data, and performance tracking.
 
 ---
@@ -117,12 +111,6 @@ ${fullOrgData}
 This section contains details for each department, including the professional background of the Head of Department (HOD).
 \`\`\`json
 ${fullDeptData}
-\`\`\`
-
-### FULL TEAM MEMBER DATA (Legacy System):
-This section contains details for team members from the legacy system.
-\`\`\`json
-${fullTeamData}
 \`\`\`
 
 ### FULL EMPLOYEE DATA (Current System):

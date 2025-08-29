@@ -8,7 +8,6 @@ import { ArrowLeft, Loader2, UserCircle, Users, Lightbulb, Target, ServerCrash, 
 
 import { getOrganization } from "@/redux/action/org";
 import { getDepartments } from "@/redux/action/departments";
-import { getTeammembers } from "@/redux/action/teammembers";
 import { getEmployees } from "@/redux/action/employees";
 
 const TABS = [
@@ -36,7 +35,6 @@ export default function SubfunctionPage() {
 
   const { organization } = useSelector((state) => state.organization);
   const { departments, loading: deptsLoading } = useSelector((state) => state.departments);
-  const { teammembers, loading: teamLoading } = useSelector((state) => state.teammembers);
   const { employees, loading: employeesLoading } = useSelector((state) => state.employees);
   
   useEffect(() => {
@@ -47,18 +45,14 @@ export default function SubfunctionPage() {
       if (!departments || departments.length === 0) {
         dispatch(getDepartments({ organizationId: organization._id }));
       }
-      if (!teammembers || teammembers.length === 0) {
-        dispatch(getTeammembers({ organizationId: organization._id }));
-      }
       if (!employees || employees.length === 0) {
         dispatch(getEmployees());
       }
     }
-  }, [dispatch, organization?._id]); // Only depend on organization ID to prevent infinite loops
+  }, [dispatch, organization?._id]);
   
   const department = departments?.find(d => d._id === id);
   const subfunction = department?.subfunctions?.[parseInt(index)];
-  const relevantTeamMembers = teammembers?.filter(tm => tm.department === id && tm.subfunctionIndex === parseInt(index)) || [];
   const relevantEmployees = employees?.filter(emp =>
     emp.department &&
     (emp.department._id === id || emp.department === id) &&
@@ -88,7 +82,7 @@ export default function SubfunctionPage() {
     generateDetails();
   }, [subfunction]);
 
-  const loading = deptsLoading || teamLoading || employeesLoading || !subfunction;
+  const loading = deptsLoading || employeesLoading || !subfunction;
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen bg-slate-50"><Loader2 className="h-12 w-12 animate-spin text-indigo-600" /></div>;
@@ -110,17 +104,8 @@ export default function SubfunctionPage() {
 
   const { name, details } = subfunction;
 
-  // Find all team leads (can be multiple)
-  const teamLeads = [
-    ...relevantTeamMembers.filter(tm => tm.role === "Team Lead"),
-    ...relevantEmployees.filter(emp => emp.role === "Team Lead")
-  ];
-
-  // Combine team members and employees for this subfunction
-  const allMembers = [
-    ...relevantTeamMembers,
-    ...relevantEmployees.filter(emp => emp.role !== "HOD") // Exclude HOD from subfunction members
-  ];
+  const teamLeads = relevantEmployees.filter(emp => emp.role === "Team Lead");
+  const allMembers = relevantEmployees.filter(emp => emp.role !== "HOD");
 
   return (
     <div className="min-h-screen bg-slate-50 text-gray-800">

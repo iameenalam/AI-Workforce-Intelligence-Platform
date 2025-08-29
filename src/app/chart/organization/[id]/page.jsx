@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { getOrganization } from "@/redux/action/org";
 import { getDepartments } from "@/redux/action/departments";
-import { getTeammembers } from "@/redux/action/teammembers";
+import { getEmployees } from "@/redux/action/employees";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Building2, Users, MapPin, Calendar, Building,
@@ -55,13 +55,13 @@ export default function OrganizationPage() {
 
   const { organization, loading: orgLoading, error: orgError } = useSelector((state) => state.organization);
   const { departments, loading: deptLoading, error: deptError } = useSelector((state) => state.departments);
-  const { teammembers, loading: teamLoading, error: teamError } = useSelector((state) => state.teammembers);
+  const { employees, loading: employeesLoading, error: employeesError } = useSelector((state) => state.employees);
 
   const [metrics, setMetrics] = useState({ totalDepartments: 0, totalEmployees: 0, totalSubFunctions: 0 });
   const [showFallback, setShowFallback] = useState(false);
 
-  const loading = orgLoading || deptLoading || teamLoading;
-  const error = orgError || deptError || teamError;
+  const loading = orgLoading || deptLoading || employeesLoading;
+  const error = orgError || deptError || employeesError;
 
   useEffect(() => {
     dispatch(getOrganization());
@@ -70,14 +70,13 @@ export default function OrganizationPage() {
   useEffect(() => {
     if (organization?._id) {
       dispatch(getDepartments({ organizationId: organization._id }));
-      dispatch(getTeammembers({ organizationId: organization._id }));
+      dispatch(getEmployees());
     }
   }, [dispatch, organization]);
 
   useEffect(() => {
-    if (organization && departments && teammembers) {
-      const invitedTeammembers = teammembers.filter((tm) => tm.invited);
-      const totalEmployees = 1 + (departments?.length || 0) + (invitedTeammembers?.length || 0);
+    if (organization && departments && employees) {
+      const totalEmployees = employees.filter(e => e.role !== 'Unassigned').length;
       const totalSubFunctions = departments.reduce((acc, dept) => acc + (dept.subfunctions?.length || 0), 0);
       setMetrics({
         totalDepartments: departments?.length || 0,
@@ -85,7 +84,7 @@ export default function OrganizationPage() {
         totalSubFunctions: totalSubFunctions,
       });
     }
-  }, [organization, departments, teammembers]);
+  }, [organization, departments, employees]);
 
   useEffect(() => {
     if (!organization?.logoUrl) {
@@ -96,8 +95,8 @@ export default function OrganizationPage() {
   }, [organization]);
 
   const employeeCountForDept = (departmentId) => {
-    const invitedTeammembersInDept = teammembers.filter((tm) => tm.invited && tm.department === departmentId);
-    return 1 + invitedTeammembersInDept.length;
+    if (!employees) return 0;
+    return employees.filter((emp) => emp.department && (emp.department._id === departmentId || emp.department === departmentId)).length;
   };
 
   const subFunctionCountForDept = (dept) => dept.subfunctions?.length || 0;
@@ -184,7 +183,6 @@ export default function OrganizationPage() {
 
             <section>
               <h2 className="mb-6 text-2xl font-bold text-gray-800">Departments Overview</h2>
-              {/* --- 🔧 MODIFIED SECTION START --- */}
               {departments && departments.length > 0 ? (
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {departments.map((dept) => (

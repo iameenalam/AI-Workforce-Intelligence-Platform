@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { getEmployees } from "@/redux/action/employees";
-import { getTeammembers } from "@/redux/action/teammembers";
 import { getDepartments } from "@/redux/action/departments";
 
 const Alert = ({ type, message }) => {
@@ -84,7 +83,6 @@ export default function ChartEmployeeProfile() {
   const dispatch = useDispatch();
 
   const { employees, loading: employeesLoading } = useSelector((state) => state.employees);
-  const { teammembers, loading: teamLoading } = useSelector((state) => state.teammembers);
   const { departments, loading: deptsLoading } = useSelector((state) => state.departments);
   const { organization } = useSelector((state) => state.organization);
 
@@ -148,16 +146,15 @@ export default function ChartEmployeeProfile() {
   useEffect(() => {
     if (organization?._id) {
       dispatch(getEmployees());
-      dispatch(getTeammembers({ organizationId: organization._id }));
       dispatch(getDepartments({ organizationId: organization._id }));
     }
   }, [dispatch, organization?._id]);
 
   useEffect(() => {
-    if (employeesLoading || teamLoading || deptsLoading) return;
+    if (employeesLoading || deptsLoading) return;
     
-    if (id && (employees || teammembers)) {
-      let foundEmployee = employees?.find(emp => emp._id === id) || teammembers?.find(tm => tm._id === id);
+    if (id && employees) {
+      let foundEmployee = employees?.find(emp => emp._id === id);
       
       if (foundEmployee) {
         setEmployee(foundEmployee);
@@ -166,9 +163,9 @@ export default function ChartEmployeeProfile() {
       }
       setLoading(false);
     }
-  }, [id, employees, teammembers, employeesLoading, teamLoading, deptsLoading]);
+  }, [id, employees, employeesLoading, deptsLoading]);
 
-  if (loading || employeesLoading || teamLoading || deptsLoading) {
+  if (loading || employeesLoading || deptsLoading) {
     return <div className="flex items-center justify-center h-screen bg-slate-50"><Loader2 className="h-12 w-12 animate-spin text-indigo-600" /></div>;
   }
   

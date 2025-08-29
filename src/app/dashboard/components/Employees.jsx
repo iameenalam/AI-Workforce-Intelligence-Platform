@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit, Trash2, Briefcase, BookOpen, Lightbulb, Wrench, FileText, Award, Mail, Building2, User, Users, UserCircle, X, Loader2, MoreVertical, Eye, AlertTriangle, Plus, TrendingUp, DollarSign, Gift, Package, Calendar } from "lucide-react";
+import { Edit, Trash2, Briefcase, BookOpen, Lightbulb, Wrench, Award, Mail, Building2, User, Users, UserCircle, X, Loader2, MoreVertical, Eye, AlertTriangle, Plus, TrendingUp, DollarSign, Gift, Package, Calendar } from "lucide-react";
 import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
 import { InputField, AddItemButton, BackButton } from "./Reusable";

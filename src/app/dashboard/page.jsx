@@ -10,12 +10,10 @@ import { Search, Loader2, UserPlus, Plus } from "lucide-react";
 import { getUser } from "@/redux/action/user";
 import { getOrganization, updateOrganization, deleteOrganization, updateCeo } from "@/redux/action/org";
 import { getDepartments, updateDepartment, deleteDepartment, updateHod, deleteHod } from "@/redux/action/departments";
-import { getTeammembers, updateTeammember, deleteTeammember } from "@/redux/action/teammembers";
 import { getEmployees, deleteEmployee } from "@/redux/action/employees";
 
 import { logoutSuccess } from "@/redux/reducer/userReducer";
 import { clearMessage, clearError } from "@/redux/reducer/departmentsReducer";
-import { clearMessage as clearTmMessage, clearError as clearTmError } from "@/redux/reducer/teammembersReducer";
 import { clearMessage as clearOrgMessage, clearError as clearOrgError } from "@/redux/reducer/orgReducer";
 import { clearEmployeesMessage } from "@/redux/action/employees";
 
@@ -23,7 +21,7 @@ import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 
 import { Overview, OrganizationProfilePage, GenericProfilePage as CeoProfilePage, EditOrganizationModal, EditCeoModal } from "./components/Overview";
-import { Employees, GenericProfilePage as EmployeeProfilePage, EditHodModal, EditTeammemberModal } from "./components/Employees";
+import { Employees, GenericProfilePage as EmployeeProfilePage, EditHodModal } from "./components/Employees";
 import { Departments, DepartmentProfilePage, SubfunctionProfilePage, EditDepartmentModal } from "./components/Departments";
 import { RoleAssignment } from "./components/RoleAssignment";
 
@@ -40,7 +38,6 @@ export default function HRDashboard() {
   const { user, isAuth, loading: userLoading } = useSelector((state) => state.user);
   const { organization, loading: orgLoading, loaded: orgLoaded, message: orgMessage, error: orgError } = useSelector((state) => state.organization);
   const { departments, loading: deptLoading, message, error } = useSelector((state) => state.departments);
-  const { teammembers, loading: teamLoading, message: tmMessage, error: tmError } = useSelector((state) => state.teammembers);
   const { employees, loading: empLoading, message: empMessage, error: empError } = useSelector((state) => {
     return state.employees;
   });
@@ -102,8 +99,6 @@ export default function HRDashboard() {
   const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
   const [editingHod, setEditingHod] = useState(null);
   const [isHodModalOpen, setIsHodModalOpen] = useState(false);
-  const [editingTeammember, setEditingTeammember] = useState(null);
-  const [isTmModalOpen, setIsTmModalOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
   const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
   const [editingCeo, setEditingCeo] = useState(null);
@@ -119,13 +114,11 @@ export default function HRDashboard() {
     const toastId = 'hr-dashboard-toast';
     if (message) { toast.success(message, { id: toastId }); dispatch(clearMessage()); }
     if (error) { toast.error(error, { id: toastId }); dispatch(clearError()); }
-    if (tmMessage) { toast.success(tmMessage, { id: toastId }); dispatch(clearTmMessage()); }
-    if (tmError) { toast.error(tmError, { id: toastId }); dispatch(clearTmError()); }
     if (orgMessage) { toast.success(orgMessage, { id: toastId }); dispatch(clearOrgMessage()); }
     if (orgError) { toast.error(orgError, { id: toastId }); dispatch(clearOrgError()); }
     if (empMessage) { toast.success(empMessage, { id: toastId }); dispatch(clearEmployeesMessage()); }
     if (empError) { toast.error(empError, { id: toastId }); dispatch(clearEmployeesMessage()); }
-  }, [message, error, tmMessage, tmError, orgMessage, orgError, empMessage, empError, dispatch]);
+  }, [message, error, orgMessage, orgError, empMessage, empError, dispatch]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -149,7 +142,6 @@ export default function HRDashboard() {
   useEffect(() => {
     if (organization?._id) {
       dispatch(getDepartments({ organizationId: organization._id }));
-      dispatch(getTeammembers({ organizationId: organization._id }));
       dispatch(getEmployees());
     }
   }, [dispatch, organization]);
@@ -171,10 +163,6 @@ export default function HRDashboard() {
   const handleDeleteHod = (deptId) => dispatch(deleteHod(deptId));
   const handleSaveHod = (id, data, isCvUpload) => dispatch(updateHod(id, data, isCvUpload));
 
-  const handleEditTm = (tm) => { setEditingTeammember(tm); setIsTmModalOpen(true); };
-  const handleDeleteTm = (id) => dispatch(deleteTeammember(id));
-  const handleSaveTm = (id, data, isCvUpload) => dispatch(updateTeammember(id, data, isCvUpload));
-
   const handleDeleteEmployee = async (employeeId) => {
     try {
       await dispatch(deleteEmployee(employeeId));
@@ -191,7 +179,6 @@ export default function HRDashboard() {
     if (organization?._id) {
       dispatch(getEmployees());
       dispatch(getDepartments({ organizationId: organization._id }));
-      dispatch(getTeammembers({ organizationId: organization._id }));
     }
   };
 
@@ -208,7 +195,7 @@ export default function HRDashboard() {
     router.push("/login");
   };
 
-  const isLoading = userLoading || orgLoading || deptLoading || teamLoading || empLoading;
+  const isLoading = userLoading || orgLoading || deptLoading || empLoading;
 
   const employeesOnly = useMemo(() => {
     const allEmployees = [];
@@ -239,20 +226,8 @@ export default function HRDashboard() {
         }
       });
     }
-    if (teammembers) {
-      teammembers.forEach(tm => {
-        if (!allEmployees.find(emp => emp.email === tm.email)) {
-          allEmployees.push({
-            ...tm,
-            key: tm._id,
-            linkId: tm._id,
-            type: 'teammember'
-          });
-        }
-      });
-    }
     return allEmployees;
-  }, [employees, departments, teammembers]);
+  }, [employees, departments]);
 
   const filteredEmployees = useMemo(() => {
       if (!employeesOnly) return [];
@@ -304,53 +279,35 @@ export default function HRDashboard() {
             return <EmployeeProfilePage person={hodData} onBack={handleBack} />;
         case 'employee':
             let employee = employeesOnly?.find(emp => emp._id === pageId);
-            let empDept, empData;
-
-            if (employee) {
-                empDept = departments?.find(d => d._id === employee.department?._id || d._id === employee.department);
-                empData = {
-                    name: employee.name,
-                    role: employee.role,
-                    email: employee.email,
-                    departmentName: empDept?.departmentName,
-                    reportsTo: employee.reportTo,
-                    pic: employee.pic,
-                    education: employee.education || [],
-                    experience: employee.experience || [],
-                    skills: employee.skills || [],
-                    tools: employee.tools || [],
-                    certifications: employee.certifications || [],
-                    payroll: employee.payroll || null,
-                    performance: employee.performance || null
-                };
-            } else {
-                employee = teammembers?.find(tm => tm._id === pageId);
-                if (!employee) return loadingComponent;
-                empDept = departments?.find(d => d._id === employee.department);
-                empData = {
-                    name: employee.name,
-                    role: employee.role,
-                    email: employee.email,
-                    departmentName: empDept?.departmentName,
-                    reportsTo: employee.reportTo,
-                    pic: null,
-                    education: employee.education || [],
-                    experience: employee.experience || [],
-                    skills: employee.skills || [],
-                    tools: employee.tools || [],
-                    certifications: employee.certifications || []
-                };
-            }
+            if (!employee) return loadingComponent;
+            
+            const empDept = departments?.find(d => d._id === employee.department?._id || d._id === employee.department);
+            const empData = {
+                name: employee.name,
+                role: employee.role,
+                email: employee.email,
+                departmentName: empDept?.departmentName,
+                reportsTo: employee.reportTo,
+                pic: employee.pic,
+                education: employee.education || [],
+                experience: employee.experience || [],
+                skills: employee.skills || [],
+                tools: employee.tools || [],
+                certifications: employee.certifications || [],
+                payroll: employee.payroll || null,
+                performance: employee.performance || null
+            };
+            
             return <EmployeeProfilePage person={empData} onBack={handleBack} />;
         case 'department':
             const dept = departments?.find(d => d._id === pageId);
             if (!dept) return loadingComponent;
-            return <DepartmentProfilePage department={dept} teammembers={teammembers} employees={employeesOnly} onBack={handleBack} onNavigate={handleNavigate} />;
+            return <DepartmentProfilePage department={dept} employees={employeesOnly} onBack={handleBack} onNavigate={handleNavigate} />;
         case 'subfunction':
             const parentDept = departments?.find(d => d._id === pageId);
             if (!parentDept || !parentDept.subfunctions?.[subfunctionIndex]) return loadingComponent;
             const subFunc = { ...parentDept.subfunctions[subfunctionIndex], index: parseInt(subfunctionIndex) };
-            return <SubfunctionProfilePage department={parentDept} subfunction={subFunc} teammembers={teammembers} employees={employeesOnly} onBack={handleBack} onNavigate={handleNavigate} onEdit={handleEditTm} onDelete={handleDeleteTm} />;
+            return <SubfunctionProfilePage department={parentDept} subfunction={subFunc} employees={employeesOnly} onBack={handleBack} onNavigate={handleNavigate} />;
         default:
             return (
                 <div className="p-4 sm:p-8">
@@ -402,7 +359,7 @@ export default function HRDashboard() {
                         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-lg min-h-[calc(100vh-200px)] p-4 sm:p-6">
                             {isLoading && loadingComponent}
                             {!isLoading && activeTab === 'overview' && <Overview organization={organization} departments={departments} totalEmployees={employeesOnly.length} onNavigate={handleNavigate} setActiveTab={setActiveTab} />}
-                            {!isLoading && activeTab === 'employees' && <Employees employees={filteredEmployees} departments={departments} onNavigate={handleNavigate} onEditHod={handleEditHod} onDeleteHod={handleDeleteHod} onEditTm={handleEditTm} onDeleteTm={handleDeleteTm} onDeleteEmployee={handleDeleteEmployee} />}
+                            {!isLoading && activeTab === 'employees' && <Employees employees={filteredEmployees} departments={departments} onNavigate={handleNavigate} onEditHod={handleEditHod} onDeleteHod={handleDeleteHod} onDeleteEmployee={handleDeleteEmployee} />}
                             {!isLoading && activeTab === 'departments' && <Departments departments={filteredDepartments} employees={employeesOnly} onNavigate={handleNavigate} onEdit={handleEditDept} onDelete={handleDeleteDept} />}
                             {!isLoading && activeTab === 'roles' && <RoleAssignment />}
                             {!isLoading && activeTab === 'performance' && <Performance employees={employeesOnly} onEmployeeUpdate={(updatedEmployee) => {
@@ -444,7 +401,6 @@ export default function HRDashboard() {
 
         <EditDepartmentModal isOpen={isDeptModalOpen} onClose={() => setIsDeptModalOpen(false)} department={editingDepartment} onSave={handleSaveDept} />
         <EditHodModal isOpen={isHodModalOpen} onClose={() => setIsHodModalOpen(false)} department={editingHod} onSave={handleSaveHod} />
-        <EditTeammemberModal isOpen={isTmModalOpen} onClose={() => setIsTmModalOpen(false)} teammember={editingTeammember} onSave={handleSaveTm} />
         <EditOrganizationModal isOpen={isOrgModalOpen} onClose={() => setIsOrgModalOpen(false)} organization={editingOrg} onSave={handleSaveOrg} />
         <EditCeoModal isOpen={isCeoModalOpen} onClose={() => setIsCeoModalOpen(false)} organization={editingCeo} onSave={handleSaveCeo} />
 

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { getOrganization } from "@/redux/action/org";
 import { getDepartments } from "@/redux/action/departments";
 import { getEmployees } from "@/redux/action/employees";
-import { getTeammembers } from "@/redux/action/teammembers";
 import { clearMessage as clearOrgMessage } from "@/redux/reducer/orgReducer";
 import { clearMessage as clearDeptMessage } from "@/redux/reducer/departmentsReducer";
 import { clearEmployeesMessage } from "@/redux/action/employees";
@@ -161,7 +160,6 @@ export default function ChartPage() {
   const { organization, loading: orgLoading, loaded: orgLoaded } = useSelector((state) => state.organization);
   const { departments, message: deptMsg } = useSelector((state) => state.departments);
   const { employees, message: empMsg } = useSelector((state) => state.employees);
-  const { teammembers } = useSelector((state) => state.teammembers);
   const { message: orgMsg } = useSelector((state) => state.organization);
 
   const [orgCollapsed, setOrgCollapsed] = useState(false);
@@ -206,7 +204,6 @@ export default function ChartPage() {
     if (organization?._id) {
       dispatch(getDepartments({ organizationId: organization._id }));
       dispatch(getEmployees());
-      dispatch(getTeammembers({ organizationId: organization._id }));
     }
   }, [dispatch, organization]);
 
@@ -238,20 +235,13 @@ export default function ChartPage() {
   const assignedEmployees = employees?.filter(emp => emp.role !== "Unassigned" && emp.department) || [];
 
   const getSubfunctionMembers = (deptId, sfIndex, role = null) => {
-    const employeeMembers = assignedEmployees.filter(emp =>
+    return assignedEmployees.filter(emp =>
       emp.department?._id === deptId &&
       emp.subfunctionIndex === sfIndex &&
       (role ? emp.role === role : true)
     );
-
-    const legacyMembers = teammembers?.filter(tm =>
-      tm.department === deptId &&
-      tm.subfunctionIndex === sfIndex &&
-      (role ? tm.role === role : true)
-    ) || [];
-
-    return [...employeeMembers, ...legacyMembers];
   };
+
   const getSubfunctionKey = (deptId, sfIndex) => `${deptId}__${sfIndex}`;
   const handleDeptFormClose = () => { setDeptFormOpen(false); if (organization?._id) dispatch(getDepartments({ organizationId: organization._id })); };
 

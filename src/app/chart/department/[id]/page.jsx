@@ -8,7 +8,6 @@ import { ArrowLeft, Loader2, UserCircle, Users, Lightbulb, Target, Network, Serv
 
 import { getOrganization } from "@/redux/action/org";
 import { getDepartments } from "@/redux/action/departments";
-import { getTeammembers } from "@/redux/action/teammembers";
 import { getEmployees } from "@/redux/action/employees";
 
 const TABS = [
@@ -36,37 +35,28 @@ export default function DepartmentPage() {
 
   const { organization } = useSelector((state) => state.organization);
   const { departments, loading: deptsLoading } = useSelector((state) => state.departments);
-  const { teammembers, loading: teamLoading } = useSelector((state) => state.teammembers);
   const { employees, loading: employeesLoading } = useSelector((state) => state.employees);
   
-  // --- CORRECTED DATA FETCHING LOGIC ---
-  // This effect ensures the base organization context is loaded.
-  // It runs once when the component mounts.
   useEffect(() => {
     dispatch(getOrganization());
   }, [dispatch]);
 
-  // This effect fetches data that depends on the organization.
-  // It runs only when the organization's ID becomes available or changes, preventing infinite loops.
   useEffect(() => {
     if (organization?._id) {
       dispatch(getDepartments({ organizationId: organization._id }));
-      dispatch(getTeammembers({ organizationId: organization._id }));
       dispatch(getEmployees());
     }
-  }, [dispatch, organization?._id]); // Depends on the stable organization ID
+  }, [dispatch, organization?._id]);
 
   const department = departments?.find(d => d._id === id);
-  const relevantTeamMembers = teammembers?.filter(tm => tm.department === id) || [];
   const relevantEmployees = employees?.filter(emp =>
     emp.department &&
     (emp.department._id === id || emp.department === id) &&
     emp.role !== "Unassigned"
   ) || [];
 
-  // Find current HOD from employees
   const currentHOD = relevantEmployees.find(emp => emp.role === "HOD");
-  const totalMembers = relevantTeamMembers.length + relevantEmployees.length;
+  const totalMembers = relevantEmployees.length;
   
   useEffect(() => {
     if (!department) return;
@@ -91,8 +81,7 @@ export default function DepartmentPage() {
     generateDetails();
   }, [department]);
 
-  // The loading state now correctly waits for the department data to be found after fetches.
-  const loading = deptsLoading || teamLoading || employeesLoading || !department;
+  const loading = deptsLoading || employeesLoading || !department;
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen bg-slate-50"><Loader2 className="h-12 w-12 animate-spin text-indigo-600" /></div>;
@@ -115,9 +104,7 @@ export default function DepartmentPage() {
   const { departmentName, departmentDetails, hodName, subfunctions = [] } = department;
 
   const getSubfunctionMemberCount = (sfIndex) => {
-    const teamMemberCount = relevantTeamMembers.filter(tm => tm.subfunctionIndex === sfIndex).length;
-    const employeeCount = relevantEmployees.filter(emp => emp.subfunctionIndex === sfIndex && emp.role !== "HOD").length; // Exclude HOD
-    return teamMemberCount + employeeCount;
+    return relevantEmployees.filter(emp => emp.subfunctionIndex === sfIndex && emp.role !== "HOD").length;
   };
 
   return (

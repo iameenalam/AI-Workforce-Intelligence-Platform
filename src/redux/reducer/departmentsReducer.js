@@ -63,30 +63,6 @@ const departmentsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
     },
-    updateHodSuccess: (state, action) => {
-        state.btnLoading = false;
-        state.message = action.payload.message;
-        const index = state.departments.findIndex(d => d._id === action.payload.department._id);
-        if (index !== -1) {
-            state.departments[index] = action.payload.department;
-        }
-    },
-    updateHodFail: (state, action) => {
-        state.btnLoading = false;
-        state.error = action.payload;
-    },
-    deleteHodSuccess: (state, action) => {
-        state.loading = false;
-        state.message = action.payload.message;
-        const index = state.departments.findIndex(d => d._id === action.payload.department._id);
-        if (index !== -1) {
-            state.departments[index] = action.payload.department;
-        }
-    },
-    deleteHodFail: (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-    },
     clearMessage: (state) => {
       state.message = null;
     },
@@ -123,10 +99,6 @@ export const {
   updateDepartmentFail,
   deleteDepartmentSuccess,
   deleteDepartmentFail,
-  updateHodSuccess,
-  updateHodFail,
-  deleteHodSuccess,
-  deleteHodFail,
   clearMessage,
   clearError,
   clearDepartments,

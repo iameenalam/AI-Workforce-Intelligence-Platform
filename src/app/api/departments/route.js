@@ -178,9 +178,6 @@ export async function DELETE(request) {
             return NextResponse.json({ message: "Department not found or user not authorized" }, { status: 404 });
         }
 
-        // Also delete associated team members
-        // await TeamMember.deleteMany({ department: id, user: userId });
-
         return NextResponse.json({ message: "Department deleted successfully" }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ message: error.message }, { status: 500 });

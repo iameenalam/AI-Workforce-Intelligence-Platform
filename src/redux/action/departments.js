@@ -1,4 +1,3 @@
-// redux/action/departments.js
 import axios from "axios";
 import Cookies from "js-cookie";
 import {
@@ -12,13 +11,8 @@ import {
   updateDepartmentFail,
   deleteDepartmentSuccess,
   deleteDepartmentFail,
-  updateHodSuccess,
-  updateHodFail,
-  deleteHodSuccess,
-  deleteHodFail,
 } from "../reducer/departmentsReducer";
 
-// Fetch departments. Accepts optional organizationId.
 export const getDepartments = ({ organizationId } = {}) => async (dispatch) => {
   try {
     dispatch(loadingStart());
@@ -32,7 +26,6 @@ export const getDepartments = ({ organizationId } = {}) => async (dispatch) => {
   }
 };
 
-// Add a new department
 export const addDepartment = (formdata, clearData) => async (dispatch) => {
   try {
     dispatch(btnLoadingStart());
@@ -50,7 +43,6 @@ export const addDepartment = (formdata, clearData) => async (dispatch) => {
   }
 };
 
-// Update department details (name, subfunctions etc.)
 export const updateDepartment = (id, formdata) => async (dispatch) => {
     try {
         dispatch(btnLoadingStart());
@@ -66,7 +58,6 @@ export const updateDepartment = (id, formdata) => async (dispatch) => {
     }
 };
 
-// Delete an entire department
 export const deleteDepartment = (id) => async (dispatch) => {
     try {
         dispatch(loadingStart());
@@ -77,41 +68,5 @@ export const deleteDepartment = (id) => async (dispatch) => {
         dispatch(deleteDepartmentSuccess(id));
     } catch (error) {
         dispatch(deleteDepartmentFail(error.response?.data?.message || error.message));
-    }
-};
-
-// Update HOD details, either manually or via CV upload
-export const updateHod = (id, formdata, isCvUpload) => async (dispatch) => {
-    try {
-        dispatch(btnLoadingStart());
-        const token = Cookies.get("token");
-        
-        const url = isCvUpload 
-            ? `/api/departments/cv?id=${id}` 
-            : `/api/departments/hod/${id}`;
-
-        const { data } = await axios.put(url, formdata, {
-            headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
-        });
-
-        dispatch(updateHodSuccess(data));
-        return true; // FIX: Return true on success
-    } catch (error) {
-        dispatch(updateHodFail(error.response?.data?.message || error.message));
-        return false; // FIX: Return false on failure
-    }
-};
-
-// "Delete" an HOD by clearing their details from the department
-export const deleteHod = (id) => async (dispatch) => {
-    try {
-        dispatch(loadingStart());
-        const token = Cookies.get("token");
-        const { data } = await axios.delete(`/api/departments/hod/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        dispatch(deleteHodSuccess(data));
-    } catch (error) {
-        dispatch(deleteHodFail(error.response?.data?.message || error.message));
     }
 };
