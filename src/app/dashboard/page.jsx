@@ -4,10 +4,12 @@ import { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { Search, Loader2, UserPlus, Plus } from "lucide-react";
 
 import { getUser } from "@/redux/action/user";
+import { useRouteProtection } from "@/hooks/useRouteProtection";
+import { usePermissions } from "@/hooks/usePermissions";
 import { getOrganization, updateOrganization, deleteOrganization, updateCeo } from "@/redux/action/org";
 import { getDepartments, updateDepartment, deleteDepartment } from "@/redux/action/departments";
 import { getEmployees, deleteEmployee } from "@/redux/action/employees";
@@ -24,6 +26,7 @@ import { Overview, OrganizationProfilePage, GenericProfilePage as CeoProfilePage
 import { Employees, GenericProfilePage as EmployeeProfilePage } from "./components/Employees";
 import { Departments, DepartmentProfilePage, SubfunctionProfilePage, EditDepartmentModal } from "./components/Departments";
 import { RoleAssignment } from "./components/RoleAssignment";
+import { Permissions } from "./components/Permissions";
 
 import { Payroll } from "./components/Payroll";
 import { Performance } from "./components/Performance";
@@ -36,6 +39,8 @@ export default function HRDashboard() {
   const router = useRouter();
 
   const { user, isAuth, loading: userLoading } = useSelector((state) => state.user);
+  const { redirectBasedOnRole, isUnassigned, hasPermissions, userPermissions, userRole } = useRouteProtection();
+  const permissions = usePermissions();
   const { organization, loading: orgLoading, loaded: orgLoaded, message: orgMessage, error: orgError } = useSelector((state) => state.organization);
   const { departments, loading: deptLoading, message, error } = useSelector((state) => state.departments);
   const { employees, loading: empLoading, message: empMessage, error: empError } = useSelector((state) => {
@@ -58,10 +63,16 @@ export default function HRDashboard() {
   const [invFormOpen, setInvFormOpen] = useState(false);
   const [deptFormOpen, setDeptFormOpen] = useState(false);
 
+  // Route protection handles role-based access control
+
   const handleInvFormClose = () => {
     setInvFormOpen(false);
     if (organization?._id) {
-      dispatch(getEmployees());
+      // Add a small delay to ensure any pending database operations complete
+      setTimeout(() => {
+        console.log("Refreshing employees after invitation form close...");
+        dispatch(getEmployees());
+      }, 1000);
     }
   };
 
@@ -72,10 +83,20 @@ export default function HRDashboard() {
     }
   };
 
+  // Set default tab based on role (only if no tab is saved)
+  useEffect(() => {
+    if (userRole === "HOD" && !localStorage.getItem('activeTab')) {
+      setActiveTab("employees"); // HODs start with employees view
+    }
+  }, [userRole]);
+
   useEffect(() => {
     setInvFormOpen(false);
     setDeptFormOpen(false);
-  }, []);
+
+    // Apply route protection
+    redirectBasedOnRole("/dashboard");
+  }, [redirectBasedOnRole]);
 
   useEffect(() => {
     const handleEscapeKey = (event) => {
@@ -171,8 +192,10 @@ export default function HRDashboard() {
 
   const refreshDashboardData = () => {
     if (organization?._id) {
+      console.log("Refreshing dashboard data...");
       dispatch(getEmployees());
       dispatch(getDepartments({ organizationId: organization._id }));
+      toast.success("Dashboard data refreshed");
     }
   };
 
@@ -323,13 +346,15 @@ export default function HRDashboard() {
                                         <option value="all">All Departments</option>
                                         {(departments || []).map((dept) => (<option key={dept._id} value={dept._id}>{dept.departmentName}</option>))}
                                     </select>
-                                    <button
-                                        onClick={() => setInvFormOpen(true)}
-                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center md:justify-start gap-2 w-full md:w-auto"
-                                    >
-                                        <UserPlus className="w-4 h-4" />
-                                        Invite Employees
-                                    </button>
+                                    {permissions.canInviteEmployees && (
+                                        <button
+                                            onClick={() => setInvFormOpen(true)}
+                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center md:justify-start gap-2 w-full md:w-auto"
+                                        >
+                                            <UserPlus className="w-4 h-4" />
+                                            Invite Employees
+                                        </button>
+                                    )}
                                 </>
                             )}
                             {activeTab === 'departments' && (
@@ -338,13 +363,15 @@ export default function HRDashboard() {
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                                         <input type="text" placeholder="Search departments..." value={searchDeptTerm} onChange={(e) => setSearchDeptTerm(e.target.value)} className="pl-10 pr-4 py-2 w-full md:w-64 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors placeholder-gray-400" />
                                     </div>
-                                    <button
-                                        onClick={() => setDeptFormOpen(true)}
-                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center md:justify-start gap-2 w-full md:w-auto"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        Create Department
-                                    </button>
+                                    {permissions.canAddDepartments && (
+                                        <button
+                                            onClick={() => setDeptFormOpen(true)}
+                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center md:justify-start gap-2 w-full md:w-auto"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            Create Department
+                                        </button>
+                                    )}
                                 </>
                             )}
                         </div>
@@ -352,13 +379,45 @@ export default function HRDashboard() {
                     <div className="space-y-6">
                         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-lg min-h-[calc(100vh-200px)] p-4 sm:p-6">
                             {isLoading && loadingComponent}
-                            {!isLoading && activeTab === 'overview' && <Overview organization={organization} departments={departments} totalEmployees={employeesOnly.length} onNavigate={handleNavigate} setActiveTab={setActiveTab} />}
-                            {!isLoading && activeTab === 'employees' && <Employees employees={filteredEmployees} departments={departments} onNavigate={handleNavigate} onDeleteEmployee={handleDeleteEmployee} />}
-                            {!isLoading && activeTab === 'departments' && <Departments departments={filteredDepartments} employees={employeesOnly} onNavigate={handleNavigate} onEdit={handleEditDept} onDelete={handleDeleteDept} />}
-                            {!isLoading && activeTab === 'roles' && <RoleAssignment />}
-                            {!isLoading && activeTab === 'performance' && <Performance employees={employeesOnly} onEmployeeUpdate={(updatedEmployee) => {
-                                dispatch({ type: 'EMPLOYEE_UPDATE_SUCCESS', payload: updatedEmployee });
-                            }} />}
+                            {!isLoading && hasPermissions && (
+                              <>
+                                {activeTab === 'overview' && userPermissions?.canViewOverview && <Overview organization={organization} departments={departments} totalEmployees={employeesOnly.length} onNavigate={handleNavigate} setActiveTab={setActiveTab} />}
+                                {activeTab === 'employees' && userPermissions?.canViewEmployees && <Employees employees={filteredEmployees} departments={departments} onNavigate={handleNavigate} onDeleteEmployee={handleDeleteEmployee} />}
+                                {activeTab === 'departments' && userPermissions?.canViewDepartments && <Departments departments={filteredDepartments} employees={employeesOnly} onNavigate={handleNavigate} onEdit={handleEditDept} onDelete={handleDeleteDept} />}
+                                {activeTab === 'roles' && userPermissions?.canViewRoleAssignment && <RoleAssignment />}
+                                {activeTab === 'performance' && userPermissions?.canViewPerformance && <Performance employees={employeesOnly} onEmployeeUpdate={(updatedEmployee) => {
+                                    dispatch({ type: 'EMPLOYEE_UPDATE_SUCCESS', payload: updatedEmployee });
+                                }} />}
+                                {activeTab === 'permissions' && userPermissions?.canViewPermissions && <Permissions />}
+                                {activeTab === 'payroll' && userPermissions?.canViewPayroll && <Payroll employees={employeesOnly} />}
+
+                                {/* Access denied message for unauthorized tabs */}
+                                {((activeTab === 'overview' && !userPermissions?.canViewOverview) ||
+                                  (activeTab === 'employees' && !userPermissions?.canViewEmployees) ||
+                                  (activeTab === 'departments' && !userPermissions?.canViewDepartments) ||
+                                  (activeTab === 'roles' && !userPermissions?.canViewRoleAssignment) ||
+                                  (activeTab === 'performance' && !userPermissions?.canViewPerformance) ||
+                                  (activeTab === 'permissions' && !userPermissions?.canViewPermissions) ||
+                                  (activeTab === 'payroll' && !userPermissions?.canViewPayroll)) && (
+                                  <div className="text-center py-12">
+                                    <div className="text-red-500 mb-4">
+                                      <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H10m9-7a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    </div>
+                                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h3>
+                                    <p className="text-gray-600">You don't have permission to view this section.</p>
+                                  </div>
+                                )}
+                              </>
+                            )}
+
+                            {!hasPermissions && (
+                              <div className="flex items-center justify-center py-12">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                <span className="ml-3 text-gray-600">Loading permissions...</span>
+                              </div>
+                            )}
                             {!isLoading && activeTab === 'payroll' && <Payroll employees={employeesOnly} onEmployeeUpdate={(updatedEmployee) => {
                                 dispatch({ type: 'EMPLOYEE_UPDATE_SUCCESS', payload: updatedEmployee });
                             }} />}
@@ -373,7 +432,7 @@ export default function HRDashboard() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 text-gray-800">
-        <Toaster position="top-right" />
+
         <Navbar
             logoutHandler={logoutHandler}
             onMenuClick={() => setIsMobileMenuOpen(true)}
@@ -387,6 +446,8 @@ export default function HRDashboard() {
                 isMobileMenuOpen={isMobileMenuOpen}
                 setIsMobileMenuOpen={setIsMobileMenuOpen}
                 logoutHandler={logoutHandler}
+                userPermissions={userPermissions}
+                userRole={userRole}
             />
             <main className="flex-1 overflow-y-auto bg-slate-50">
                 {renderContent()}

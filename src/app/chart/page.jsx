@@ -16,9 +16,11 @@ import Link from "next/link";
 import OrgForm from "../components/popup-forms/orgform";
 import DeptForm from "../components/popup-forms/deptform";
 import Popup from "../components/popup-forms/Popup";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { getUser } from "@/redux/action/user";
 import { useHasMounted } from "@/hooks/useHasMounted";
+import { useRouteProtection } from "@/hooks/useRouteProtection";
+import { usePermissions } from "@/hooks/usePermissions";
 import { LogOut, FoldVertical, UnfoldVertical, Network, Building2, Workflow, ExternalLink, LayoutDashboard, MoreVertical } from "lucide-react";
 import ChatbotBubble from "../components/chatbotorg/ChatbotBubble";
 import { motion, AnimatePresence } from "framer-motion";
@@ -153,6 +155,8 @@ export default function ChartPage() {
   const chartRef = useRef(null);
   const menuRef = useRef(null);
   const hasMounted = useHasMounted();
+  const { redirectBasedOnRole } = useRouteProtection();
+  const permissions = usePermissions();
   const windowSize = useWindowSize();
   const deptToastId = useRef(null);
 
@@ -199,7 +203,16 @@ export default function ChartPage() {
     }
   }, [deptMsg, dispatch]);
 
-  useEffect(() => { if (isAuth && !organization && !orgLoading && !orgLoaded) dispatch(getOrganization()); }, [isAuth, organization, orgLoading, orgLoaded, dispatch]);
+  useEffect(() => {
+    if (isAuth && !organization && !orgLoading && !orgLoaded) {
+      dispatch(getOrganization());
+    }
+  }, [isAuth, organization, orgLoading, orgLoaded, dispatch]);
+
+  // Apply route protection
+  useEffect(() => {
+    redirectBasedOnRole("/chart");
+  }, [redirectBasedOnRole]);
   useEffect(() => {
     if (organization?._id) {
       dispatch(getDepartments({ organizationId: organization._id }));
@@ -397,13 +410,45 @@ export default function ChartPage() {
                     expanded: true,
                   }));
 
-                  const allNodes = [];
-
+                  // Structure: Team Leads above Team Members hierarchically
                   if (teamLeads.length > 0) {
-                    allNodes.push(...teamLeadNodes);
-                  }
+                    // Create team member nodes
+                    const teamMemberNodes = teamMembers.length > 0 ? teamMembers.map((tm) => ({
+                      id: tm._id,
+                      type: "member",
+                      box: (isMobile) => (
+                        <OrgBox isMobile={isMobile}>
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 mr-3">
+                              {tm.pic ? (
+                                <img src={tm.pic} alt={tm.name} className="w-11 h-11 rounded-full object-cover border-2 border-slate-200" />
+                              ) : (
+                                <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">TM</div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <HoverLink href={`/chart/employee/${tm._id}`} className="font-bold text-gray-800 hover:text-slate-600">{tm.name}</HoverLink>
+                              <div className="text-xs text-slate-600 font-semibold">Team Member</div>
+                              <div className="text-xs text-gray-500 truncate">{sf.name}</div>
+                            </div>
+                          </div>
+                        </OrgBox>
+                      ),
+                      children: [],
+                      expanded: true,
+                    })) : [];
 
-                  if (teamMembers.length > 0) {
+                    // Assign team members as children of team leads
+                    teamLeadNodes.forEach((tlNode, index) => {
+                      if (index === 0 && teamMemberNodes.length > 0) {
+                        // First team lead gets all team members as children
+                        tlNode.children = teamMemberNodes;
+                      }
+                    });
+
+                    sfNode.children = teamLeadNodes;
+                  } else if (teamMembers.length > 0) {
+                    // If no team leads, team members report directly to subfunction
                     const teamMemberNodes = teamMembers.map((tm) => ({
                       id: tm._id,
                       type: "member",
@@ -428,11 +473,7 @@ export default function ChartPage() {
                       children: [],
                       expanded: true,
                     }));
-                    allNodes.push(...teamMemberNodes);
-                  }
-
-                  if (allNodes.length > 0) {
-                    sfNode.children = allNodes;
+                    sfNode.children = teamMemberNodes;
                   }
                 }
                 return sfNode;
@@ -494,13 +535,45 @@ export default function ChartPage() {
                   expanded: true,
                 }));
 
-                const allNodes = [];
-
+                // Structure: Team Leads above Team Members hierarchically
                 if (teamLeads.length > 0) {
-                  allNodes.push(...teamLeadNodes);
-                }
+                  // Create team member nodes
+                  const teamMemberNodes = teamMembers.length > 0 ? teamMembers.map((tm) => ({
+                    id: tm._id,
+                    type: "member",
+                    box: (isMobile) => (
+                      <OrgBox isMobile={isMobile}>
+                        <div className="flex items-center mb-2">
+                          <div className="flex-shrink-0 mr-3">
+                            {tm.pic ? (
+                              <img src={tm.pic} alt={tm.name} className="w-11 h-11 rounded-full object-cover border-2 border-slate-200" />
+                            ) : (
+                              <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">TM</div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <HoverLink href={`/chart/employee/${tm._id}`} className="font-bold text-gray-800 hover:text-slate-600">{tm.name}</HoverLink>
+                            <div className="text-xs text-slate-600 font-semibold">Team Member</div>
+                            <div className="text-xs text-gray-500 truncate">{sf.name}</div>
+                          </div>
+                        </div>
+                      </OrgBox>
+                    ),
+                    children: [],
+                    expanded: true,
+                  })) : [];
 
-                if (teamMembers.length > 0) {
+                  // Assign team members as children of team leads
+                  teamLeadNodes.forEach((tlNode, index) => {
+                    if (index === 0 && teamMemberNodes.length > 0) {
+                      // First team lead gets all team members as children
+                      tlNode.children = teamMemberNodes;
+                    }
+                  });
+
+                  sfNode.children = teamLeadNodes;
+                } else if (teamMembers.length > 0) {
+                  // If no team leads, team members report directly to subfunction
                   const teamMemberNodes = teamMembers.map((tm) => ({
                     id: tm._id,
                     type: "member",
@@ -525,11 +598,7 @@ export default function ChartPage() {
                     children: [],
                     expanded: true,
                   }));
-                  allNodes.push(...teamMemberNodes);
-                }
-
-                if (allNodes.length > 0) {
-                  sfNode.children = allNodes;
+                  sfNode.children = teamMemberNodes;
                 }
               }
 
@@ -666,7 +735,7 @@ export default function ChartPage() {
 
   return (
     <>
-      <Toaster position="top-right" toastOptions={{ style: { background: '#333', color: '#fff' } }} />
+
       <div className="fixed top-0 left-0 w-full z-50 border-b border-gray-200 shadow-sm bg-gradient-to-br from-gray-50 to-gray-100 backdrop-blur-sm">
         <div className="flex flex-row justify-between items-center gap-4 max-w-full px-2 sm:px-6 py-4">
           <div className="flex flex-1 items-center">
@@ -686,13 +755,15 @@ export default function ChartPage() {
                     {isFullyExpanded ? <FoldVertical className="text-black w-5 h-5" /> : <UnfoldVertical className="text-black w-5 h-5" />}
                     <span className="text-base ml-2">{isFullyExpanded ? "Collapse All" : "Expand All"}</span>
                   </Button>
-                  <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} onClick={() => setDeptFormOpen(true)} type="button">
-                    <Building2 className="w-6 h-6 text-black" />
-                    <span className="text-base ml-2">Add Department(s)</span>
-                  </Button>
+                  {permissions.canAddDepartments && (
+                    <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} onClick={() => setDeptFormOpen(true)} type="button">
+                      <Building2 className="w-6 h-6 text-black" />
+                      <span className="text-base ml-2">Add Department(s)</span>
+                    </Button>
+                  )}
                 </>
               )}
-              {organization && (
+              {organization && permissions.canViewDashboard && (
                 <Link href="/dashboard">
                   <Button variant="outline" size="sm" className={`shadow-sm flex items-center text-black ${navbarFont} px-2 cursor-pointer`} type="button">
                     <LayoutDashboard className="w-6 h-6 text-black" />
@@ -716,14 +787,18 @@ export default function ChartPage() {
                       <Button variant="ghost" size="sm" className={`w-full justify-start text-black ${navbarFont} px-4 py-2`} onClick={() => { handleCollapseAll(); setIsMenuOpen(false); }} type="button">
                         <FoldVertical className="w-5 h-5 mr-2" />Collapse All
                       </Button>
-                      <Button variant="ghost" size="sm" className={`w-full justify-start text-black ${navbarFont} px-4 py-2`} onClick={() => { setDeptFormOpen(true); setIsMenuOpen(false); }} type="button">
-                        <Building2 className="w-6 h-6 mr-2" />Add Department(s)
-                      </Button>
-                      <Link href="/dashboard" className="block">
-                        <Button variant="ghost" size="sm" className={`w-full justify-start text-black ${navbarFont} px-4 py-2`} onClick={() => setIsMenuOpen(false)} type="button">
-                          <LayoutDashboard className="w-6 h-6 mr-2" />Dashboard
+                      {permissions.canAddDepartments && (
+                        <Button variant="ghost" size="sm" className={`w-full justify-start text-black ${navbarFont} px-4 py-2`} onClick={() => { setDeptFormOpen(true); setIsMenuOpen(false); }} type="button">
+                          <Building2 className="w-6 h-6 mr-2" />Add Department(s)
                         </Button>
-                      </Link>
+                      )}
+                      {permissions.canViewDashboard && (
+                        <Link href="/dashboard" className="block">
+                          <Button variant="ghost" size="sm" className={`w-full justify-start text-black ${navbarFont} px-4 py-2`} onClick={() => setIsMenuOpen(false)} type="button">
+                            <LayoutDashboard className="w-6 h-6 mr-2" />Dashboard
+                          </Button>
+                        </Link>
+                      )}
                     </>
                   )}
                   <Button variant="ghost" size="sm" onClick={logoutHandler} className={`w-full justify-start text-red-600 ${navbarFont} px-4 py-2`} type="button">
@@ -760,7 +835,7 @@ export default function ChartPage() {
       </main>
       <Popup open={orgFormOpen} onClose={() => setOrgFormOpen(false)}><OrgForm onClose={() => setOrgFormOpen(false)} /></Popup>
       <Popup open={deptFormOpen} onClose={handleDeptFormClose}><DeptForm onClose={handleDeptFormClose} /></Popup>
-      <ChatbotBubble />
+      {permissions.canViewChatbot && <ChatbotBubble />}
     </>
   );
 }

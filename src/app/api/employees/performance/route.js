@@ -24,10 +24,23 @@ export async function GET(request) {
 
     if (employeeId) {
       // Get performance for specific employee
-      const employee = await Employee.findOne({
-        _id: employeeId,
-        user: userId,
-      }).select("name email performance");
+      const { Organization } = await import("../../../../models/Organization");
+      const organization = await Organization.findOne({ user: userId });
+
+      let employee;
+      if (organization) {
+        // User is organization creator
+        employee = await Employee.findOne({
+          _id: employeeId,
+          organization: organization._id,
+        }).select("name email performance");
+      } else {
+        // User might be checking their own record
+        employee = await Employee.findOne({
+          _id: employeeId,
+          user: userId,
+        }).select("name email performance");
+      }
 
       if (!employee) {
         return NextResponse.json(
@@ -46,7 +59,13 @@ export async function GET(request) {
       });
     } else {
       // Get performance for all employees
-      const employees = await Employee.find({ user: userId })
+      const organization = await Organization.findOne({ user: userId });
+
+      if (!organization) {
+        return NextResponse.json({ employees: [] });
+      }
+
+      const employees = await Employee.find({ organization: organization._id })
         .select("name email performance role department")
         .populate("department", "departmentName");
 
@@ -84,10 +103,24 @@ export async function POST(request) {
       );
     }
 
-    const employee = await Employee.findOne({
-      _id: employeeId,
-      user: userId,
-    });
+    // Check if user has permission to update this employee
+    const { Organization } = await import("../../../../models/Organization");
+    const organization = await Organization.findOne({ user: userId });
+
+    let employee;
+    if (organization) {
+      // User is organization creator
+      employee = await Employee.findOne({
+        _id: employeeId,
+        organization: organization._id,
+      });
+    } else {
+      // User might be updating their own record
+      employee = await Employee.findOne({
+        _id: employeeId,
+        user: userId,
+      });
+    }
 
     if (!employee) {
       return NextResponse.json(
@@ -160,10 +193,36 @@ export async function PUT(request) {
       );
     }
 
-    const employee = await Employee.findOne({
-      _id: employeeId,
-      user: userId,
-    });
+    // Check if user has permission to update this employee
+    const { Organization } = await import("../../../../models/Organization");
+    const organization = await Organization.findOne({ user: userId });
+
+    let employee;
+    if (organization) {
+      // User is organization creator - can update any employee in their org
+      employee = await Employee.findOne({
+        _id: employeeId,
+        organization: organization._id,
+      });
+    } else {
+      // User might be an invited employee - check if they can update this employee
+      // First try to find by user ID (their own record)
+      employee = await Employee.findOne({
+        _id: employeeId,
+        user: userId,
+      });
+
+      // If not found, check if they're in the same organization and have permission
+      if (!employee) {
+        const userEmployee = await Employee.findOne({ user: userId }).populate('organization');
+        if (userEmployee && userEmployee.organization) {
+          employee = await Employee.findOne({
+            _id: employeeId,
+            organization: userEmployee.organization._id,
+          });
+        }
+      }
+    }
 
     if (!employee) {
       return NextResponse.json(

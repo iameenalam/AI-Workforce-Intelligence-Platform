@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 import { getEmployees } from "@/redux/action/employees";
 import { getDepartments } from "@/redux/action/departments";
 
-const EmployeeCard = ({ employee, onDragStart, onDragEnd, isDragging }) => {
+const EmployeeCard = ({ employee, onDragStart, onDragEnd, isDragging, canDrag = true }) => {
   return (
     <motion.div
       layout
@@ -21,12 +21,14 @@ const EmployeeCard = ({ employee, onDragStart, onDragEnd, isDragging }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.2 }}
-      draggable
-      onDragStart={(e) => onDragStart(e, employee)}
-      onDragEnd={onDragEnd}
+      draggable={canDrag}
+      onDragStart={canDrag ? (e) => onDragStart(e, employee) : undefined}
+      onDragEnd={canDrag ? onDragEnd : undefined}
       className={`
-        bg-white border border-slate-200 rounded-lg p-2.5 cursor-move hover:shadow-lg hover:border-indigo-400 transition-all duration-200
+        bg-white border border-slate-200 rounded-lg p-2.5 transition-all duration-200
+        ${canDrag ? 'cursor-move hover:shadow-lg hover:border-indigo-400' : 'cursor-default'}
         ${isDragging ? 'opacity-50 rotate-3 scale-105 shadow-xl' : ''}
+        ${!canDrag ? 'opacity-75' : ''}
       `}
     >
       <div className="flex items-center gap-3">
@@ -43,7 +45,7 @@ const EmployeeCard = ({ employee, onDragStart, onDragEnd, isDragging }) => {
   );
 };
 
-const DepartmentSection = ({ department, employees, onDrop, onDragOver, expandedDepts, toggleDept, expandedSubfuncs, toggleSubfunc, onDragStart, onDragEnd, draggedEmployee, dragOverState, setDragOverState }) => {
+const DepartmentSection = ({ department, employees, onDrop, onDragOver, expandedDepts, toggleDept, expandedSubfuncs, toggleSubfunc, onDragStart, onDragEnd, draggedEmployee, dragOverState, setDragOverState, canAssignRoles = true }) => {
   const deptEmployees = employees.filter(emp => emp.department?._id === department._id);
   const hodEmployees = deptEmployees.filter(emp => emp.role === "HOD");
 
@@ -88,7 +90,7 @@ const DepartmentSection = ({ department, employees, onDrop, onDragOver, expanded
               >
                 <div className="space-y-2">
                   {hodEmployees.map(emp => (
-                    <EmployeeCard key={emp._id} employee={emp} onDragStart={onDragStart} onDragEnd={onDragEnd} isDragging={draggedEmployee?._id === emp._id} />
+                    <EmployeeCard key={emp._id} employee={emp} onDragStart={onDragStart} onDragEnd={onDragEnd} isDragging={draggedEmployee?._id === emp._id} canDrag={canAssignRoles} />
                   ))}
                   {hodEmployees.length === 0 && (
                     <div className="text-center text-gray-400 text-sm py-4 flex flex-col items-center justify-center">
@@ -137,7 +139,7 @@ const DepartmentSection = ({ department, employees, onDrop, onDragOver, expanded
                                     className={`min-h-[60px] border-2 border-dashed rounded-lg p-2 transition-all duration-200 border-blue-300 bg-blue-50/30 hover:border-blue-400 hover:bg-blue-50 ${dragOverState === `${subfuncKey}-Team Lead` ? 'scale-105 border-solid bg-white shadow-inner' : ''}`}
                                 >
                                     <div className="space-y-1">
-                                        {teamLeads.map(emp => <EmployeeCard key={emp._id} employee={emp} onDragStart={onDragStart} onDragEnd={onDragEnd} isDragging={draggedEmployee?._id === emp._id} />)}
+                                        {teamLeads.map(emp => <EmployeeCard key={emp._id} employee={emp} onDragStart={onDragStart} onDragEnd={onDragEnd} isDragging={draggedEmployee?._id === emp._id} canDrag={canAssignRoles} />)}
                                         {teamLeads.length === 0 && <div className="text-center text-gray-400 text-xs py-2">Drop Team Leads</div>}
                                     </div>
                                 </div>
@@ -156,7 +158,7 @@ const DepartmentSection = ({ department, employees, onDrop, onDragOver, expanded
                                     className={`min-h-[60px] border-2 border-dashed rounded-lg p-2 transition-all duration-200 border-green-300 bg-green-50/30 hover:border-green-400 hover:bg-green-50 ${dragOverState === `${subfuncKey}-Team Member` ? 'scale-105 border-solid bg-white shadow-inner' : ''}`}
                                 >
                                     <div className="space-y-1">
-                                        {teamMembers.map(emp => <EmployeeCard key={emp._id} employee={emp} onDragStart={onDragStart} onDragEnd={onDragEnd} isDragging={draggedEmployee?._id === emp._id} />)}
+                                        {teamMembers.map(emp => <EmployeeCard key={emp._id} employee={emp} onDragStart={onDragStart} onDragEnd={onDragEnd} isDragging={draggedEmployee?._id === emp._id} canDrag={canAssignRoles} />)}
                                         {teamMembers.length === 0 && <div className="text-center text-gray-400 text-xs py-2">Drop Team Members</div>}
                                     </div>
                                 </div>
@@ -182,6 +184,12 @@ export function RoleAssignment() {
   const { employees: reduxEmployees, loading: employeesLoading } = useSelector((state) => state.employees);
   const { departments: reduxDepartments, loading: deptsLoading } = useSelector((state) => state.departments);
 
+  // Role-based access control state
+  const [userRole, setUserRole] = useState(null);
+  const [userPermissions, setUserPermissions] = useState(null);
+  const [canAssignRoles, setCanAssignRoles] = useState(false);
+  const [accessibleEmployees, setAccessibleEmployees] = useState([]);
+
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -189,6 +197,30 @@ export function RoleAssignment() {
   const [expandedDepts, setExpandedDepts] = useState({});
   const [expandedSubfuncs, setExpandedSubfuncs] = useState({});
   const [dragOverState, setDragOverState] = useState(null);
+
+  // Check user permissions on component mount
+  useEffect(() => {
+    const checkPermissions = async () => {
+      try {
+        const token = Cookies.get("token");
+        const response = await fetch("/api/user/permissions", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUserRole(data.role);
+          setUserPermissions(data.permissions);
+          setCanAssignRoles(data.permissions?.canAssignRoles || data.role === "Admin");
+        }
+      } catch (error) {
+        console.error("Error checking permissions:", error);
+        toast.error("Failed to load permissions");
+      }
+    };
+
+    checkPermissions();
+  }, []);
 
   useEffect(() => {
     // Use Redux data if available, otherwise fetch
@@ -251,6 +283,24 @@ export function RoleAssignment() {
     }
   };
 
+  // Filter employees based on user access scope
+  useEffect(() => {
+    if (userRole === "HOD" && userPermissions?.accessScope === "department" && employees.length > 0) {
+      // HODs can only see employees in their department or unassigned employees
+      const filteredEmps = employees.filter(emp => {
+        // Always show unassigned employees (they can be assigned to any department)
+        if (!emp.department || emp.role === "Unassigned") return true;
+
+        // For assigned employees, check if they're in the same department
+        // Note: This would need the current user's employee record to determine their department
+        return true; // For now, show all - this can be refined based on actual user department
+      });
+      setAccessibleEmployees(filteredEmps);
+    } else {
+      setAccessibleEmployees(employees);
+    }
+  }, [employees, userRole, userPermissions]);
+
   const handleDragStart = (e, employee) => { setDraggedEmployee(employee); e.dataTransfer.effectAllowed = "move"; };
   const handleDragEnd = () => { setDraggedEmployee(null); setDragOverState(null); };
   const handleDragOver = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; };
@@ -258,6 +308,8 @@ export function RoleAssignment() {
   const handleDrop = async (e, departmentId, role, subfunctionIndex = null) => {
     e.preventDefault();
     if (!draggedEmployee) return;
+
+    // Role assignment is allowed for users who can access this component
 
     // Check if the employee is being dropped into the same role and department they are already in
     const currentDeptId = draggedEmployee.department?._id || draggedEmployee.department;
@@ -310,6 +362,8 @@ export function RoleAssignment() {
     e.preventDefault();
     if (!draggedEmployee) return;
 
+    // Role assignment is allowed for users who can access this component
+
     if (draggedEmployee.role === "Unassigned" || !draggedEmployee.department) {
       toast.error("Employee is already unassigned.");
       setDraggedEmployee(null);
@@ -344,12 +398,15 @@ export function RoleAssignment() {
     return <div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin text-indigo-600" /></div>;
   }
 
-  const unassignedEmployees = employees.filter(emp => emp.role === "Unassigned" || !emp.department);
+  const unassignedEmployees = accessibleEmployees.filter(emp => emp.role === "Unassigned" || !emp.department);
 
   return (
-    // On small screens, the main grid is a single column, allowing the content to flow and scroll.
-    // On large screens, it becomes a 2-column layout.
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start h-full p-4 lg:p-0">
+    <div className="space-y-6">
+      {/* Permission Notice */}
+
+
+      {/* Main Role Assignment Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start h-full p-4 lg:p-0">
       <div className="lg:col-span-4 xl:col-span-3">
         <div className="lg:sticky lg:top-6 lg:h-[calc(100vh-17rem)]">
           {/* We've removed the fixed height on mobile for this container */}
@@ -369,7 +426,7 @@ export function RoleAssignment() {
             >
               {unassignedEmployees.length > 0 ? (
                 <div className="space-y-3">
-                  {unassignedEmployees.map(employee => <EmployeeCard key={employee._id} employee={employee} onDragStart={handleDragStart} onDragEnd={handleDragEnd} isDragging={draggedEmployee?._id === employee._id} />)}
+                  {unassignedEmployees.map(employee => <EmployeeCard key={employee._id} employee={employee} onDragStart={handleDragStart} onDragEnd={handleDragEnd} isDragging={draggedEmployee?._id === employee._id} canDrag={canAssignRoles} />)}
                 </div>
               ) : (
                 <div className="text-center text-gray-400 h-full flex flex-col justify-center items-center">
@@ -384,7 +441,7 @@ export function RoleAssignment() {
       <div className="lg:col-span-8 xl:col-span-9 space-y-4">
         {departments.length > 0 ? (
           departments.map(department => (
-            <DepartmentSection key={department._id} department={department} employees={employees} onDrop={handleDrop} onDragOver={handleDragOver} expandedDepts={expandedDepts} toggleDept={toggleDept} expandedSubfuncs={expandedSubfuncs} toggleSubfunc={toggleSubfunc} onDragStart={handleDragStart} onDragEnd={handleDragEnd} draggedEmployee={draggedEmployee} dragOverState={dragOverState} setDragOverState={setDragOverState} />
+            <DepartmentSection key={department._id} department={department} employees={accessibleEmployees} onDrop={handleDrop} onDragOver={handleDragOver} expandedDepts={expandedDepts} toggleDept={toggleDept} expandedSubfuncs={expandedSubfuncs} toggleSubfunc={toggleSubfunc} onDragStart={handleDragStart} onDragEnd={handleDragEnd} draggedEmployee={draggedEmployee} dragOverState={dragOverState} setDragOverState={setDragOverState} canAssignRoles={canAssignRoles} />
           ))
         ) : (
           <div className="text-center py-12 text-gray-500 bg-white rounded-xl border">
@@ -394,6 +451,7 @@ export function RoleAssignment() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

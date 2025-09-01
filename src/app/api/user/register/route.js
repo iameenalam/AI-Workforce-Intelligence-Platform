@@ -13,6 +13,7 @@ export async function POST(request) {
     const email = formdata.get("email");
     const password = formdata.get("password");
     const confirmPassword = formdata.get("confirmPassword");
+    const invitationToken = formdata.get("invitationToken"); // Optional invitation token
 
     if (!name || !email || !password || !confirmPassword) {
       return NextResponse.json(
@@ -38,10 +39,38 @@ export async function POST(request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Check if this is an invited user
+    let linkedOrganization = null;
+    let invitedBy = null;
+    let systemRole = "Admin"; // Default for non-invited users (they can create orgs)
+
+    if (invitationToken) {
+      // This is an invited user - they should not be able to create organizations
+      const { Invitation } = await import("../../../../models/Invitation");
+
+      const invitation = await Invitation.findOne({
+        token: invitationToken,
+        email,
+        status: "pending",
+        expiresAt: { $gt: new Date() },
+      }).populate("organization");
+
+      if (invitation) {
+        linkedOrganization = invitation.organization._id;
+        invitedBy = invitation.invitedBy;
+        systemRole = "Employee"; // Invited users are employees
+      }
+    }
+
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
+      linkedOrganization,
+      invitedBy,
+      invitationToken,
+      systemRole,
+      invitationAcceptedAt: invitationToken ? new Date() : null,
     });
 
     const token = jwt.sign({ id: user._id }, `${process.env.JWT_SEC}`, {
@@ -54,11 +83,14 @@ export async function POST(request) {
           _id: user._id,
           name: user.name,
           email: user.email,
+          systemRole: user.systemRole,
+          linkedOrganization: user.linkedOrganization,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
         },
-        message: "User registered",
+        message: invitationToken ? "Account created and invitation accepted!" : "User registered",
         token,
+        isInvitedUser: !!invitationToken,
       },
       { status: 200 }
     );

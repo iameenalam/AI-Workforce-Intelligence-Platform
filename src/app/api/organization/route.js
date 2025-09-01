@@ -28,7 +28,19 @@ export async function GET(request) {
     const decoded = jwt.verify(token, process.env.JWT_SEC);
     const userId = decoded.id;
 
-    const organization = await Organization.findOne({ user: userId });
+    // First try to find organization owned by user
+    let organization = await Organization.findOne({ user: userId });
+
+    if (!organization) {
+      // If not found, user might be an invited employee
+      // Get their linked organization from User model
+      const { User } = await import("../../../../models/User");
+      const user = await User.findById(userId);
+
+      if (user && user.linkedOrganization) {
+        organization = await Organization.findById(user.linkedOrganization);
+      }
+    }
 
     if (!organization) {
       return NextResponse.json(

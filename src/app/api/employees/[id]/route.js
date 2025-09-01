@@ -60,17 +60,45 @@ export async function PUT(request, context) {
 
     const updateData = await request.json();
 
-    const employee = await Employee.findOneAndUpdate(
-      { _id: id, user: userId },
-      updateData,
-      { new: true, runValidators: true }
-    )
-      .populate("organization", "name ceoName")
-      .populate("department", "departmentName subfunctions");
+    // Check if user has permission to update this employee
+    // Either they're the organization creator or they're updating their own record
+    const { Organization } = await import("../../../../../models/Organization");
+    const { User } = await import("../../../../../models/User");
+
+    const organization = await Organization.findOne({ user: userId });
+    let canUpdate = false;
+
+    if (organization) {
+      // User is organization creator, can update any employee in their organization
+      canUpdate = true;
+      var employee = await Employee.findOneAndUpdate(
+        { _id: id, organization: organization._id },
+        updateData,
+        { new: true, runValidators: true }
+      )
+        .populate("organization", "name ceoName")
+        .populate("department", "departmentName subfunctions");
+    } else {
+      // User might be updating their own employee record
+      var employee = await Employee.findOneAndUpdate(
+        { _id: id, user: userId },
+        updateData,
+        { new: true, runValidators: true }
+      )
+        .populate("organization", "name ceoName")
+        .populate("department", "departmentName subfunctions");
+    }
 
     if (!employee) {
+      console.log("Employee not found for update:", { id, userId, organizationId: organization?._id });
       return NextResponse.json({ message: "Employee not found" }, { status: 404 });
     }
+
+    console.log("Employee updated successfully:", {
+      employeeId: employee._id,
+      name: employee.name,
+      updatedFields: Object.keys(updateData)
+    });
 
     return NextResponse.json({ employee, message: "Employee updated successfully" }, { status: 200 });
   } catch (error) {
@@ -97,7 +125,17 @@ export async function DELETE(request, context) {
       return NextResponse.json({ message: "Missing employee ID" }, { status: 400 });
     }
 
-    const employee = await Employee.findOneAndDelete({ _id: id, user: userId });
+    // Check if user has permission to delete this employee
+    const organization = await Organization.findOne({ user: userId });
+    let employee;
+
+    if (organization) {
+      // User is organization creator, can delete any employee in their organization
+      employee = await Employee.findOneAndDelete({ _id: id, organization: organization._id });
+    } else {
+      // User can only delete their own employee record (if any)
+      employee = await Employee.findOneAndDelete({ _id: id, user: userId });
+    }
 
     if (!employee) {
       return NextResponse.json({ message: "Employee not found" }, { status: 404 });

@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { CloudUpload, X, UserPlus } from "lucide-react";
-import toast from 'react-hot-toast';
+import { showSuccessToast, showErrorToast } from "../../../../lib/toastUtils";
 
 export default function InvForm({ onClose }) {
   const [btnLoading, setBtnLoading] = useState(false);
@@ -93,45 +93,52 @@ export default function InvForm({ onClose }) {
 
     try {
       const token = Cookies.get("token");
-      const invitedEmployees = [];
 
-      for (const emp of employees) {
-        const formData = new FormData();
-        formData.append("name", emp.name);
-        formData.append("email", emp.email);
+      // Prepare form data for invitation API
+      const formData = new FormData();
+      formData.append("employees", JSON.stringify(employees.map(emp => ({
+        name: emp.name,
+        email: emp.email
+      }))));
+
+      // Add files with indexed names for proper handling in the API
+      employees.forEach((emp, index) => {
         if (emp.pic) {
-          formData.append("pic", emp.pic);
+          formData.append(`pic_${index}`, emp.pic);
+        }
+        if (emp.cv) {
+          formData.append(`cv_${index}`, emp.cv);
+        }
+      });
+
+      const { data } = await axios.post("/api/invitations", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setSuccess(data.message);
+      showSuccessToast(data.message);
+
+      // Log invitation details for debugging (including manual links)
+      if (data.errors && data.errors.length > 0) {
+        console.log("Invitation details:", data.errors);
+
+        // Show manual invitation links in console for easy access
+        const manualLinks = data.errors.filter(error => error.includes("Share this link"));
+        if (manualLinks.length > 0) {
+          console.log("📧 Manual invitation links (email not configured):");
+          manualLinks.forEach(link => console.log(link));
         }
 
-        const { data } = await axios.post("/api/employees", formData, {
-          headers: { Authorization: `Bearer ${token}` },
+        // Only show actual errors as toast notifications
+        const actualErrors = data.errors.filter(error =>
+          !error.includes("Manual invitation link") &&
+          !error.includes("Share this link") &&
+          !error.includes("✅ Invitation created")
+        );
+
+        actualErrors.forEach(error => {
+          showErrorToast(error);
         });
-
-        if (data?.employee) {
-          invitedEmployees.push(data.employee);
-
-          if (emp.cv) {
-            try {
-              await new Promise(resolve => setTimeout(resolve, 500));
-              const cvFormData = new FormData();
-              cvFormData.append("cv", emp.cv);
-              cvFormData.append("employeeId", data.employee._id);
-              await axios.post("/api/employees/cv", cvFormData, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-            } catch (cvError) {
-              toast.error(`CV upload failed for ${emp.name}: ${cvError.response?.data?.message || cvError.message}`);
-            }
-          }
-        }
-      }
-
-      setSuccess(`Successfully invited ${invitedEmployees.length} employee(s)!`);
-      toast.success(`Successfully invited ${invitedEmployees.length} employee(s)!`);
-
-      const cvUploaded = employees.filter(emp => emp.cv).length;
-      if (cvUploaded > 0) {
-        toast.success(`${cvUploaded} CV(s) uploaded and processed!`);
       }
 
       setTimeout(() => {
@@ -141,7 +148,7 @@ export default function InvForm({ onClose }) {
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Failed to invite employees";
       setError(errorMessage);
-      toast.error(errorMessage);
+      showErrorToast(errorMessage);
     } finally {
       setBtnLoading(false);
     }

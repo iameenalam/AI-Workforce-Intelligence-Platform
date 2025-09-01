@@ -85,10 +85,23 @@ export async function POST(request) {
     let retries = 3;
 
     while (retries > 0 && !employee) {
-      employee = await Employee.findOne({
-        _id: employeeId,
-        user: userId,
-      });
+      // Check if user has permission to update this employee
+      const { Organization } = await import("../../../../../models/Organization");
+      const organization = await Organization.findOne({ user: userId });
+
+      if (organization) {
+        // User is organization creator, can update any employee in their organization
+        employee = await Employee.findOne({
+          _id: employeeId,
+          organization: organization._id,
+        });
+      } else {
+        // User might be updating their own employee record
+        employee = await Employee.findOne({
+          _id: employeeId,
+          user: userId,
+        });
+      }
 
       if (!employee) {
         console.log(`Employee not found, retries left: ${retries - 1}`);

@@ -26,10 +26,39 @@ export async function GET(request) {
     const decoded = jwt.verify(token, process.env.JWT_SEC);
     const userId = decoded.id;
 
-    const employees = await Employee.find({ user: userId })
+    // Get user's organization (either as creator or as linked organization)
+    const organization = await Organization.findOne({ user: userId });
+    let organizationId;
+
+    if (organization) {
+      // User is organization creator
+      organizationId = organization._id;
+    } else {
+      // User might be an invited employee, get their linked organization
+      const { User } = await import("../../../../models/User");
+      const user = await User.findById(userId);
+      if (user && user.linkedOrganization) {
+        organizationId = user.linkedOrganization;
+      } else {
+        return NextResponse.json({ employees: [] }, { status: 200 });
+      }
+    }
+
+    // Fetch employees by organization, not by user
+    const employees = await Employee.find({ organization: organizationId })
       .populate("department", "departmentName")
       .populate("organization", "name")
+      .populate("user", "name email") // Also populate user info
       .sort({ createdAt: -1 });
+
+    console.log(`Fetched ${employees.length} employees for organization ${organizationId}:`,
+      employees.map(emp => ({
+        name: emp.name,
+        email: emp.email,
+        role: emp.role,
+        invitationStatus: emp.invitationStatus
+      }))
+    );
 
     return NextResponse.json({ employees }, { status: 200 });
   } catch (error) {
@@ -159,10 +188,24 @@ export async function PUT(request) {
       );
     }
 
-    const employee = await Employee.findOne({
-      _id: employeeId,
-      user: userId,
-    });
+    // Check if user has permission to update this employee
+    const { Organization } = await import("../../../../models/Organization");
+    const organization = await Organization.findOne({ user: userId });
+
+    let employee;
+    if (organization) {
+      // User is organization creator, can update any employee in their organization
+      employee = await Employee.findOne({
+        _id: employeeId,
+        organization: organization._id,
+      });
+    } else {
+      // User might be updating their own employee record
+      employee = await Employee.findOne({
+        _id: employeeId,
+        user: userId,
+      });
+    }
 
     if (!employee) {
       return NextResponse.json(

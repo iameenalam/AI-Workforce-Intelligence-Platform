@@ -7,6 +7,10 @@ const initialState = {
   btnLoading: false,
   error: null,
   message: null,
+  userRole: null,
+  userPermissions: null,
+  employee: null,
+  organization: null,
 };
 
 const userSlice = createSlice({
@@ -75,6 +79,18 @@ const userSlice = createSlice({
     clearMessage: (state) => {
       state.message = null;
     },
+    setUserPermissions: (state, action) => {
+      state.userRole = action.payload.role;
+      state.userPermissions = action.payload.permissions;
+      state.employee = action.payload.employee;
+      state.organization = action.payload.organization;
+    },
+    clearUserPermissions: (state) => {
+      state.userRole = null;
+      state.userPermissions = null;
+      state.employee = null;
+      state.organization = null;
+    },
   },
 });
 
@@ -90,6 +106,8 @@ export const {
   getUserFail,
   clearError,
   clearMessage,
+  setUserPermissions,
+  clearUserPermissions,
 } = userSlice.actions;
 
 export default userSlice.reducer;

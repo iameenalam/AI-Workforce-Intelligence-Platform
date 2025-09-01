@@ -21,10 +21,31 @@ export async function GET(request) {
 
     const url = new URL(request.url);
     const orgId = url.searchParams.get("organizationId");
-    let filter = { user: userId };
-    if (orgId) filter.organization = orgId;
 
-    const departments = await Department.find(filter)
+    // Get user's organization (either as creator or as linked organization)
+    const { Organization } = await import("../../../../models/Organization");
+    const organization = await Organization.findOne({ user: userId });
+    let organizationId;
+
+    if (organization) {
+      // User is organization creator
+      organizationId = organization._id;
+    } else {
+      // User might be an invited employee, get their linked organization
+      const { User } = await import("../../../../models/User");
+      const user = await User.findById(userId);
+      if (user && user.linkedOrganization) {
+        organizationId = user.linkedOrganization;
+      } else if (orgId) {
+        organizationId = orgId;
+      } else {
+        return NextResponse.json([], { status: 200 });
+      }
+    }
+
+    // Use orgId if provided, otherwise use user's organization
+    const finalOrgId = orgId || organizationId;
+    const departments = await Department.find({ organization: finalOrgId })
       .populate("organization")
       .lean();
 

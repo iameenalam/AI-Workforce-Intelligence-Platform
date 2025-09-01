@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Users, Building2, UserCog, ArrowLeft, X, DollarSign, TrendingUp, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, Building2, UserCog, ArrowLeft, X, DollarSign, TrendingUp, LogOut, Shield } from "lucide-react";
 
 export default function Sidebar({
     activeTab,
@@ -11,16 +11,30 @@ export default function Sidebar({
     handleNavigate,
     isMobileMenuOpen,
     setIsMobileMenuOpen,
-    logoutHandler
+    logoutHandler,
+    userPermissions = null,
+    userRole = null
 }) {
-    const navItems = [
-        { id: 'overview', label: 'Overview', icon: LayoutDashboard, color: 'text-indigo-600', activeBg: 'bg-indigo-50' },
-        { id: 'employees', label: 'Employees', icon: Users, color: 'text-purple-500', activeBg: 'bg-purple-50' },
-        { id: 'departments', label: 'Departments', icon: Building2, color: 'text-rose-500', activeBg: 'bg-rose-50' },
-        { id: 'roles', label: 'Role Assignment', icon: UserCog, color: 'text-blue-600', activeBg: 'bg-blue-50' },
-        { id: 'performance', label: 'Performance', icon: TrendingUp, color: 'text-orange-600', activeBg: 'bg-orange-50' },
-        { id: 'payroll', label: 'Payroll', icon: DollarSign, color: 'text-green-600', activeBg: 'bg-green-50' },
+    const allNavItems = [
+        { id: 'overview', label: 'Overview', icon: LayoutDashboard, color: 'text-indigo-600', activeBg: 'bg-indigo-50', permission: 'canViewOverview' },
+        { id: 'employees', label: 'Employees', icon: Users, color: 'text-purple-500', activeBg: 'bg-purple-50', permission: 'canViewEmployees' },
+        { id: 'departments', label: 'Departments', icon: Building2, color: 'text-rose-500', activeBg: 'bg-rose-50', permission: 'canViewDepartments' },
+        { id: 'roles', label: 'Role Assignment', icon: UserCog, color: 'text-blue-600', activeBg: 'bg-blue-50', permission: 'canViewRoleAssignment' },
+        { id: 'performance', label: 'Performance', icon: TrendingUp, color: 'text-orange-600', activeBg: 'bg-orange-50', permission: 'canViewPerformance' },
+        { id: 'payroll', label: 'Payroll', icon: DollarSign, color: 'text-green-600', activeBg: 'bg-green-50', permission: 'canViewPayroll' },
+        { id: 'permissions', label: 'Permissions', icon: Shield, color: 'text-gray-600', activeBg: 'bg-gray-50', permission: 'canViewPermissions' },
     ];
+
+    // Filter nav items based on user permissions
+    const navItems = allNavItems.filter(item => {
+        // Admin (organization creator) has access to all tabs
+        if (userRole === 'Admin') return true;
+
+        // For other roles, check specific permissions
+        if (!userPermissions) return false;
+
+        return userPermissions[item.permission] === true;
+    });
 
     const handleNavClick = (tabId, isMobile = false) => {
         setActiveTab(tabId);
