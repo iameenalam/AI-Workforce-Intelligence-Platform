@@ -2362,5 +2362,17 @@
     "role": "assistant",
     "content": "Ameen and Alam are two different individuals at Disrupt.com. Here are their details:\n\n### Ameen:\n- **Role:** Team Member in the Finance department\n- **Skills:** JavaScript, TypeScript, CSS, Java, C++, C, SQL, React.js, Next.js, Node.js, Tailwind CSS, React Native, Problem-Solving, Critical Thinking, Teamwork, Time Management\n- **Tools:** Visual Studio Code, NetBeans, Dev C++, MySQL, Stripe, Kinde-Auth, Upstash, Prisma, Neon PostgreSQL, MongoDB, Express.js\n- **Certifications:**\n  - The Complete 2023 Web Development Bootcamp (Udemy)\n  - Web Development with React (NED)\n  - Google UX Design (Coursera)\n- **Experience:** Web Developer (Freelancer)\n- **Education:** Bachelor of Science in Software Engineering (Institute of Business Management)\n\n### Alam:\n- **Role:** Team Lead in the Finance department\n- **Skills:** Similar to Ameen, with expertise in JavaScript, TypeScript, CSS, Java, C++, C, SQL, React.js, Next.js, Node.js, Tailwind CSS, React Native\n- **Tools:** Uses tools like Visual Studio Code, NetBeans, Dev C++, MySQL, MongoDB, Express.js, Stripe, Kinde-Auth, Upstash, Prisma, Neon PostgreSQL\n- **Certifications:**\n  - The Complete 2023 Web Development Bootcamp (Udemy)\n  - Web Development with React (NED)\n  - Google UX Design (Coursera)\n- **Experience:** Freelancer, developing and maintaining responsive websites\n- **Education:** Bachelor of Science in Software Engineering (Institute of Business Management)\n\nAmeen reports to Alam within the Finance department. If you need more specific information, feel free to ask!",
     "timestamp": "2025-08-31T17:06:29.678Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "user",
+    "content": "my org name?",
+    "timestamp": "2025-09-16T10:06:58.536Z"
+  },
+  {
+    "userId": "user-from-session-123",
+    "role": "assistant",
+    "content": "Your organization is Disrupt.com. If you need more information or have specific questions about Disrupt.com, feel free to ask!",
+    "timestamp": "2025-09-16T10:06:58.536Z"
   }
 ]

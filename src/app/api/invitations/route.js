@@ -175,6 +175,7 @@ export async function POST(request) {
               inviterName: user.name,
               organizationName: organization.name,
               invitationToken,
+              logoUrl: organization.logoUrl,
             });
           } catch (emailError) {
             console.error(`Email sending failed for ${email}:`, emailError);

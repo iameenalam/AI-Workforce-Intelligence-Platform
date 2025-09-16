@@ -23,30 +23,20 @@ export default function PendingRolePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Apply route protection
     redirectBasedOnRole("/pending");
-
     checkRoleStatus();
-
-    // Check role status every 30 seconds
     const interval = setInterval(checkRoleStatus, 30000);
-
     return () => clearInterval(interval);
   }, [redirectBasedOnRole]);
 
   const checkRoleStatus = async () => {
     try {
       const token = Cookies.get("token");
-
-      // Get current user's employee record
       const { data } = await axios.get("/api/user/permissions", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      // Update employee and organization info
       setEmployee(data.employee);
       setOrganization(data.organization);
-
     } catch (error) {
       console.error("Error checking role status:", error);
     } finally {
@@ -61,24 +51,21 @@ export default function PendingRolePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Checking your role status...</p>
+          <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-indigo-600 mx-auto mb-4"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
-      {/* Logout Button - Top Right */}
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="absolute top-6 right-6">
         <Button
           onClick={handleLogout}
           variant="outline"
-          size="sm"
-          className="flex items-center gap-2 bg-white/80 backdrop-blur-sm hover:bg-white border-gray-200 hover:border-gray-300 text-gray-700 hover:text-gray-900 shadow-lg"
+          className="flex items-center gap-2"
         >
           <LogOut className="w-4 h-4" />
           Logout
@@ -86,86 +73,82 @@ export default function PendingRolePage() {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
         className="w-full max-w-2xl"
       >
-        <Card className="p-8 shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-6">
-              <div className="bg-gradient-to-br from-yellow-100 to-orange-100 p-4 rounded-full shadow-lg">
-                <Clock className="w-12 h-12 text-yellow-600" />
+        <Card className="p-10 md:p-14 shadow-2xl border-t-4 border-indigo-500">
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center mb-5">
+              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 rounded-full shadow-lg">
+                <Clock className="w-14 h-14 text-white" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
               Welcome to {organization?.name || "the Organization"}!
             </h1>
-            <p className="text-lg text-gray-600 mb-2">
-              Your invitation has been accepted successfully.
-            </p>
-            <p className="text-gray-500">
-              Your role is currently being assigned by the administrator.
+            <p className="text-slate-600 text-lg md:text-xl">
+              Your role is currently pending assignment.
             </p>
           </div>
 
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl mb-8 border border-blue-100">
-            <div className="flex items-start gap-4">
-              <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-2 rounded-full flex-shrink-0 shadow-sm">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-3">What's happening now?</h3>
-                <ul className="text-sm text-gray-600 space-y-3">
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span>Your account has been created</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span>You've been added to {organization?.name || "the organization"}</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Clock className="w-4 h-4 text-yellow-500 flex-shrink-0 animate-pulse" />
-                    <span>Waiting for role assignment by administrator</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
+          <div className="bg-slate-100 p-6 rounded-xl mb-8 shadow-inner">
+            <h3 className="font-semibold text-slate-800 mb-4 text-lg">
+              What's happening now?
+            </h3>
+            <ul className="text-slate-600 space-y-3">
+              <li className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                <span>Your account has been created successfully.</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                <span>You've been added to the organization.</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <Clock className="w-5 h-5 text-yellow-500 flex-shrink-0 animate-pulse" />
+                <span>Waiting for an administrator to assign your role.</span>
+              </li>
+            </ul>
           </div>
 
-          <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-6 rounded-xl mb-8 border border-gray-100">
-            <h3 className="font-semibold text-gray-900 mb-4">Your Information</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                <span className="text-gray-600">Name:</span>
-                <span className="font-medium text-gray-900">{employee?.name || user?.name}</span>
+          <div className="bg-slate-100 p-6 rounded-xl mb-8 shadow-inner">
+            <h3 className="font-semibold text-slate-800 mb-4 text-lg">
+              Your Information
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center py-2 border-b border-slate-200">
+                <span className="text-slate-600">Name:</span>
+                <span className="font-medium text-slate-800">
+                  {employee?.name || user?.name}
+                </span>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                <span className="text-gray-600">Email:</span>
-                <span className="font-medium text-gray-900">{employee?.email || user?.email}</span>
+              <div className="flex justify-between items-center py-2 border-b border-slate-200">
+                <span className="text-slate-600">Email:</span>
+                <span className="font-medium text-slate-800">
+                  {employee?.email || user?.email}
+                </span>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                <span className="text-gray-600">Current Role:</span>
-                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
-                  {employee?.role || "Unassigned"}
+              <div className="flex justify-between items-center py-2 border-b border-slate-200">
+                <span className="text-slate-600">Organization:</span>
+                <span className="font-medium text-slate-800">
+                  {organization?.name || "Loading..."}
                 </span>
               </div>
               <div className="flex justify-between items-center py-2">
-                <span className="text-gray-600">Organization:</span>
-                <span className="font-medium text-gray-900">{organization?.name || "Loading..."}</span>
+                <span className="text-slate-600">Current Role:</span>
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">
+                  {employee?.role || "Unassigned"}
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="text-center bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-100">
-            <p className="text-sm text-gray-600 mb-2">
-              🚀 You'll be automatically redirected to the organization chart once your role is assigned.
-            </p>
-            <p className="text-xs text-gray-500">
-              ⏱️ This page refreshes automatically every 30 seconds.
-            </p>
-          </div>
+          <p className="text-center text-sm text-slate-500 mt-8">
+            You will be redirected automatically once your role is assigned.
+            This page checks for updates every 30 seconds.
+          </p>
         </Card>
       </motion.div>
     </div>

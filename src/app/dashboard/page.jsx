@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
@@ -65,23 +65,22 @@ export default function HRDashboard() {
 
   // Route protection handles role-based access control
 
-  const handleInvFormClose = () => {
+  const handleInvFormClose = useCallback(() => {
     setInvFormOpen(false);
     if (organization?._id) {
       // Add a small delay to ensure any pending database operations complete
       setTimeout(() => {
-        console.log("Refreshing employees after invitation form close...");
         dispatch(getEmployees());
-      }, 1000);
+      }, 500);
     }
-  };
+  }, [organization?._id, dispatch, setInvFormOpen]);
 
-  const handleDeptFormClose = () => {
+  const handleDeptFormClose = useCallback(() => {
     setDeptFormOpen(false);
     if (organization?._id) {
       dispatch(getDepartments({ organizationId: organization._id }));
     }
-  };
+  }, [organization?._id, dispatch, setDeptFormOpen]);
 
   // Set default tab based on role (only if no tab is saved)
   useEffect(() => {
@@ -91,12 +90,17 @@ export default function HRDashboard() {
   }, [userRole]);
 
   useEffect(() => {
-    setInvFormOpen(false);
-    setDeptFormOpen(false);
-
-    // Apply route protection
+    // Only apply route protection
     redirectBasedOnRole("/dashboard");
   }, [redirectBasedOnRole]);
+  
+  // Separate effect for form state management
+  useEffect(() => {
+    if (!isAuth) {
+      setInvFormOpen(false);
+      setDeptFormOpen(false);
+    }
+  }, [isAuth]);
 
   useEffect(() => {
     const handleEscapeKey = (event) => {

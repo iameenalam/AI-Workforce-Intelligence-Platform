@@ -11,7 +11,15 @@ import { loginSuccess } from "@/redux/reducer/userReducer";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
-import { Eye, EyeOff, CheckCircle, Building2, Mail, User } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  CheckCircle,
+  Building2,
+  Mail,
+  User,
+  AlertTriangle,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function AcceptInvitationPage() {
@@ -32,22 +40,26 @@ export default function AcceptInvitationPage() {
 
   useEffect(() => {
     if (!token) {
-      setError("Invalid invitation link");
+      setError("Invalid invitation link. No token provided.");
       setLoading(false);
       return;
     }
-
     validateInvitation();
   }, [token]);
 
   const validateInvitation = async () => {
     try {
-      const { data } = await axios.get(`/api/invitations/accept?token=${token}`);
+      const { data } = await axios.get(
+        `/api/invitations/accept?token=${token}`
+      );
       setInvitation(data.invitation);
       setUserExists(data.userExists);
-      setLoading(false);
     } catch (error) {
-      setError(error.response?.data?.message || "Invalid or expired invitation");
+      setError(
+        error.response?.data?.message ||
+          "This invitation is invalid or has expired."
+      );
+    } finally {
       setLoading(false);
     }
   };
@@ -58,59 +70,57 @@ export default function AcceptInvitationPage() {
 
     if (!userExists) {
       if (!password || !confirmPassword) {
-        setError("Password and confirmation are required");
-        return;
+        return setError("Please fill out both password fields.");
       }
-
-      if (password !== confirmPassword) {
-        setError("Passwords do not match");
-        return;
-      }
-
       if (password.length < 6) {
-        setError("Password must be at least 6 characters long");
-        return;
+        return setError("Password must be at least 6 characters long.");
+      }
+      if (password !== confirmPassword) {
+        return setError("Passwords do not match.");
       }
     }
 
     setAccepting(true);
 
     try {
-      const { data } = await axios.post("/api/invitations/accept", {
-        token,
-        password: userExists ? undefined : password,
-        confirmPassword: userExists ? undefined : confirmPassword,
-        userExists,
-      });
+      const payload = { token };
 
-      // Set auth token
+      if (!userExists) {
+        payload.password = password;
+        payload.confirmPassword = confirmPassword;
+      }
+
+      const { data } = await axios.post("/api/invitations/accept", payload);
+
       Cookies.set("token", data.token, { expires: 5, secure: true, path: "/" });
 
-      // Update Redux state
-      dispatch(loginSuccess({
-        user: data.user,
-        message: data.message,
-        token: data.token,
-      }));
+      dispatch(
+        loginSuccess({
+          user: data.user,
+          message: data.message,
+          token: data.token,
+        })
+      );
 
-      toast.success(data.message);
+      toast.success(data.message || "Invitation accepted successfully!");
 
-      // Redirect to pending role assignment page
       setTimeout(() => {
         router.push("/pending");
       }, 1500);
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to accept invitation");
+      setError(
+        error.response?.data?.message ||
+          "Failed to accept invitation. Please try again."
+      );
       setAccepting(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Validating invitation...</p>
+          <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-indigo-600 mx-auto mb-4"></div>
         </div>
       </div>
     );
@@ -118,16 +128,17 @@ export default function AcceptInvitationPage() {
 
   if (error && !invitation) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
-        <Card className="w-full max-w-md p-8 text-center">
-          <div className="text-red-500 mb-4">
-            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Invalid Invitation</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <Button onClick={() => router.push("/")} variant="outline">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-lg p-8 text-center shadow-xl">
+          <AlertTriangle className="w-16 h-16 mx-auto text-red-500 mb-4" />
+          <h1 className="text-2xl font-bold text-slate-800 mb-2">
+            Invitation Error
+          </h1>
+          <p className="text-slate-600 mb-8">{error}</p>
+          <Button
+            onClick={() => router.push("/")}
+            className="bg-indigo-600 hover:bg-indigo-700"
+          >
             Go to Homepage
           </Button>
         </Card>
@@ -136,140 +147,160 @@ export default function AcceptInvitationPage() {
   }
 
   return (
-    <>
-
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
-        >
-          <Card className="p-8">
-            <div className="text-center mb-8">
-              <div className="flex items-center justify-center mb-4">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Building2 className="w-8 h-8 text-blue-600" />
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-2xl"
+      >
+        <Card className="p-10 md:p-14 shadow-2xl border-t-4 border-indigo-500">
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center mb-5">
+              {invitation?.organization?.logoUrl ? (
+                <img
+                  src={invitation?.organization?.logoUrl}
+                  alt={`${invitation?.organization?.name} Logo`}
+                  className="w-24 h-24 object-cover rounded-full border-4 border-white shadow-md"
+                />
+              ) : (
+                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 rounded-full shadow-lg">
+                  <Building2 className="w-14 h-14 text-white" />
                 </div>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Welcome to {invitation?.organization?.name}!
-              </h1>
-              <p className="text-gray-600">
-                You've been invited to join the team
-              </p>
+              )}
             </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
+              You're invited to join {invitation?.organization?.name}!
+            </h1>
+            <p className="text-slate-600 text-lg md:text-xl">
+              Accept the invitation to start collaborating with the team.
+            </p>
+          </div>
 
-            <div className="bg-blue-50 p-4 rounded-lg mb-6">
-              <div className="flex items-center mb-2">
-                <User className="w-4 h-4 text-blue-600 mr-2" />
-                <span className="font-medium text-gray-900">{invitation?.name}</span>
-              </div>
-              <div className="flex items-center">
-                <Mail className="w-4 h-4 text-blue-600 mr-2" />
-                <span className="text-gray-600">{invitation?.email}</span>
-              </div>
+          <div className="bg-slate-100 p-6 rounded-xl mb-8 shadow-inner">
+            <div className="flex items-center mb-4">
+              <User className="w-6 h-6 text-indigo-500 mr-4" />
+              <span className="font-medium text-slate-800 text-lg">
+                {invitation?.name}
+              </span>
             </div>
+            <div className="flex items-center">
+              <Mail className="w-6 h-6 text-indigo-500 mr-4" />
+              <span className="text-slate-600 text-lg">
+                {invitation?.email}
+              </span>
+            </div>
+          </div>
 
+          <form onSubmit={handleAcceptInvitation}>
             {userExists ? (
-              <div className="bg-green-50 p-4 rounded-lg mb-6">
+              <div className="bg-emerald-50 border-l-4 border-emerald-400 p-5 rounded-md mb-8">
                 <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                  <span className="text-green-800">
-                    Account found! You'll be signed in automatically.
+                  <CheckCircle className="w-7 h-7 text-emerald-500 mr-4" />
+                  <span className="text-emerald-800 text-lg font-medium">
+                    We found an existing account for this email.
                   </span>
                 </div>
               </div>
             ) : (
-              <form id="invitation-form" onSubmit={handleAcceptInvitation} className="space-y-4">
-                <div className="text-sm text-gray-600 mb-4">
+              <div className="mb-6">
+                <p className="text-slate-700 text-lg mb-4">
                   Create your password to complete the invitation:
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your password"
-                      required
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                </p>
+                <div className="grid md:grid-cols-2 md:gap-x-6 space-y-4 md:space-y-0">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="password"
+                      className="font-semibold text-slate-700"
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-gray-400" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-gray-400" />
-                      )}
-                    </button>
+                      Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        required
+                        className="h-12 pr-10 bg-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5 text-slate-400" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-slate-400" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="confirmPassword"
+                      className="font-semibold text-slate-700"
+                    >
+                      Confirm Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm your password"
+                        required
+                        className="h-12 pr-10 bg-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-5 w-5 text-slate-400" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-slate-400" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm your password"
-                      required
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4 text-gray-400" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-gray-400" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </form>
+              </div>
             )}
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-                {error}
+              <div className="bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded-md mb-6">
+                <p>{error}</p>
               </div>
             )}
 
             <Button
-              onClick={handleAcceptInvitation}
-              type="button"
-              className="w-full mt-6"
+              type="submit"
+              className="w-full h-14 text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:opacity-90 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
               disabled={accepting}
             >
               {accepting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Accepting Invitation...
-                </>
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                  <span>Accepting Invitation...</span>
+                </div>
               ) : (
-                "Accept Invitation & Join Team"
+                "Accept & Join Organization"
               )}
             </Button>
-
-            <div className="text-center mt-6">
-              <p className="text-sm text-gray-500">
-                By accepting this invitation, you agree to join {invitation?.organization?.name}
-              </p>
-            </div>
-          </Card>
-        </motion.div>
-      </div>
-    </>
+            <p className="text-center text-sm text-slate-500 mt-6">
+              By accepting this invitation, you agree to join{" "}
+              {invitation?.organization?.name}.
+            </p>
+          </form>
+        </Card>
+      </motion.div>
+    </div>
   );
 }
