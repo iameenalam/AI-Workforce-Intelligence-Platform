@@ -5,7 +5,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import toast from 'react-hot-toast';
-import { Search, Loader2, UserPlus, Plus } from "lucide-react";
+import axios from "axios";
+import { Search, Loader2, UserPlus, Plus, Save, RotateCcw, Settings } from "lucide-react";
 
 import { getUser } from "@/redux/action/user";
 import { useRouteProtection } from "@/hooks/useRouteProtection";
@@ -27,6 +28,7 @@ import { Employees, GenericProfilePage as EmployeeProfilePage } from "./componen
 import { Departments, DepartmentProfilePage, SubfunctionProfilePage, EditDepartmentModal } from "./components/Departments";
 import { RoleAssignment } from "./components/RoleAssignment";
 import { Permissions } from "./components/Permissions";
+import { Button } from "@/components/ui/button";
 
 import { Payroll } from "./components/Payroll";
 import { Performance } from "./components/Performance";
@@ -63,12 +65,83 @@ export default function HRDashboard() {
   const [invFormOpen, setInvFormOpen] = useState(false);
   const [deptFormOpen, setDeptFormOpen] = useState(false);
 
-  // Route protection handles role-based access control
+  const [permissionsData, setPermissionsData] = useState({});
+  const [originalPermissionsData, setOriginalPermissionsData] = useState({});
+  const [permissionsLoading, setPermissionsLoading] = useState(true);
+  const [permissionsSaving, setPermissionsSaving] = useState(false);
+  const [permissionsHaveChanges, setPermissionsHaveChanges] = useState(false);
+  const [selectedRoleForPermissions, setSelectedRoleForPermissions] = useState("HOD");
+  const rolesForPermissions = ["HOD", "Team Lead", "Team Member"];
+
+  const fetchPermissions = async () => {
+    setPermissionsLoading(true);
+    try {
+      const token = Cookies.get("token");
+      const { data } = await axios.get("/api/permissions", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const permissionsMap = {};
+      data.permissions.forEach(perm => {
+        permissionsMap[perm.role] = perm;
+      });
+
+      setPermissionsData(permissionsMap);
+      setOriginalPermissionsData(JSON.parse(JSON.stringify(permissionsMap)));
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+      toast.error("Failed to load permissions");
+    } finally {
+        setPermissionsLoading(false);
+    }
+  };
+  
+  const handlePermissionChange = (role, permissionKey, value) => {
+    setPermissionsData(prev => ({
+      ...prev,
+      [role]: {
+        ...prev[role],
+        [permissionKey]: value,
+      }
+    }));
+    setPermissionsHaveChanges(true);
+  };
+
+  const handleSavePermissions = async () => {
+    setPermissionsSaving(true);
+    try {
+      const token = Cookies.get("token");
+      
+      for (const role of rolesForPermissions) {
+        if (permissionsData[role]) {
+          await axios.put("/api/permissions", {
+            role,
+            permissions: permissionsData[role],
+          }, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+      }
+
+      toast.success("Permissions updated successfully");
+      setPermissionsHaveChanges(false);
+      setOriginalPermissionsData(JSON.parse(JSON.stringify(permissionsData)));
+    } catch (error) {
+      console.error("Error saving permissions:", error);
+      toast.error("Failed to save permissions");
+    } finally {
+      setPermissionsSaving(false);
+    }
+  };
+  
+  const handleResetPermissions = () => {
+    setPermissionsData(JSON.parse(JSON.stringify(originalPermissionsData)));
+    setPermissionsHaveChanges(false);
+  };
 
   const handleInvFormClose = useCallback(() => {
     setInvFormOpen(false);
     if (organization?._id) {
-      // Add a small delay to ensure any pending database operations complete
       setTimeout(() => {
         dispatch(getEmployees());
       }, 500);
@@ -82,19 +155,16 @@ export default function HRDashboard() {
     }
   }, [organization?._id, dispatch, setDeptFormOpen]);
 
-  // Set default tab based on role (only if no tab is saved)
   useEffect(() => {
     if (userRole === "HOD" && !localStorage.getItem('activeTab')) {
-      setActiveTab("employees"); // HODs start with employees view
+      setActiveTab("employees");
     }
   }, [userRole]);
 
   useEffect(() => {
-    // Only apply route protection
     redirectBasedOnRole("/dashboard");
   }, [redirectBasedOnRole]);
   
-  // Separate effect for form state management
   useEffect(() => {
     if (!isAuth) {
       setInvFormOpen(false);
@@ -118,7 +188,7 @@ export default function HRDashboard() {
     return () => {
       document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, [invFormOpen, deptFormOpen]);
+  }, [invFormOpen, deptFormOpen, handleInvFormClose, handleDeptFormClose]);
 
   const [editingDepartment, setEditingDepartment] = useState(null);
   const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
@@ -159,13 +229,16 @@ export default function HRDashboard() {
   }, [dispatch, isAuth, userLoading, router]);
 
   useEffect(() => {
-    if (isAuth && !organization && !orgLoading && !orgLoaded) dispatch(getOrganization());
+    if (isAuth && !organization && !orgLoading && !orgLoaded) {
+      dispatch(getOrganization());
+    }
   }, [dispatch, isAuth, organization, orgLoading, orgLoaded]);
 
   useEffect(() => {
     if (organization?._id) {
       dispatch(getDepartments({ organizationId: organization._id }));
       dispatch(getEmployees());
+      fetchPermissions();
     }
   }, [dispatch, organization]);
 
@@ -196,7 +269,6 @@ export default function HRDashboard() {
 
   const refreshDashboardData = () => {
     if (organization?._id) {
-      console.log("Refreshing dashboard data...");
       dispatch(getEmployees());
       dispatch(getDepartments({ organizationId: organization._id }));
       toast.success("Dashboard data refreshed");
@@ -278,6 +350,7 @@ export default function HRDashboard() {
     roles: "Drag and drop employees to assign roles and departments.",
     performance: "Track employee goals, reviews, and performance metrics.",
     payroll: "Manage employee compensation and salary information.",
+    permissions: "Control what different roles can see and do.",
   };
 
   const renderContent = () => {
@@ -351,13 +424,13 @@ export default function HRDashboard() {
                                         {(departments || []).map((dept) => (<option key={dept._id} value={dept._id}>{dept.departmentName}</option>))}
                                     </select>
                                     {permissions.canInviteEmployees && (
-                                        <button
+                                        <Button
                                             onClick={() => setInvFormOpen(true)}
                                             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center md:justify-start gap-2 w-full md:w-auto"
                                         >
                                             <UserPlus className="w-4 h-4" />
                                             Invite Employees
-                                        </button>
+                                        </Button>
                                     )}
                                 </>
                             )}
@@ -368,15 +441,38 @@ export default function HRDashboard() {
                                         <input type="text" placeholder="Search departments..." value={searchDeptTerm} onChange={(e) => setSearchDeptTerm(e.target.value)} className="pl-10 pr-4 py-2 w-full md:w-64 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors placeholder-gray-400" />
                                     </div>
                                     {permissions.canAddDepartments && (
-                                        <button
+                                        <Button
                                             onClick={() => setDeptFormOpen(true)}
                                             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center md:justify-start gap-2 w-full md:w-auto"
                                         >
                                             <Plus className="w-4 h-4" />
                                             Create Department
-                                        </button>
+                                        </Button>
                                     )}
                                 </>
+                            )}
+                            {activeTab === 'permissions' && (
+                                <div className="flex items-center gap-2">
+                                    {permissionsHaveChanges && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleResetPermissions}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <RotateCcw className="w-4 h-4" />
+                                        Reset
+                                    </Button>
+                                    )}
+                                    <Button
+                                        onClick={handleSavePermissions}
+                                        disabled={!permissionsHaveChanges || permissionsSaving}
+                                        className="flex items-center gap-2"
+                                    >
+                                    <Save className="w-4 h-4" />
+                                    {permissionsSaving ? "Saving..." : "Save Changes"}
+                                    </Button>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -392,10 +488,17 @@ export default function HRDashboard() {
                                 {activeTab === 'performance' && userPermissions?.canViewPerformance && <Performance employees={employeesOnly} onEmployeeUpdate={(updatedEmployee) => {
                                     dispatch({ type: 'EMPLOYEE_UPDATE_SUCCESS', payload: updatedEmployee });
                                 }} />}
-                                {activeTab === 'permissions' && userPermissions?.canViewPermissions && <Permissions />}
+                                {activeTab === 'permissions' && userPermissions?.canViewPermissions && 
+                                    <Permissions 
+                                        permissions={permissionsData}
+                                        onPermissionChange={handlePermissionChange}
+                                        selectedRole={selectedRoleForPermissions}
+                                        onSelectRole={setSelectedRoleForPermissions}
+                                        loading={permissionsLoading}
+                                    />
+                                }
                                 {activeTab === 'payroll' && userPermissions?.canViewPayroll && <Payroll employees={employeesOnly} />}
 
-                                {/* Access denied message for unauthorized tabs */}
                                 {((activeTab === 'overview' && !userPermissions?.canViewOverview) ||
                                   (activeTab === 'employees' && !userPermissions?.canViewEmployees) ||
                                   (activeTab === 'departments' && !userPermissions?.canViewDepartments) ||
@@ -426,6 +529,17 @@ export default function HRDashboard() {
                                 dispatch({ type: 'EMPLOYEE_UPDATE_SUCCESS', payload: updatedEmployee });
                             }} />}
                         </div>
+                        {activeTab === 'permissions' && permissionsHaveChanges && (
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <div className="flex items-center gap-2 text-yellow-800">
+                                <Settings className="w-4 h-4" />
+                                <span className="font-medium">Unsaved Changes</span>
+                                </div>
+                                <p className="text-yellow-700 text-sm mt-1">
+                                You have unsaved permission changes. Click "Save Changes" to apply them.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             );
