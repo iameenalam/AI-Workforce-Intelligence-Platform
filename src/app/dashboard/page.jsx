@@ -162,11 +162,15 @@ export default function HRDashboard() {
   }, [userRole]);
 
   useEffect(() => {
-    redirectBasedOnRole("/dashboard");
-  }, [redirectBasedOnRole]);
+    // Only redirect if we're sure about the auth state
+    if (!userLoading) {
+      redirectBasedOnRole("/dashboard");
+    }
+  }, [redirectBasedOnRole, userLoading]);
   
   useEffect(() => {
-    if (!isAuth) {
+    // Only redirect if we're sure the user is not authenticated
+    if (!isAuth && !userLoading) {
       setInvFormOpen(false);
       setDeptFormOpen(false);
     }

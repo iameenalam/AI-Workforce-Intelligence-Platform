@@ -84,6 +84,10 @@ const userSlice = createSlice({
       state.userPermissions = action.payload.permissions;
       state.employee = action.payload.employee;
       state.organization = action.payload.organization;
+      // Ensure auth state is consistent when we have permissions
+      if (action.payload.role) {
+        state.isAuth = true;
+      }
     },
     clearUserPermissions: (state) => {
       state.userRole = null;

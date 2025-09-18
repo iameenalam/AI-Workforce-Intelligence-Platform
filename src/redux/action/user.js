@@ -38,7 +38,18 @@ export const loginUser = (email, password) => async (dispatch) => {
 
     Cookies.set("token", data.token, { expires: 5, secure: true, path: "/" });
 
-    dispatch(loginSuccess(data));
+    // Fetch user permissions immediately after login
+    try {
+      const permissionsResponse = await axios.get("/api/user/permissions", {
+        headers: { Authorization: `Bearer ${data.token}` },
+      });
+      
+      // Dispatch both login success and permissions together
+      dispatch(loginSuccess(data));
+      dispatch(setUserPermissions(permissionsResponse.data));
+    } catch (error) {
+      console.error("Error fetching initial permissions:", error);
+    }
   } catch (error) {
     dispatch(loginFail(error.response?.data?.message || error.message));
   }
@@ -52,7 +63,19 @@ export const loginWithGoogle = (tokenId) => async (dispatch) => {
 
     Cookies.set("token", data.token, { expires: 5, secure: true, path: "/" });
 
-    dispatch(loginSuccess(data));
+    // Fetch user permissions immediately after login
+    try {
+      const permissionsResponse = await axios.get("/api/user/permissions", {
+        headers: { Authorization: `Bearer ${data.token}` },
+      });
+      
+      // Dispatch both login success and permissions together
+      dispatch(loginSuccess(data));
+      dispatch(setUserPermissions(permissionsResponse.data));
+    } catch (error) {
+      console.error("Error fetching initial permissions:", error);
+      dispatch(loginSuccess(data));
+    }
   } catch (error) {
     dispatch(loginFail(error.response?.data?.message || error.message));
   }
@@ -66,7 +89,19 @@ export const signupWithGoogle = (tokenId) => async (dispatch) => {
 
     Cookies.set("token", data.token, { expires: 5, secure: true, path: "/" });
 
-    dispatch(registerSuccess(data));
+    // Fetch user permissions immediately after signup
+    try {
+      const permissionsResponse = await axios.get("/api/user/permissions", {
+        headers: { Authorization: `Bearer ${data.token}` },
+      });
+      
+      // Dispatch both register success and permissions together
+      dispatch(registerSuccess(data));
+      dispatch(setUserPermissions(permissionsResponse.data));
+    } catch (error) {
+      console.error("Error fetching initial permissions:", error);
+      dispatch(registerSuccess(data));
+    }
   } catch (error) {
     dispatch(registerFail(error.response?.data?.message || error.message));
   }
@@ -74,21 +109,29 @@ export const signupWithGoogle = (tokenId) => async (dispatch) => {
 
 export const getUser = () => async (dispatch) => {
   try {
-    dispatch(loadingStart());
-
     const token = Cookies.get("token");
     if (!token) {
-      dispatch(getUserFail("No token found"));
+      dispatch(getUserFail("Please Login"));
       return;
     }
 
-    const { data } = await axios.get("/api/user/myprofile", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    // Fetch user profile and permissions in parallel
+    const [profileResponse, permissionsResponse] = await Promise.all([
+      axios.get("/api/user/myprofile", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      axios.get("/api/user/permissions", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    ]);
 
-    dispatch(getUserSuccess(data));
+    dispatch(getUserSuccess(profileResponse.data));
+    dispatch(setUserPermissions(permissionsResponse.data));
+    
+    return permissionsResponse.data; // Return permissions data for the hook
   } catch (error) {
     dispatch(getUserFail(error.response?.data?.message || error.message));
+    throw error; // Re-throw for error handling in the hook
   }
 };
 
@@ -109,32 +152,17 @@ export const getUserPermissions = () => async (dispatch) => {
   try {
     const token = Cookies.get("token");
     if (!token) {
-      dispatch(clearUserPermissions());
-      return;
+      throw new Error("No token found");
     }
 
     const { data } = await axios.get("/api/user/permissions", {
       headers: { Authorization: `Bearer ${token}` },
     });
-
-    console.log("User permissions loaded:", {
-      role: data.role,
-      hasEmployee: !!data.employee,
-      hasOrganization: !!data.organization,
-      organizationName: data.organization?.name
-    });
-
-    dispatch(setUserPermissions({
-      role: data.role,
-      permissions: data.permissions,
-      employee: data.employee,
-      organization: data.organization,
-    }));
-
+    
+    dispatch(setUserPermissions(data));
     return data;
   } catch (error) {
-    console.error("Error fetching user permissions:", error);
-    dispatch(clearUserPermissions());
+    console.error("Error fetching permissions:", error);
     throw error;
   }
 };
