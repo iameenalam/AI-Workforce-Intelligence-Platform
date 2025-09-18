@@ -141,19 +141,11 @@ export default function HRDashboard() {
 
   const handleInvFormClose = useCallback(() => {
     setInvFormOpen(false);
-    if (organization?._id) {
-      setTimeout(() => {
-        dispatch(getEmployees());
-      }, 500);
-    }
-  }, [organization?._id, dispatch, setInvFormOpen]);
+  }, [setInvFormOpen]);
 
   const handleDeptFormClose = useCallback(() => {
     setDeptFormOpen(false);
-    if (organization?._id) {
-      dispatch(getDepartments({ organizationId: organization._id }));
-    }
-  }, [organization?._id, dispatch, setDeptFormOpen]);
+  }, [setDeptFormOpen]);
 
   useEffect(() => {
     if (userRole === "HOD" && !localStorage.getItem('activeTab')) {
@@ -256,18 +248,46 @@ export default function HRDashboard() {
   const handleBack = () => { window.history.back(); };
 
   const handleEditDept = (dept) => { setEditingDepartment(dept); setIsDeptModalOpen(true); };
-  const handleDeleteDept = (id) => dispatch(deleteDepartment(id));
+  const handleDeleteDept = async (id) => {
+    try {
+      // First dispatch the delete action which will optimistically update the UI
+      const result = await dispatch(deleteDepartment(id));
+      
+      // Show success message
+      toast.success(result.message);
+
+      // No need to fetch departments immediately as we're using optimistic updates
+    } catch (error) {
+      console.error("Error deleting department:", error);
+      toast.error("Failed to delete department");
+      
+      // Refresh the data if the delete failed to ensure UI is in sync
+      if (organization?._id) {
+        dispatch(getDepartments({ organizationId: organization._id }));
+      }
+    }
+  };
   const handleSaveDept = (id, data) => dispatch(updateDepartment(id, data));
 
   const handleDeleteEmployee = async (employeeId) => {
     try {
-      await dispatch(deleteEmployee(employeeId));
-      if (organization?._id) {
-        dispatch(getDepartments({ organizationId: organization._id }));
-      }
+      // First dispatch the delete action which will optimistically update the UI
+      const result = await dispatch(deleteEmployee(employeeId));
+      
+      // Show success message
+      toast.success(result.message);
+
+      // No need to fetch departments immediately as we're using optimistic updates
+      // The departments will be updated on the next data refresh
     } catch (error) {
       console.error("Error deleting employee:", error);
       toast.error("Failed to delete employee");
+      
+      // Refresh the data if the delete failed to ensure UI is in sync
+      if (organization?._id) {
+        dispatch(getEmployees());
+        dispatch(getDepartments({ organizationId: organization._id }));
+      }
     }
   };
 

@@ -52,6 +52,8 @@ export const employeesReducer = (state = initialState, action) => {
         ...state,
         employees: state.employees.filter(emp => emp._id !== action.payload),
         message: "Employee deleted successfully",
+        loading: false,
+        error: null
       };
 
     case EMPLOYEES_CLEAR_MESSAGE:
