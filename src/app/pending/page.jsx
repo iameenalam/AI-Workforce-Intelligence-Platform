@@ -65,7 +65,7 @@ export default function PendingRolePage() {
         <Button
           onClick={handleLogout}
           variant="outline"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
           Logout
@@ -79,7 +79,7 @@ export default function PendingRolePage() {
         className="w-full max-w-2xl"
       >
         <Card className="p-10 md:p-14 shadow-2xl border-t-4 border-indigo-500">
-          <div className="text-center mb-10">
+          <div className="text-center mb-5">
             <div className="flex items-center justify-center mb-5">
               <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 rounded-full shadow-lg">
                 <Clock className="w-14 h-14 text-white" />
@@ -93,7 +93,7 @@ export default function PendingRolePage() {
             </p>
           </div>
 
-          <div className="bg-slate-100 p-6 rounded-xl mb-8 shadow-inner">
+          <div className="bg-slate-100 p-6 rounded-xl mb-5 shadow-inner">
             <h3 className="font-semibold text-slate-800 mb-4 text-lg">
               What's happening now?
             </h3>
@@ -113,7 +113,7 @@ export default function PendingRolePage() {
             </ul>
           </div>
 
-          <div className="bg-slate-100 p-6 rounded-xl mb-8 shadow-inner">
+          <div className="bg-slate-100 p-6 rounded-xl shadow-inner">
             <h3 className="font-semibold text-slate-800 mb-4 text-lg">
               Your Information
             </h3>
@@ -130,12 +130,6 @@ export default function PendingRolePage() {
                   {employee?.email || user?.email}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-slate-200">
-                <span className="text-slate-600">Organization:</span>
-                <span className="font-medium text-slate-800">
-                  {organization?.name || "Loading..."}
-                </span>
-              </div>
               <div className="flex justify-between items-center py-2">
                 <span className="text-slate-600">Current Role:</span>
                 <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">
@@ -144,11 +138,6 @@ export default function PendingRolePage() {
               </div>
             </div>
           </div>
-
-          <p className="text-center text-sm text-slate-500 mt-8">
-            You will be redirected automatically once your role is assigned.
-            This page checks for updates every 30 seconds.
-          </p>
         </Card>
       </motion.div>
     </div>

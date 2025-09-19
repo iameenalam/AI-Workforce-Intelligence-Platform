@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { loginSuccess } from "@/redux/reducer/userReducer";
+import { EMPLOYEES_SUCCESS } from "@/redux/action/employees";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
@@ -101,6 +102,11 @@ export default function AcceptInvitationPage() {
           token: data.token,
         })
       );
+
+      // Add the new employee to redux store immediately
+      if (data.employee) {
+        dispatch({ type: EMPLOYEES_SUCCESS, payload: [data.employee] });
+      }
 
       toast.success(data.message || "Invitation accepted successfully!");
 

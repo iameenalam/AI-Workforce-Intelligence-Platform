@@ -6,6 +6,7 @@ import { Employee } from "../../../../../models/Employee";
 import { Organization } from "../../../../../models/Organization";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { notifyAdminEmployeeJoined } from "../../../../../lib/notifyAdmin";
 
 // GET - Validate invitation token and get invitation details
 export async function GET(request) {
@@ -162,6 +163,14 @@ export async function POST(request) {
       email: employee.email,
       organization: employee.organization,
       role: employee.role,
+    });
+
+    // Notify admin
+    await notifyAdminEmployeeJoined({
+      organizationId: invitation.organization._id,
+      employeeId: employee._id,
+      employeeName: employee.name,
+      employeeEmail: employee.email,
     });
 
     // Update invitation status
