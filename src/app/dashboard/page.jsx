@@ -234,9 +234,12 @@ export default function HRDashboard() {
     if (organization?._id) {
       dispatch(getDepartments({ organizationId: organization._id }));
       dispatch(getEmployees());
-      fetchPermissions();
+      // Only fetch permissions if user is admin or canViewPermissions
+      if (permissions?.isAdmin || permissions?.userPermissions?.canViewPermissions) {
+        fetchPermissions();
+      }
     }
-  }, [dispatch, organization]);
+  }, [dispatch, organization, permissions?.isAdmin, permissions?.userPermissions?.canViewPermissions]);
 
   const handleNavigate = (path) => {
     if (path.startsWith('department/')) {
@@ -543,7 +546,7 @@ export default function HRDashboard() {
                               </>
                             )}
 
-                            {!hasPermissions && (
+                            {!hasPermissions && (permissions?.isAdmin || permissions?.userPermissions?.canViewPermissions) && (
                               <div className="flex items-center justify-center py-12">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                                 <span className="ml-3 text-gray-600">Loading permissions...</span>
