@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { Invitation } from "../../../../../models/Invitation";
 import { Organization } from "../../../../../models/Organization";
 import { User } from "../../../../../models/User";
-import { sendInvitationReminder } from "@/lib/emailService";
+import { sendInvitationReminder } from "../../../../../lib/emailService";
 import jwt from "jsonwebtoken";
 
 // POST - Send invitation reminder
