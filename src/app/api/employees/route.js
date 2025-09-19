@@ -51,15 +51,6 @@ export async function GET(request) {
       .populate("user", "name email") // Also populate user info
       .sort({ createdAt: -1 });
 
-    console.log(`Fetched ${employees.length} employees for organization ${organizationId}:`,
-      employees.map(emp => ({
-        name: emp.name,
-        email: emp.email,
-        role: emp.role,
-        invitationStatus: emp.invitationStatus
-      }))
-    );
-
     return NextResponse.json({ employees }, { status: 200 });
   } catch (error) {
     console.error("Error fetching employees:", error);

@@ -59,7 +59,7 @@ export const useRouteProtection = () => {
     };
 
     initializeProtection();
-  }, [isAuth, userRole, dispatch, router, loading]);
+  }, [isAuth, userRole, dispatch, router, loading, userPermissions?.dashboardAccess]);
 
   const redirectBasedOnRole = (currentPath) => {
     if (!isAuth || userRole === null || loading) return;

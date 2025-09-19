@@ -22,7 +22,7 @@ export async function GET(request) {
 
     if (employeeId) {
       // Get payroll for specific employee
-      const { Organization } = await import("../../../../models/Organization");
+      const { Organization } = await import("../../../../../models/Organization");
       const organization = await Organization.findOne({ user: userId });
 
       let employee;
@@ -102,7 +102,7 @@ export async function POST(request) {
     }
 
     // Check if user has permission to update this employee
-    const { Organization } = await import("../../../../models/Organization");
+    const { Organization } = await import("../../../../../models/Organization");
     const organization = await Organization.findOne({ user: userId });
 
     let employee;
@@ -191,7 +191,7 @@ export async function PUT(request) {
     }
 
     // Check if user has permission to update this employee
-    const { Organization } = await import("../../../../models/Organization");
+    const { Organization } = await import("../../../../../models/Organization");
     const organization = await Organization.findOne({ user: userId });
 
     let employee;

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DollarSign, Gift, Package, Calendar, Edit, Trash2, X, Loader2, Save, AlertTriangle } from "lucide-react";
 import toast from 'react-hot-toast';
 import {
-    createPayroll,
+    createOrUpdatePayroll,
     updatePayroll,
     deletePayroll,
     clearPayrollMessage,
@@ -138,7 +138,7 @@ const PayrollModal = ({ isOpen, onClose, employee, onSave }) => {
             if (employee?.payroll) {
                 await dispatch(updatePayroll(payrollData));
             } else {
-                await dispatch(createPayroll(payrollData));
+                await dispatch(createOrUpdatePayroll(payrollData));
             }
 
             const updatedEmployee = {
@@ -192,13 +192,29 @@ const PayrollModal = ({ isOpen, onClose, employee, onSave }) => {
 
 export const Payroll = ({ employees, onEmployeeUpdate }) => {
     const dispatch = useDispatch();
-    const { message, error } = useSelector((state) => state.payroll);
+    const { message, error, employee: payrollEmployee } = useSelector((state) => state.payroll);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
+    // Remove useEffect that calls onEmployeeUpdate for payrollEmployee
+    // useEffect(() => {
+    //     if (payrollEmployee && payrollEmployee._id && onEmployeeUpdate) {
+    //         onEmployeeUpdate(payrollEmployee);
+    //     }
+    // }, [payrollEmployee, onEmployeeUpdate]);
+
+    // Remove payroll from employee after delete
+    useEffect(() => {
+        if (message && employeeToDelete && onEmployeeUpdate) {
+            onEmployeeUpdate({ ...employeeToDelete, payroll: null });
+            setEmployeeToDelete(null);
+        }
+    }, [message, employeeToDelete, onEmployeeUpdate]);
+
+    // Use employees prop directly
     const employeesWithPayroll = employees?.filter(emp => emp.payroll) || [];
     const employeesWithoutPayroll = employees?.filter(emp => !emp.payroll) || [];
 
@@ -220,7 +236,6 @@ export const Payroll = ({ employees, onEmployeeUpdate }) => {
     const confirmDeletePayroll = () => {
         if (employeeToDelete) {
             dispatch(deletePayroll(employeeToDelete._id));
-            if (onEmployeeUpdate) onEmployeeUpdate({ ...employeeToDelete, payroll: null });
         }
         setDeleteModalOpen(false);
         setEmployeeToDelete(null);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,15 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function AcceptInvitationPage() {
+export default function AcceptInvitationPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AcceptInvitationPage />
+    </Suspense>
+  );
+}
+
+function AcceptInvitationPage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const searchParams = useSearchParams();

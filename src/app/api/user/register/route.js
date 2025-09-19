@@ -46,7 +46,7 @@ export async function POST(request) {
 
     if (invitationToken) {
       // This is an invited user - they should not be able to create organizations
-      const { Invitation } = await import("../../../../models/Invitation");
+      const { Invitation } = await import("../../../../../models/Invitation");
 
       const invitation = await Invitation.findOne({
         token: invitationToken,

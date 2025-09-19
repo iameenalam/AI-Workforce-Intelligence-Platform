@@ -1,3 +1,4 @@
+import axios from "axios";
 import {
     PAYROLL_REQUEST,
     PAYROLL_SUCCESS,
@@ -15,173 +16,63 @@ import {
     CLEAR_PAYROLL_ERROR
 } from "../reducer/payrollReducer";
 
-export const getPayroll = (employeeId) => async (dispatch) => {
+// Get payroll for all employees or a specific employee
+export const getPayroll = (employeeId = null) => async (dispatch) => {
     try {
         dispatch({ type: PAYROLL_REQUEST });
-
-        const token = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('token='))
-            ?.split('=')[1];
-
-        const response = await fetch(`/api/employees/payroll?employeeId=${employeeId}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
+        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+        let url = "/api/employees/payroll";
+        if (employeeId) url += `?employeeId=${employeeId}`;
+        const { data } = await axios.get(url, {
+            headers: { Authorization: `Bearer ${token}` }
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            dispatch({
-                type: PAYROLL_SUCCESS,
-                payload: data.employee
-            });
-        } else {
-            dispatch({
-                type: PAYROLL_FAIL,
-                payload: data.message || 'Failed to fetch payroll data'
-            });
-        }
+        dispatch({ type: PAYROLL_SUCCESS, payload: data });
     } catch (error) {
-        dispatch({
-            type: PAYROLL_FAIL,
-            payload: error.message || 'Network error occurred'
-        });
+        dispatch({ type: PAYROLL_FAIL, payload: error.response?.data?.message || error.message });
     }
 };
 
-export const createPayroll = (payrollData) => async (dispatch) => {
+// Create or update payroll for an employee
+export const createOrUpdatePayroll = (payload) => async (dispatch) => {
     try {
         dispatch({ type: PAYROLL_CREATE_REQUEST });
-
-        const token = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('token='))
-            ?.split('=')[1];
-
-        const response = await fetch('/api/employees/payroll', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payrollData),
+        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+        const { data } = await axios.post("/api/employees/payroll", payload, {
+            headers: { Authorization: `Bearer ${token}` }
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            dispatch({
-                type: PAYROLL_CREATE_SUCCESS,
-                payload: {
-                    employee: data.employee,
-                    message: data.message
-                }
-            });
-        } else {
-            dispatch({
-                type: PAYROLL_CREATE_FAIL,
-                payload: data.message || 'Failed to create payroll data'
-            });
-        }
+        dispatch({ type: PAYROLL_CREATE_SUCCESS, payload: data });
     } catch (error) {
-        dispatch({
-            type: PAYROLL_CREATE_FAIL,
-            payload: error.message || 'Network error occurred'
-        });
+        dispatch({ type: PAYROLL_CREATE_FAIL, payload: error.response?.data?.message || error.message });
     }
 };
 
-export const updatePayroll = (payrollData) => async (dispatch) => {
+// Update payroll for an employee (PUT)
+export const updatePayroll = (payload) => async (dispatch) => {
     try {
         dispatch({ type: PAYROLL_UPDATE_REQUEST });
-
-        const token = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('token='))
-            ?.split('=')[1];
-
-        const response = await fetch('/api/employees/payroll', {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payrollData),
+        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+        const { data } = await axios.put("/api/employees/payroll", payload, {
+            headers: { Authorization: `Bearer ${token}` }
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            dispatch({
-                type: PAYROLL_UPDATE_SUCCESS,
-                payload: {
-                    employee: data.employee,
-                    message: data.message
-                }
-            });
-        } else {
-            dispatch({
-                type: PAYROLL_UPDATE_FAIL,
-                payload: data.message || 'Failed to update payroll data'
-            });
-        }
+        dispatch({ type: PAYROLL_UPDATE_SUCCESS, payload: data });
     } catch (error) {
-        dispatch({
-            type: PAYROLL_UPDATE_FAIL,
-            payload: error.message || 'Network error occurred'
-        });
+        dispatch({ type: PAYROLL_UPDATE_FAIL, payload: error.response?.data?.message || error.message });
     }
 };
 
+// Delete payroll for an employee
 export const deletePayroll = (employeeId) => async (dispatch) => {
     try {
         dispatch({ type: PAYROLL_DELETE_REQUEST });
-
-        const token = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('token='))
-            ?.split('=')[1];
-
-        const response = await fetch(`/api/employees/payroll?employeeId=${employeeId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
+        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+        const { data } = await axios.delete(`/api/employees/payroll?employeeId=${employeeId}`, {
+            headers: { Authorization: `Bearer ${token}` }
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            dispatch({
-                type: PAYROLL_DELETE_SUCCESS,
-                payload: {
-                    employeeId,
-                    message: data.message
-                }
-            });
-        } else {
-            dispatch({
-                type: PAYROLL_DELETE_FAIL,
-                payload: data.message || 'Failed to delete payroll data'
-            });
-        }
+        dispatch({ type: PAYROLL_DELETE_SUCCESS, payload: { employeeId, ...data } });
     } catch (error) {
-        dispatch({
-            type: PAYROLL_DELETE_FAIL,
-            payload: error.message || 'Network error occurred'
-        });
+        dispatch({ type: PAYROLL_DELETE_FAIL, payload: error.response?.data?.message || error.message });
     }
 };
 
-export const clearPayrollMessage = () => (dispatch) => {
-    dispatch({ type: CLEAR_PAYROLL_MESSAGE });
-};
-
-export const clearPayrollError = () => (dispatch) => {
-    dispatch({ type: CLEAR_PAYROLL_ERROR });
-};
+export const clearPayrollMessage = () => ({ type: CLEAR_PAYROLL_MESSAGE });
+export const clearPayrollError = () => ({ type: CLEAR_PAYROLL_ERROR });
