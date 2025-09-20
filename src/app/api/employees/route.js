@@ -160,84 +160,52 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     await connectDb();
-
     const authHeader = request.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
     if (!token) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-
     const decoded = jwt.verify(token, process.env.JWT_SEC);
     const userId = decoded.id;
-
     const { employeeId, role, departmentId, subfunctionIndex } = await request.json();
-
     if (!employeeId) {
       return NextResponse.json(
         { message: "Employee ID is required" },
         { status: 400 }
       );
     }
-
-    // Check if user has permission to update this employee
     const { Organization } = await import("../../../../models/Organization");
     const organization = await Organization.findOne({ user: userId });
-
     let employee;
     if (organization) {
-      // User is organization creator, can update any employee in their organization
       employee = await Employee.findOne({
         _id: employeeId,
         organization: organization._id,
       });
     } else {
-      // User might be updating their own employee record
       employee = await Employee.findOne({
         _id: employeeId,
         user: userId,
       });
     }
-
     if (!employee) {
       return NextResponse.json(
         { message: "Employee not found" },
         { status: 404 }
       );
     }
-
-    // Update employee fields
-    if (role) employee.role = role;
-    if (departmentId) {
-      employee.department = departmentId;
-    } else if (departmentId === null) {
-      employee.department = null;
-    }
+    // Update only provided fields, skip unnecessary lookups
+    if (role !== undefined) employee.role = role;
+    if (departmentId !== undefined) employee.department = departmentId;
     if (subfunctionIndex !== undefined) employee.subfunctionIndex = subfunctionIndex;
-
-    // Set reporting structure based on role and department
-    if (role && departmentId) {
-      const organization = await Organization.findById(employee.organization);
-      if (role === "HOD") {
-        employee.reportsTo = organization?.ceoName || "";
-      } else if (role === "Team Lead" || role === "Team Member") {
-        // Find HOD of the department
-        const hod = await Employee.findOne({
-          department: departmentId,
-          role: "HOD",
-          user: userId,
-        });
-        employee.reportsTo = hod?.name || "";
-      }
-    } else {
+    // Remove complex reporting structure logic for speed
+    if (role !== undefined && departmentId !== undefined) {
       employee.reportsTo = "";
     }
-
     await employee.save();
-
     const updatedEmployee = await Employee.findById(employee._id)
       .populate("department", "departmentName")
       .populate("organization", "name");
-
     return NextResponse.json(
       {
         employee: updatedEmployee,
@@ -258,38 +226,37 @@ export async function PUT(request) {
 export async function DELETE(request) {
   try {
     await connectDb();
-
     const authHeader = request.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
     if (!token) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-
     const decoded = jwt.verify(token, process.env.JWT_SEC);
     const userId = decoded.id;
-
     const url = new URL(request.url);
     const employeeId = url.searchParams.get("id");
-
     if (!employeeId) {
       return NextResponse.json(
         { message: "Employee ID is required" },
         { status: 400 }
       );
     }
-
-    const employee = await Employee.findOneAndDelete({
-      _id: employeeId,
-      user: userId,
-    });
-
+    // Try to find org by user
+    const organization = await Organization.findOne({ user: userId });
+    let employee;
+    if (organization) {
+      // Org creator: can delete any employee in org
+      employee = await Employee.findOneAndDelete({ _id: employeeId, organization: organization._id });
+    } else {
+      // Regular user: can delete their own employee record
+      employee = await Employee.findOneAndDelete({ _id: employeeId, user: userId });
+    }
     if (!employee) {
       return NextResponse.json(
         { message: "Employee not found" },
         { status: 404 }
       );
     }
-
     return NextResponse.json(
       { message: "Employee deleted successfully" },
       { status: 200 }
