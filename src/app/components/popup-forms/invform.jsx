@@ -4,11 +4,10 @@ import Cookies from "js-cookie";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { CloudUpload, X, UserPlus } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 export default function InvForm({ onClose }) {
   const [btnLoading, setBtnLoading] = useState(false);
-  const [error, setError]
-  = useState("");
   const [success, setSuccess] = useState("");
   const [employees, setEmployees] = useState([{ id: Date.now(), name: "", email: "", pic: null, picPreview: null }]);
   const fileInputRefs = useRef([]);
@@ -35,11 +34,11 @@ export default function InvForm({ onClose }) {
   const handlePicChange = (index, file) => {
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setError("Image size must be less than 5MB");
+        toast.error("Image size must be less than 5MB");
         return;
       }
       if (!file.type.startsWith("image/")) {
-        setError("Please select an image file");
+        toast.error("Please select an image file");
         return;
       }
 
@@ -47,7 +46,6 @@ export default function InvForm({ onClose }) {
       updatedEmployees[index].pic = file;
       updatedEmployees[index].picPreview = URL.createObjectURL(file);
       setEmployees(updatedEmployees);
-      setError("");
     }
   };
 
@@ -55,20 +53,17 @@ export default function InvForm({ onClose }) {
     for (let i = 0; i < employees.length; i++) {
       const emp = employees[i];
       if (!emp.name.trim() || !emp.email.trim()) {
-        setError(`Please fill in all required fields for employee ${i + 1}`);
+        toast.error(`Please fill in all required fields for employee ${i + 1}`);
         return;
       }
       const emailRegex = /^\S+@\S+\.\S+$/;
       if (!emailRegex.test(emp.email)) {
-        setError(`Please enter a valid email address for employee ${i + 1}`);
+        toast.error(`Please enter a valid email address for employee ${i + 1}`);
         return;
       }
     }
-
     setBtnLoading(true);
-    setError("");
     setSuccess("");
-
     try {
       const token = Cookies.get("token");
       const formData = new FormData();
@@ -76,43 +71,39 @@ export default function InvForm({ onClose }) {
         name: emp.name,
         email: emp.email
       }))));
-
       employees.forEach((emp, index) => {
         if (emp.pic) {
           formData.append(`pic_${index}`, emp.pic);
         }
       });
-
       const { data } = await axios.post("/api/invitations", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      setSuccess(data.message);
-      
-      if (data.errors && data.errors.length > 0) {
-        console.log("Invitation details:", data.errors);
-        const manualLinks = data.errors.filter(error => error.includes("Share this link"));
-        if (manualLinks.length > 0) {
-          console.log("📧 Manual invitation links (email not configured):");
-          manualLinks.forEach(link => console.log(link));
-        }
-        const actualErrors = data.errors.filter(error =>
-          !error.includes("Manual invitation link") &&
-          !error.includes("Share this link") &&
-          !error.includes("✅ Invitation created")
-        );
-        actualErrors.forEach(error => {
-          setError(error);
+      // Show all error toasts, combine with email for each failed invite
+      if (data.errorDetails && data.errorDetails.length > 0) {
+        data.errorDetails.forEach(({ email, error }) => {
+          toast.error(`Failed to send invitation to ${email}. ${error}`);
         });
       }
-
+      if (data.invitations && data.invitations > 0) {
+        toast.success(data.message || "Invitations sent successfully");
+      }
+      setSuccess(data.message);
       setTimeout(() => {
         onClose?.();
       }, 1500);
-
     } catch (error) {
+      // Show all backend error messages as separate toasts if present
+      const errorDetails = error.response?.data?.errorDetails;
       const errorMessage = error.response?.data?.message || "Failed to invite employees";
-      setError(errorMessage);
+      if (Array.isArray(errorDetails) && errorDetails.length > 0) {
+        errorDetails.forEach(({ email, error }) => {
+          toast.error(`Failed to send invitation to ${email}. ${error}`);
+        });
+        // Do NOT show the main error message if errorDetails exist
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setBtnLoading(false);
     }
@@ -141,16 +132,6 @@ export default function InvForm({ onClose }) {
           </div>
 
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 p-4 sm:p-6">
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 font-medium text-center rounded-lg">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 font-medium text-center rounded-lg">
-                {success}
-              </div>
-            )}
             <div className="space-y-4">
               {employees.map((employee, index) => (
                 <div key={employee.id} className="border border-gray-200 bg-gray-50 p-4 rounded-xl relative">

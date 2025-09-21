@@ -90,6 +90,7 @@ export async function POST(request) {
 
     const invitations = [];
     const errors = [];
+    const errorDetails = [];
 
     for (let i = 0; i < employeesData.length; i++) {
       const empData = employeesData[i];
@@ -97,33 +98,53 @@ export async function POST(request) {
 
       if (!name || !email) {
         errors.push(`Employee ${i + 1}: Name and email are required`);
+        errorDetails.push({ email, error: `Name and email are required` });
         continue;
       }
 
       try {
-        // Check if user already exists with this email
+        // Check if user with this email exists (regardless of employee status)
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-          // Check if they're already part of this organization
-          const existingEmployee = await Employee.findOne({ 
-            email, 
-            organization: organization._id 
-          });
-          if (existingEmployee) {
-            errors.push(`${email} is already part of this organization`);
-            continue;
-          }
+          errors.push(`Employee is already part of another organization`);
+          errorDetails.push({ email, error: `Employee is already part of another organization` });
+          continue;
         }
-
+        // Check if employee with this email already exists in this organization
+        const existingEmployee = await Employee.findOne({ 
+          email, 
+          organization: organization._id 
+        });
+        if (existingEmployee) {
+          errors.push(`Employee with this email is already in your organization`);
+          errorDetails.push({ email, error: `Employee with this email is already in your organization` });
+          continue;
+        }
+        // Check if employee with this email exists in another organization
+        const employeeInOtherOrg = await Employee.findOne({
+          email,
+          organization: { $ne: organization._id },
+        });
+        if (employeeInOtherOrg) {
+          errors.push(`Employee is already part of another organization`);
+          errorDetails.push({ email, error: `Employee is already part of another organization` });
+          continue;
+        }
+        // Check if user with this email exists and is linked to another org
+        if (existingUser && existingUser.linkedOrganization && existingUser.linkedOrganization.toString() !== organization._id.toString()) {
+          errors.push(`Employee is already part of another organization`);
+          errorDetails.push({ email, error: `Employee is already part of another organization` });
+          continue;
+        }
         // Check if there's already a pending invitation
         const existingInvitation = await Invitation.findOne({
           email,
           organization: organization._id,
           status: "pending",
         });
-
         if (existingInvitation) {
-          errors.push(`Pending invitation already exists for ${email}`);
+          errors.push(`Invitation already sent to that employee email`);
+          errorDetails.push({ email, error: `Invitation already sent to that employee email` });
           continue;
         }
 
@@ -196,7 +217,7 @@ export async function POST(request) {
 
     if (invitations.length === 0 && errors.length > 0) {
       return NextResponse.json(
-        { message: "Failed to send any invitations", errors },
+        { message: "Failed to send any invitations", errors, errorDetails },
         { status: 400 }
       );
     }
@@ -205,6 +226,7 @@ export async function POST(request) {
       message: `Successfully sent ${invitations.length} invitation(s)`,
       invitations: invitations.length,
       errors: errors.length > 0 ? errors : undefined,
+      errorDetails: errorDetails.length > 0 ? errorDetails : undefined,
     };
 
     return NextResponse.json(response, { status: 201 });
