@@ -172,7 +172,7 @@ export async function PUT(request) {
         Object.assign(department, updates);
         await department.save();
 
-        return NextResponse.json({ department, message: "Department updated successfully" }, { status: 200 });
+        return NextResponse.json({ department, message: "Department data updated successfully" }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ message: error.message }, { status: 500 });
     }

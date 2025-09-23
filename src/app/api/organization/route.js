@@ -262,7 +262,7 @@ export async function PUT(request) {
     await organization.save();
 
     return NextResponse.json(
-      { organization, message: "Organization updated successfully" },
+      { organization, message: "Organization data updated successfully" },
       { status: 200 }
     );
   } catch (error) {

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import toast from 'react-hot-toast';
 import axios from "axios";
-import { Search, Loader2, UserPlus, Plus, Save, RotateCcw, Settings } from "lucide-react";
+import { Search, Loader2, UserPlus, Save, RotateCcw, Settings } from "lucide-react";
 
 import { getUser } from "@/redux/action/user";
 import { useRouteProtection } from "@/hooks/useRouteProtection";
@@ -35,6 +35,7 @@ import { Performance } from "./components/Performance";
 import InvForm from "../components/popup-forms/invform";
 import DeptForm from "../components/popup-forms/deptform";
 import Popup from "../components/popup-forms/Popup";
+import { Building2 } from "lucide-react";
 
 export default function HRDashboard() {
   const dispatch = useDispatch();
@@ -444,19 +445,19 @@ export default function HRDashboard() {
                                 <>
                                     <div className="relative flex-1 md:flex-none">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                        <input type="text" placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-2 w-full md:w-64 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors placeholder-gray-400" />
+                                        <input type="text" placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-2 w-full md:w-64 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors placeholder-gray-400 h-12" />
                                     </div>
-                                    <select value={filterDepartment} onChange={(e) => setFilterDepartment(e.target.value)} className="px-3 py-2 w-full md:w-48 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                    <select value={filterDepartment} onChange={(e) => setFilterDepartment(e.target.value)} className="px-3 py-2 w-full md:w-48 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors cursor-pointer h-12">
                                         <option value="all">All Departments</option>
                                         {(departments || []).map((dept) => (<option key={dept._id} value={dept._id}>{dept.departmentName}</option>))}
                                     </select>
                                     {permissions.canInviteEmployees && (
                                         <Button
                                             onClick={() => setInvFormOpen(true)}
-                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center md:justify-start gap-2 w-full md:w-auto"
+                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center md:justify-start gap-2 w-full md:w-auto cursor-pointer h-12"
                                         >
                                             <UserPlus className="w-4 h-4" />
-                                            Invite Employees
+                                            Invite Employee(s)
                                         </Button>
                                     )}
                                 </>
@@ -465,27 +466,25 @@ export default function HRDashboard() {
                                 <>
                                     <div className="relative flex-1 md:flex-none">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                        <input type="text" placeholder="Search departments..." value={searchDeptTerm} onChange={(e) => setSearchDeptTerm(e.target.value)} className="pl-10 pr-4 py-2 w-full md:w-64 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors placeholder-gray-400" />
+                                        <input type="text" placeholder="Search departments..." value={searchDeptTerm} onChange={(e) => setSearchDeptTerm(e.target.value)} className="pl-10 pr-4 py-2 w-full md:w-64 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors placeholder-gray-400 h-12" />
                                     </div>
                                     {permissions.canAddDepartments && (
                                         <Button
                                             onClick={() => setDeptFormOpen(true)}
-                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center md:justify-start gap-2 w-full md:w-auto"
+                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center md:justify-start gap-2 w-full md:w-auto cursor-pointer h-12"
                                         >
-                                            <Plus className="w-4 h-4" />
-                                            Create Department
+                                            <Building2 className="w-4 h-4" />
+                                            Add Department(s)
                                         </Button>
                                     )}
                                 </>
                             )}
                             {activeTab === 'permissions' && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2 w-full">
                                     {permissionsHaveChanges && (
                                     <Button
-                                        variant="outline"
-                                        size="sm"
                                         onClick={handleResetPermissions}
-                                        className="flex items-center gap-2"
+                                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 w-full sm:w-auto cursor-pointer h-12 border border-gray-300 min-w-[120px]"
                                     >
                                         <RotateCcw className="w-4 h-4" />
                                         Reset
@@ -494,7 +493,7 @@ export default function HRDashboard() {
                                     <Button
                                         onClick={handleSavePermissions}
                                         disabled={!permissionsHaveChanges || permissionsSaving}
-                                        className="flex items-center gap-2"
+                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 w-full sm:w-auto cursor-pointer h-12 min-w-[120px]"
                                     >
                                     <Save className="w-4 h-4" />
                                     {permissionsSaving ? "Saving..." : "Save Changes"}
@@ -556,17 +555,6 @@ export default function HRDashboard() {
                                 dispatch({ type: 'EMPLOYEE_UPDATE_SUCCESS', payload: updatedEmployee });
                             }} />}
                         </div>
-                        {activeTab === 'permissions' && permissionsHaveChanges && (
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                <div className="flex items-center gap-2 text-yellow-800">
-                                <Settings className="w-4 h-4" />
-                                <span className="font-medium">Unsaved Changes</span>
-                                </div>
-                                <p className="text-yellow-700 text-sm mt-1">
-                                You have unsaved permission changes. Click "Save Changes" to apply them.
-                                </p>
-                            </div>
-                        )}
                     </div>
                 </div>
             );

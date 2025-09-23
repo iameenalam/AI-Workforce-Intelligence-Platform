@@ -124,7 +124,7 @@ export default function InvForm({ onClose }) {
               &times;
             </button>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-1 text-center">
-              Invite Employees
+              Invite Employee(s)
             </h1>
             <p className="text-gray-600 text-center text-sm sm:text-base">
               Add employees to your organization. They will be added to the unassigned pool.
