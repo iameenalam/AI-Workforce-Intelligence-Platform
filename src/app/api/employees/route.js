@@ -65,28 +65,23 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     await connectDb();
-
     const authHeader = request.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
     if (!token) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-
     const decoded = jwt.verify(token, process.env.JWT_SEC);
     const userId = decoded.id;
-
     const formData = await request.formData();
     const name = formData.get("name");
     const email = formData.get("email");
     const pic = formData.get("pic");
-
     if (!name || !email) {
       return NextResponse.json(
         { message: "Name and email are required" },
         { status: 400 }
       );
     }
-
     // Get user's organization
     const organization = await Organization.findOne({ user: userId });
     if (!organization) {
@@ -95,25 +90,55 @@ export async function POST(request) {
         { status: 404 }
       );
     }
-
+    // Check if invitation already sent (pending) for this email/org
+    const { Invitation } = await import("../../../../models/Invitation");
+    const existingInvitation = await Invitation.findOne({
+      email,
+      organization: organization._id,
+      status: "pending",
+      expiresAt: { $gt: new Date() },
+    });
+    if (existingInvitation) {
+      return NextResponse.json(
+        { message: "Invitation already sent to that employee email" },
+        { status: 400 }
+      );
+    }
     // Check if employee with this email already exists in this organization
     const existingEmployee = await Employee.findOne({
       email,
       organization: organization._id,
     });
-
     if (existingEmployee) {
       return NextResponse.json(
-        { message: "Employee with this email already exists" },
+        { message: "Employee with this email is already in your organization" },
         { status: 400 }
       );
     }
-
+    // Check if employee with this email exists in another organization
+    const employeeInOtherOrg = await Employee.findOne({
+      email,
+      organization: { $ne: organization._id },
+    });
+    if (employeeInOtherOrg) {
+      return NextResponse.json(
+        { message: "Employee is already part of another organization" },
+        { status: 400 }
+      );
+    }
+    // Check if user with this email exists and is linked to another org
+    const { User } = await import("../../../../models/User");
+    const userWithEmail = await User.findOne({ email });
+    if (userWithEmail && userWithEmail.linkedOrganization && userWithEmail.linkedOrganization.toString() !== organization._id.toString()) {
+      return NextResponse.json(
+        { message: "Employee is already part of another organization" },
+        { status: 400 }
+      );
+    }
     let picUrl = "";
     if (pic && pic.size > 0) {
       const bytes = await pic.arrayBuffer();
       const buffer = Buffer.from(bytes);
-
       const uploadResult = await cloudinary.uploader.upload(
         `data:${pic.type};base64,${buffer.toString("base64")}`,
         {
@@ -123,23 +148,20 @@ export async function POST(request) {
       );
       picUrl = uploadResult.secure_url;
     }
-
+    // Create the employee (invited)
     const employee = new Employee({
       name,
       email,
       pic: picUrl,
       organization: organization._id,
       user: userId,
-      role: "Unassigned", // Default to unassigned
+      role: "Unassigned",
       invited: true,
     });
-
     await employee.save();
-
     const populatedEmployee = await Employee.findById(employee._id)
       .populate("department", "departmentName")
       .populate("organization", "name");
-
     return NextResponse.json(
       {
         employee: populatedEmployee,
@@ -160,84 +182,52 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     await connectDb();
-
     const authHeader = request.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
     if (!token) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-
     const decoded = jwt.verify(token, process.env.JWT_SEC);
     const userId = decoded.id;
-
     const { employeeId, role, departmentId, subfunctionIndex } = await request.json();
-
     if (!employeeId) {
       return NextResponse.json(
         { message: "Employee ID is required" },
         { status: 400 }
       );
     }
-
-    // Check if user has permission to update this employee
     const { Organization } = await import("../../../../models/Organization");
     const organization = await Organization.findOne({ user: userId });
-
     let employee;
     if (organization) {
-      // User is organization creator, can update any employee in their organization
       employee = await Employee.findOne({
         _id: employeeId,
         organization: organization._id,
       });
     } else {
-      // User might be updating their own employee record
       employee = await Employee.findOne({
         _id: employeeId,
         user: userId,
       });
     }
-
     if (!employee) {
       return NextResponse.json(
         { message: "Employee not found" },
         { status: 404 }
       );
     }
-
-    // Update employee fields
-    if (role) employee.role = role;
-    if (departmentId) {
-      employee.department = departmentId;
-    } else if (departmentId === null) {
-      employee.department = null;
-    }
+    // Update only provided fields, skip unnecessary lookups
+    if (role !== undefined) employee.role = role;
+    if (departmentId !== undefined) employee.department = departmentId;
     if (subfunctionIndex !== undefined) employee.subfunctionIndex = subfunctionIndex;
-
-    // Set reporting structure based on role and department
-    if (role && departmentId) {
-      const organization = await Organization.findById(employee.organization);
-      if (role === "HOD") {
-        employee.reportsTo = organization?.ceoName || "";
-      } else if (role === "Team Lead" || role === "Team Member") {
-        // Find HOD of the department
-        const hod = await Employee.findOne({
-          department: departmentId,
-          role: "HOD",
-          user: userId,
-        });
-        employee.reportsTo = hod?.name || "";
-      }
-    } else {
+    // Remove complex reporting structure logic for speed
+    if (role !== undefined && departmentId !== undefined) {
       employee.reportsTo = "";
     }
-
     await employee.save();
-
     const updatedEmployee = await Employee.findById(employee._id)
       .populate("department", "departmentName")
       .populate("organization", "name");
-
     return NextResponse.json(
       {
         employee: updatedEmployee,
@@ -258,38 +248,37 @@ export async function PUT(request) {
 export async function DELETE(request) {
   try {
     await connectDb();
-
     const authHeader = request.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
     if (!token) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-
     const decoded = jwt.verify(token, process.env.JWT_SEC);
     const userId = decoded.id;
-
     const url = new URL(request.url);
     const employeeId = url.searchParams.get("id");
-
     if (!employeeId) {
       return NextResponse.json(
         { message: "Employee ID is required" },
         { status: 400 }
       );
     }
-
-    const employee = await Employee.findOneAndDelete({
-      _id: employeeId,
-      user: userId,
-    });
-
+    // Try to find org by user
+    const organization = await Organization.findOne({ user: userId });
+    let employee;
+    if (organization) {
+      // Org creator: can delete any employee in org
+      employee = await Employee.findOneAndDelete({ _id: employeeId, organization: organization._id });
+    } else {
+      // Regular user: can delete their own employee record
+      employee = await Employee.findOneAndDelete({ _id: employeeId, user: userId });
+    }
     if (!employee) {
       return NextResponse.json(
         { message: "Employee not found" },
         { status: 404 }
       );
     }
-
     return NextResponse.json(
       { message: "Employee deleted successfully" },
       { status: 200 }
