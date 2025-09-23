@@ -60,15 +60,15 @@ export default function PendingRolePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="absolute top-6 right-6">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-2 sm:p-4 relative">
+      <div className="absolute top-3 right-3 sm:top-6 sm:right-6 z-10">
         <Button
           onClick={handleLogout}
           variant="outline"
-          className="flex items-center gap-2 cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-base"
         >
           <LogOut className="w-4 h-4" />
-          Logout
+          <span className="hidden xs:inline">Logout</span>
         </Button>
       </div>
 
@@ -76,63 +76,63 @@ export default function PendingRolePage() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-2xl"
+        className="w-full max-w-md sm:max-w-2xl"
       >
-        <Card className="p-10 md:p-14 shadow-2xl border-t-4 border-indigo-500">
+        <Card className="p-4 xs:p-6 sm:p-10 md:p-14 shadow-2xl border-t-4 border-indigo-500">
           <div className="text-center mb-5">
             <div className="flex items-center justify-center mb-5">
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 rounded-full shadow-lg">
-                <Clock className="w-14 h-14 text-white" />
+              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-3 sm:p-5 rounded-full shadow-lg">
+                <Clock className="w-10 h-10 sm:w-14 sm:h-14 text-white" />
               </div>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-3 break-words">
               Welcome to {organization?.name || "the Organization"}!
             </h1>
-            <p className="text-slate-600 text-lg md:text-xl">
+            <p className="text-slate-600 text-base sm:text-lg md:text-xl">
               Your role is currently pending assignment.
             </p>
           </div>
 
-          <div className="bg-slate-100 p-6 rounded-xl mb-5 shadow-inner">
-            <h3 className="font-semibold text-slate-800 mb-4 text-lg">
+          <div className="bg-slate-100 p-4 sm:p-6 rounded-xl mb-5 shadow-inner">
+            <h3 className="font-semibold text-slate-800 mb-4 text-base sm:text-lg">
               What's happening now?
             </h3>
-            <ul className="text-slate-600 space-y-3">
-              <li className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+            <ul className="text-slate-600 space-y-3 text-sm sm:text-base">
+              <li className="flex items-center gap-2 sm:gap-3">
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 flex-shrink-0" />
                 <span>Your account has been created successfully.</span>
               </li>
-              <li className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+              <li className="flex items-center gap-2 sm:gap-3">
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 flex-shrink-0" />
                 <span>You've been added to the organization.</span>
               </li>
-              <li className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-yellow-500 flex-shrink-0 animate-pulse" />
+              <li className="flex items-center gap-2 sm:gap-3">
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 flex-shrink-0 animate-pulse" />
                 <span>Waiting for an administrator to assign your role.</span>
               </li>
             </ul>
           </div>
 
-          <div className="bg-slate-100 p-6 rounded-xl shadow-inner">
-            <h3 className="font-semibold text-slate-800 mb-4 text-lg">
+          <div className="bg-slate-100 p-4 sm:p-6 rounded-xl shadow-inner">
+            <h3 className="font-semibold text-slate-800 mb-4 text-base sm:text-lg">
               Your Information
             </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center py-2 border-b border-slate-200">
+            <div className="space-y-3 text-sm sm:text-base">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 border-b border-slate-200">
                 <span className="text-slate-600">Name:</span>
-                <span className="font-medium text-slate-800">
+                <span className="font-medium text-slate-800 break-words">
                   {employee?.name || user?.name}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-slate-200">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 border-b border-slate-200">
                 <span className="text-slate-600">Email:</span>
-                <span className="font-medium text-slate-800">
+                <span className="font-medium text-slate-800 break-words">
                   {employee?.email || user?.email}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-2">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2">
                 <span className="text-slate-600">Current Role:</span>
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold mt-1 sm:mt-0">
                   {employee?.role || "Unassigned"}
                 </span>
               </div>
