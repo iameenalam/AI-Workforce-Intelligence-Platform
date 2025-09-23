@@ -22,7 +22,7 @@ export default function Sidebar({
         { id: 'roles', label: 'Role Assignment', icon: UserCheck, color: 'text-blue-600', activeBg: 'bg-blue-50', permission: 'canViewRoleAssignment' },
         { id: 'performance', label: 'Performance', icon: TrendingUp, color: 'text-orange-600', activeBg: 'bg-orange-50', permission: 'canViewPerformance' },
         { id: 'payroll', label: 'Payroll', icon: DollarSign, color: 'text-green-600', activeBg: 'bg-green-50', permission: 'canViewPayroll' },
-        { id: 'permissions', label: 'Permissions', icon: UserCog, color: 'text-gray-600', activeBg: 'bg-gray-50', permission: 'canViewPermissions' },
+        { id: 'permissions', label: 'Permissions', icon: UserCog, color: 'text-yellow-600', activeBg: 'bg-yellow-50', permission: 'canViewPermissions' },
     ];
 
     // Filter nav items based on user permissions
