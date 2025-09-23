@@ -13,16 +13,12 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 const AuthBrandingPanel = () => (
   <div className="hidden lg:flex flex-col items-center justify-center p-10 text-center bg-indigo-700 relative overflow-hidden">
-    {/* Fancy blurred/gradient background effect */}
-    <div className="absolute inset-0 z-0">
-      <div className="w-full h-full bg-gradient-to-br from-indigo-600 via-indigo-400 to-indigo-700 opacity-80 blur-2xl animate-gradient-move"></div>
-    </div>
     <div className="z-10 w-full max-w-md">
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="text-5xl font-bold text-white drop-shadow-lg"
+        className="text-5xl font-bold text-white"
         style={{ fontFamily: "var(--font-geist-sans)" }}
       >
         ReeOrg
@@ -31,7 +27,7 @@ const AuthBrandingPanel = () => (
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        className="mt-4 text-indigo-200 drop-shadow"
+        className="mt-4 text-indigo-200"
         style={{ fontFamily: "var(--font-geist-sans)" }}
       >
         Visualize, manage, and optimize your organizational structure with ease.

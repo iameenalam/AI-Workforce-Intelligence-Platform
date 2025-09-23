@@ -28,8 +28,8 @@ export default function ChatbotBubble() {
       <div
         className={`fixed z-50 flex flex-col overflow-hidden bg-white shadow-2xl shadow-indigo-200/50 transition-all duration-300 ease-in-out
           ${isOpen ? "animate-chatbot-open" : "pointer-events-none opacity-0"}
-          w-full max-w-full h-full bottom-0 right-0
-          sm:rounded-2xl sm:border sm:border-slate-200 sm:w-[440px] sm:max-w-[90vw] sm:h-[clamp(480px,80vh,720px)] sm:bottom-6 sm:right-6`}
+          w-full max-w-[400px] mx-auto h-full bottom-0 right-0
+          sm:rounded-2xl sm:border sm:border-slate-200 sm:w-[400px] sm:max-w-[95vw] sm:h-[clamp(480px,80vh,720px)] sm:bottom-6 sm:right-6`}
       >
         <header className="flex flex-shrink-0 items-center justify-between border-b border-slate-200 bg-indigo-600 px-5 py-3">
           <div className="flex items-center gap-4">
