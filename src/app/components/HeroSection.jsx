@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function HeroSection() {
   return (
-    <section className="relative pt-24 pb-10 sm:pt-28 sm:pb-14 md:pt-32 md:pb-16 lg:pt-40 lg:pb-24 min-h-[60vh] md:min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-white">
+    <section className="relative pt-24 pb-10 sm:pt-32 sm:pb-14 md:pt-36 md:pb-16 lg:pt-28 lg:pb-24 xl:pt-32 min-h-[60vh] md:min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-white">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-60 md:w-80 h-60 md:h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
@@ -18,8 +18,8 @@ export default function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           {/* Left column - Content */}
           <div className="text-center lg:text-left">
-            <div className="mb-4 md:mb-6">
-              <span className="inline-flex items-center px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-medium bg-blue-100 text-blue-800 mb-4">
+            <div className="mb-2 md:mb-4">
+              <span className="inline-flex items-center px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-medium bg-blue-100 text-blue-800 mb-2">
                 <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
