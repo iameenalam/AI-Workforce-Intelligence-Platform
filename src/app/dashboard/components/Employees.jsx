@@ -334,45 +334,50 @@ export const GenericProfilePage = ({ person, onBack, isCeoProfile, onEdit }) => 
                                 )}
 
                                 {activeTab === 'payroll' && (
-                                    !person.payroll ? <EmptyState text="No Payroll Information" icon={<DollarSign className="h-10 w-10 text-gray-400" />} /> :
-                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                            <div className="flex items-center gap-3">
-                                                <DollarSign className="h-6 w-6 text-green-600" />
+                                    !person.payroll ? (
+                                        <EmptyState text="No Payroll Information" icon={<DollarSign className="h-20 w-20 text-gray-300 mx-auto" />} />
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Row 1: Base Salary & Bonus */}
+                                            <div className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                                                <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">
+                                                    <DollarSign className="h-5 w-5 text-green-600" />
+                                                </div>
                                                 <div>
-                                                    <p className="text-sm text-gray-500">Base Salary</p>
-                                                    <p className="text-lg font-semibold text-gray-900">${person.payroll.baseSalary?.toLocaleString()}</p>
+                                                    <p className="text-xs text-gray-500">Base Salary</p>
+                                                    <p className="font-semibold text-gray-900">${person.payroll.baseSalary?.toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                                                <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">
+                                                    <Gift className="h-5 w-5 text-amber-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500">Bonus</p>
+                                                    <p className="font-semibold text-gray-900">${person.payroll.bonus?.toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                            {/* Row 2: Stock Options & Last Raised */}
+                                            <div className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                                                <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">
+                                                    <Package className="h-5 w-5 text-sky-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500">Stock Options</p>
+                                                    <p className="font-semibold text-gray-900">{person.payroll.stockOptions?.toLocaleString()} shares</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                                                <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">
+                                                    <Calendar className="h-5 w-5 text-indigo-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500">Last Raised</p>
+                                                    <p className="font-semibold text-gray-900">{person.payroll.lastRaiseDate ? new Date(person.payroll.lastRaiseDate).toLocaleDateString() : '-'}</p>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                            <div className="flex items-center gap-3">
-                                                <Gift className="h-6 w-6 text-blue-600" />
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Bonus</p>
-                                                    <p className="text-lg font-semibold text-gray-900">${person.payroll.bonus?.toLocaleString()}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                            <div className="flex items-center gap-3">
-                                                <Package className="h-6 w-6 text-purple-600" />
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Stock Options</p>
-                                                    <p className="text-lg font-semibold text-gray-900">{person.payroll.stockOptions?.toLocaleString()} shares</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                            <div className="flex items-center gap-3">
-                                                <Calendar className="h-6 w-6 text-orange-600" />
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Last Raise Date</p>
-                                                    <p className="text-lg font-semibold text-gray-900">{person.payroll.lastRaiseDate ? new Date(person.payroll.lastRaiseDate).toLocaleDateString() : 'N/A'}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    )
                                 )}
 
                                 {activeTab === 'performance' && (

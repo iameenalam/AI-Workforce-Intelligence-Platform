@@ -40,7 +40,11 @@ export const createOrUpdatePayroll = (payload) => async (dispatch) => {
         const { data } = await axios.post("/api/employees/payroll", payload, {
             headers: { Authorization: `Bearer ${token}` }
         });
-        dispatch({ type: PAYROLL_CREATE_SUCCESS, payload: data });
+        // Use only the correct message for create or update
+        let message = 'Payroll updated successfully';
+        if (data.created) message = 'Payroll created successfully';
+        if (data.updated) message = 'Payroll updated successfully';
+        dispatch({ type: PAYROLL_CREATE_SUCCESS, payload: { employee: data.employee, message } });
     } catch (error) {
         dispatch({ type: PAYROLL_CREATE_FAIL, payload: error.response?.data?.message || error.message });
     }
@@ -54,7 +58,8 @@ export const updatePayroll = (payload) => async (dispatch) => {
         const { data } = await axios.put("/api/employees/payroll", payload, {
             headers: { Authorization: `Bearer ${token}` }
         });
-        dispatch({ type: PAYROLL_UPDATE_SUCCESS, payload: data });
+        // Always use the update message
+        dispatch({ type: PAYROLL_UPDATE_SUCCESS, payload: { employee: data.employee, message: 'Payroll updated successfully' } });
     } catch (error) {
         dispatch({ type: PAYROLL_UPDATE_FAIL, payload: error.response?.data?.message || error.message });
     }
@@ -65,12 +70,18 @@ export const deletePayroll = (employeeId) => async (dispatch) => {
     try {
         dispatch({ type: PAYROLL_DELETE_REQUEST });
         const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
-        const { data } = await axios.delete(`/api/employees/payroll?employeeId=${employeeId}`, {
+        await axios.delete(`/api/employees/payroll?employeeId=${employeeId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
-        dispatch({ type: PAYROLL_DELETE_SUCCESS, payload: { employeeId, ...data } });
+        // Pass employeeId for instant Redux update
+        dispatch({ type: PAYROLL_DELETE_SUCCESS, payload: { message: 'Payroll deleted successfully', employeeId } });
     } catch (error) {
-        dispatch({ type: PAYROLL_DELETE_FAIL, payload: error.response?.data?.message || error.message });
+        let errMsg = error.response?.data?.message || error.message;
+        if (errMsg.toLowerCase().includes('not found')) {
+            dispatch({ type: PAYROLL_DELETE_SUCCESS, payload: { message: 'Payroll deleted successfully', employeeId } });
+        } else {
+            dispatch({ type: PAYROLL_DELETE_FAIL, payload: errMsg });
+        }
     }
 };
 

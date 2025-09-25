@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, Building2, Crown, Shield, User,
   ChevronRight, Loader2, GripVertical, UploadCloud
@@ -15,12 +14,7 @@ import { getDepartments } from "@/redux/action/departments";
 
 const EmployeeCard = ({ employee, onDragStart, onDragEnd, isDragging, canDrag = true }) => {
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.2 }}
+    <div
       draggable={canDrag}
       onDragStart={canDrag ? (e) => onDragStart(e, employee) : undefined}
       onDragEnd={canDrag ? onDragEnd : undefined}
@@ -41,7 +35,7 @@ const EmployeeCard = ({ employee, onDragStart, onDragEnd, isDragging, canDrag = 
           <p className="text-xs text-gray-500 truncate">{employee.email}</p>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -56,9 +50,9 @@ const DepartmentSection = ({ department, employees, onDrop, onDragOver, expanded
         onClick={() => toggleDept(department._id)}
       >
         <div className="flex items-center gap-3">
-          <motion.div animate={{ rotate: expandedDepts[department._id] ? 90 : 0 }}>
+          <div style={{ transform: expandedDepts[department._id] ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
             <ChevronRight className="w-5 h-5 text-gray-500" />
-          </motion.div>
+          </div>
           <Building2 className="w-5 h-5 text-rose-600" />
           <h3 className="text-lg font-semibold text-gray-900">{department.departmentName}</h3>
           <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
@@ -67,113 +61,108 @@ const DepartmentSection = ({ department, employees, onDrop, onDragOver, expanded
         </div>
       </div>
 
-      <AnimatePresence>
-        {expandedDepts[department._id] && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="px-4 pb-4 space-y-4 border-t border-slate-100"
-          >
-            <div>
-              <div className="flex items-center gap-2 mb-2 text-purple-600">
-                <Crown className="w-4 h-4" />
-                <h4 className="text-sm font-medium text-gray-700">Head of Department</h4>
-                <span className="text-xs text-gray-500">({hodEmployees.length}/1)</span>
-              </div>
-              <div
-                onDragOver={onDragOver}
-                onDrop={(e) => onDrop(e, department._id, "HOD")}
-                onDragEnter={() => setDragOverState(`${department._id}-HOD`)}
-                onDragLeave={() => setDragOverState(null)}
-                className={`min-h-[60px] border-2 border-dashed rounded-lg p-2 transition-all duration-200 border-purple-300 bg-purple-50/50 hover:border-purple-400 hover:bg-purple-50 ${dragOverState === `${department._id}-HOD` ? 'scale-105 border-solid bg-white shadow-inner' : ''}`}
-              >
-                <div className="space-y-2">
-                  {hodEmployees.map(emp => (
-                    <EmployeeCard key={emp._id} employee={emp} onDragStart={onDragStart} onDragEnd={onDragEnd} isDragging={draggedEmployee?._id === emp._id} canDrag={canAssignRoles} />
-                  ))}
-                  {hodEmployees.length === 0 && (
-                    <div className="text-center text-gray-400 text-sm py-4 flex flex-col items-center justify-center">
-                      <UploadCloud className="w-6 h-6 mb-1 text-gray-300"/>
-                      <span>Drop HOD here</span>
-                    </div>
-                  )}
-                </div>
+      {/* Remove AnimatePresence and motion.div, use simple conditional rendering */}
+      {expandedDepts[department._id] && (
+        <div
+          className="px-4 pb-4 space-y-4 border-t border-slate-100"
+          style={{ transition: 'all 0.2s' }}
+        >
+          <div>
+            <div className="flex items-center gap-2 mb-2 text-purple-600">
+              <Crown className="w-4 h-4" />
+              <h4 className="text-sm font-medium text-gray-700">Head of Department</h4>
+              <span className="text-xs text-gray-500">({hodEmployees.length}/1)</span>
+            </div>
+            <div
+              onDragOver={onDragOver}
+              onDrop={(e) => onDrop(e, department._id, "HOD")}
+              onDragEnter={() => setDragOverState(`${department._id}-HOD`)}
+              onDragLeave={() => setDragOverState(null)}
+              className={`min-h-[60px] border-2 border-dashed rounded-lg p-2 transition-all duration-200 border-purple-300 bg-purple-50/50 hover:border-purple-400 hover:bg-purple-50 ${dragOverState === `${department._id}-HOD` ? 'scale-105 border-solid bg-white shadow-inner' : ''}`}
+            >
+              <div className="space-y-2">
+                {hodEmployees.map(emp => (
+                  <EmployeeCard key={emp._id} employee={emp} onDragStart={onDragStart} onDragEnd={onDragEnd} isDragging={draggedEmployee?._id === emp._id} canDrag={canAssignRoles} />
+                ))}
+                {hodEmployees.length === 0 && (
+                  <div className="text-center text-gray-400 text-sm py-4 flex flex-col items-center justify-center">
+                    <UploadCloud className="w-6 h-6 mb-1 text-gray-300"/>
+                    <span>Drop HOD here</span>
+                  </div>
+                )}
               </div>
             </div>
+          </div>
 
-            {department.subfunctions && department.subfunctions.length > 0 && (
-              <div className="space-y-3 pt-2">
-                {department.subfunctions.map((subfunction, sfIndex) => {
-                  const subfuncKey = `${department._id}_${sfIndex}`;
-                  const subfuncEmployees = deptEmployees.filter(emp => emp.subfunctionIndex === sfIndex);
-                  const teamLeads = subfuncEmployees.filter(emp => emp.role === "Team Lead");
-                  const teamMembers = subfuncEmployees.filter(emp => emp.role === "Team Member");
+          {department.subfunctions && department.subfunctions.length > 0 && (
+            <div className="space-y-3 pt-2">
+              {department.subfunctions.map((subfunction, sfIndex) => {
+                const subfuncKey = `${department._id}_${sfIndex}`;
+                const subfuncEmployees = deptEmployees.filter(emp => emp.subfunctionIndex === sfIndex);
+                const teamLeads = subfuncEmployees.filter(emp => emp.role === "Team Lead");
+                const teamMembers = subfuncEmployees.filter(emp => emp.role === "Team Member");
 
-                  return (
-                    <div key={sfIndex} className="border border-gray-200 rounded-lg p-3 bg-gray-50/70">
-                      <div className="flex items-center justify-between cursor-pointer mb-3" onClick={() => toggleSubfunc(subfuncKey)}>
-                        <div className="flex items-center gap-2">
-                          <motion.div animate={{ rotate: expandedSubfuncs[subfuncKey] ? 90 : 0 }}>
-                            <ChevronRight className="w-4 h-4 text-gray-500" />
-                          </motion.div>
-                          <h5 className="font-medium text-gray-800">{subfunction.name}</h5>
-                          <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded-full border">{subfuncEmployees.length}</span>
+                return (
+                  <div key={sfIndex} className="border border-gray-200 rounded-lg p-3 bg-gray-50/70">
+                    <div className="flex items-center justify-between cursor-pointer mb-3" onClick={() => toggleSubfunc(subfuncKey)}>
+                      <div className="flex items-center gap-2">
+                        <div style={{ transform: expandedSubfuncs[subfuncKey] ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                          <ChevronRight className="w-4 h-4 text-gray-500" />
+                        </div>
+                        <h5 className="font-medium text-gray-800">{subfunction.name}</h5>
+                        <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded-full border">{subfuncEmployees.length}</span>
+                      </div>
+                    </div>
+
+                    {expandedSubfuncs[subfuncKey] && (
+                      <div className="space-y-3">
+                        <div>
+                            <div className="flex items-center gap-2 mb-2 text-blue-600">
+                                <Shield className="w-4 h-4" />
+                                <h4 className="text-sm font-medium text-gray-700">Team Leads</h4>
+                                <span className="text-xs text-gray-500">({teamLeads.length})</span>
+                            </div>
+                            <div
+                                onDragOver={onDragOver}
+                                onDrop={(e) => onDrop(e, department._id, "Team Lead", sfIndex)}
+                                onDragEnter={() => setDragOverState(`${subfuncKey}-Team Lead`)}
+                                onDragLeave={() => setDragOverState(null)}
+                                className={`min-h-[60px] border-2 border-dashed rounded-lg p-2 transition-all duration-200 border-blue-300 bg-blue-50/30 hover:border-blue-400 hover:bg-blue-50 ${dragOverState === `${subfuncKey}-Team Lead` ? 'scale-105 border-solid bg-white shadow-inner' : ''}`}
+                            >
+                                <div className="space-y-1">
+                                    {teamLeads.map(emp => <EmployeeCard key={emp._id} employee={emp} onDragStart={onDragStart} onDragEnd={onDragEnd} isDragging={draggedEmployee?._id === emp._id} canDrag={canAssignRoles} />)}
+                                    {teamLeads.length === 0 && <div className="text-center text-gray-400 text-xs py-2">Drop Team Leads</div>}
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-2 text-green-600">
+                                <User className="w-4 h-4" />
+                                <h4 className="text-sm font-medium text-gray-700">Team Members</h4>
+                                <span className="text-xs text-gray-500">({teamMembers.length})</span>
+                            </div>
+                            <div
+                                onDragOver={onDragOver}
+                                onDrop={(e) => onDrop(e, department._id, "Team Member", sfIndex)}
+                                onDragEnter={() => setDragOverState(`${subfuncKey}-Team Member`)}
+                                onDragLeave={() => setDragOverState(null)}
+                                className={`min-h-[60px] border-2 border-dashed rounded-lg p-2 transition-all duration-200 border-green-300 bg-green-50/30 hover:border-green-400 hover:bg-green-50 ${dragOverState === `${subfuncKey}-Team Member` ? 'scale-105 border-solid bg-white shadow-inner' : ''}`}
+                            >
+                                <div className="space-y-1">
+                                    {teamMembers.map(emp => <EmployeeCard key={emp._id} employee={emp} onDragStart={onDragStart} onDragEnd={onDragEnd} isDragging={draggedEmployee?._id === emp._id} canDrag={canAssignRoles} />)}
+                                    {teamMembers.length === 0 && <div className="text-center text-gray-400 text-xs py-2">Drop Team Members</div>}
+                                </div>
+                            </div>
                         </div>
                       </div>
-
-                      <AnimatePresence>
-                        {expandedSubfuncs[subfuncKey] && (
-                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-3">
-                            <div>
-                                <div className="flex items-center gap-2 mb-2 text-blue-600">
-                                    <Shield className="w-4 h-4" />
-                                    <h4 className="text-sm font-medium text-gray-700">Team Leads</h4>
-                                    <span className="text-xs text-gray-500">({teamLeads.length})</span>
-                                </div>
-                                <div
-                                    onDragOver={onDragOver}
-                                    onDrop={(e) => onDrop(e, department._id, "Team Lead", sfIndex)}
-                                    onDragEnter={() => setDragOverState(`${subfuncKey}-Team Lead`)}
-                                    onDragLeave={() => setDragOverState(null)}
-                                    className={`min-h-[60px] border-2 border-dashed rounded-lg p-2 transition-all duration-200 border-blue-300 bg-blue-50/30 hover:border-blue-400 hover:bg-blue-50 ${dragOverState === `${subfuncKey}-Team Lead` ? 'scale-105 border-solid bg-white shadow-inner' : ''}`}
-                                >
-                                    <div className="space-y-1">
-                                        {teamLeads.map(emp => <EmployeeCard key={emp._id} employee={emp} onDragStart={onDragStart} onDragEnd={onDragEnd} isDragging={draggedEmployee?._id === emp._id} canDrag={canAssignRoles} />)}
-                                        {teamLeads.length === 0 && <div className="text-center text-gray-400 text-xs py-2">Drop Team Leads</div>}
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-2 mb-2 text-green-600">
-                                    <User className="w-4 h-4" />
-                                    <h4 className="text-sm font-medium text-gray-700">Team Members</h4>
-                                    <span className="text-xs text-gray-500">({teamMembers.length})</span>
-                                </div>
-                                <div
-                                    onDragOver={onDragOver}
-                                    onDrop={(e) => onDrop(e, department._id, "Team Member", sfIndex)}
-                                    onDragEnter={() => setDragOverState(`${subfuncKey}-Team Member`)}
-                                    onDragLeave={() => setDragOverState(null)}
-                                    className={`min-h-[60px] border-2 border-dashed rounded-lg p-2 transition-all duration-200 border-green-300 bg-green-50/30 hover:border-green-400 hover:bg-green-50 ${dragOverState === `${subfuncKey}-Team Member` ? 'scale-105 border-solid bg-white shadow-inner' : ''}`}
-                                >
-                                    <div className="space-y-1">
-                                        {teamMembers.map(emp => <EmployeeCard key={emp._id} employee={emp} onDragStart={onDragStart} onDragEnd={onDragEnd} isDragging={draggedEmployee?._id === emp._id} canDrag={canAssignRoles} />)}
-                                        {teamMembers.length === 0 && <div className="text-center text-gray-400 text-xs py-2">Drop Team Members</div>}
-                                    </div>
-                                </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

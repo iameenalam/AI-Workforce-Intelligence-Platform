@@ -65,6 +65,7 @@ export const performanceReducer = (state = initialState, action) => {
                 employee: null,
                 message: action.payload.message,
                 error: null,
+                deletedEmployeeId: action.payload.employeeId,
             };
 
         case PERFORMANCE_FAIL:

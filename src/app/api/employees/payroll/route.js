@@ -284,10 +284,22 @@ export async function DELETE(request) {
       );
     }
 
-    const employee = await Employee.findOne({
+    let employee = await Employee.findOne({
       _id: employeeId,
       user: userId,
     });
+
+    // If not found, check if the user is org admin and can delete any employee in their org
+    if (!employee) {
+      const { Organization } = await import("../../../../../models/Organization");
+      const organization = await Organization.findOne({ user: userId });
+      if (organization) {
+        employee = await Employee.findOne({
+          _id: employeeId,
+          organization: organization._id,
+        });
+      }
+    }
 
     if (!employee) {
       return NextResponse.json(

@@ -523,7 +523,9 @@ export default function HRDashboard() {
                                         loading={permissionsLoading}
                                     />
                                 }
-                                {activeTab === 'payroll' && userPermissions?.canViewPayroll && <Payroll employees={employeesOnly} />}
+                                {activeTab === 'payroll' && userPermissions?.canViewPayroll && <Payroll employees={employeesOnly} onEmployeeUpdate={(updatedEmployee) => {
+                                    dispatch({ type: 'EMPLOYEE_UPDATE_SUCCESS', payload: updatedEmployee });
+                                }} />}
 
                                 {((activeTab === 'overview' && !userPermissions?.canViewOverview) ||
                                   (activeTab === 'employees' && !userPermissions?.canViewEmployees) ||
@@ -551,9 +553,6 @@ export default function HRDashboard() {
                                 <span className="ml-3 text-gray-600">Loading permissions...</span>
                               </div>
                             )}
-                            {!isLoading && activeTab === 'payroll' && <Payroll employees={employeesOnly} onEmployeeUpdate={(updatedEmployee) => {
-                                dispatch({ type: 'EMPLOYEE_UPDATE_SUCCESS', payload: updatedEmployee });
-                            }} />}
                         </div>
                     </div>
                 </div>

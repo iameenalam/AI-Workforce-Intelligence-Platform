@@ -44,14 +44,12 @@ export const employeesReducer = (state = initialState, action) => {
         employees: state.employees.map(emp =>
           emp._id === action.payload._id ? action.payload : emp
         ),
-        message: "Employee updated successfully",
       };
 
     case EMPLOYEE_DELETE_SUCCESS:
       return {
         ...state,
         employees: state.employees.filter(emp => emp._id !== action.payload),
-        message: "Employee deleted successfully",
         loading: false,
         error: null
       };

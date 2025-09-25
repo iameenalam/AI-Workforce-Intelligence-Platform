@@ -192,6 +192,23 @@ const PayrollModal = ({ isOpen, onClose, employee, onSave }) => {
 
 export const Payroll = ({ employees, onEmployeeUpdate }) => {
     const dispatch = useDispatch();
+    const { deletedEmployeeId } = useSelector(state => state.payroll);
+    const [localEmployees, setLocalEmployees] = useState(employees);
+
+    // Remove payroll instantly from UI when deleted
+    useEffect(() => {
+        if (deletedEmployeeId) {
+            setLocalEmployees(prev => prev.map(emp =>
+                emp._id === deletedEmployeeId ? { ...emp, payroll: null } : emp
+            ));
+        }
+    }, [deletedEmployeeId]);
+
+    // Keep localEmployees in sync with prop changes
+    useEffect(() => {
+        setLocalEmployees(employees);
+    }, [employees]);
+
     const { message, error, employee: payrollEmployee } = useSelector((state) => state.payroll);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -215,12 +232,25 @@ export const Payroll = ({ employees, onEmployeeUpdate }) => {
     }, [message, employeeToDelete, onEmployeeUpdate]);
 
     // Use employees prop directly
-    const employeesWithPayroll = employees?.filter(emp => emp.payroll) || [];
-    const employeesWithoutPayroll = employees?.filter(emp => !emp.payroll) || [];
+    const employeesWithPayroll = localEmployees?.filter(emp => emp.payroll) || [];
+    const employeesWithoutPayroll = localEmployees?.filter(emp => !emp.payroll) || [];
 
     useEffect(() => {
-        if (message) { toast.success(message); dispatch(clearPayrollMessage()); }
-        if (error) { toast.error(error); dispatch(clearPayrollError()); }
+        if (message) {
+            // Show only the correct toast for each action
+            if (message.toLowerCase().includes('created')) {
+                toast.success('Payroll created successfully');
+            } else if (message.toLowerCase().includes('updated')) {
+                toast.success('Payroll updated successfully');
+            } else if (message.toLowerCase().includes('deleted') || message.toLowerCase().includes('removed')) {
+                toast.success('Payroll deleted successfully');
+            }
+            dispatch(clearPayrollMessage());
+        }
+        if (error && error !== 'Employee not found') {
+            toast.error(error);
+            dispatch(clearPayrollError());
+        }
     }, [message, error, dispatch]);
 
     const handleAddPayroll = (employee) => { setSelectedEmployee(employee); setIsModalOpen(true); };
@@ -276,47 +306,45 @@ export const Payroll = ({ employees, onEmployeeUpdate }) => {
             </div>
 
             {employeesWithPayroll.length > 0 ? (
-                <motion.div layout className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <AnimatePresence>
-                        {employeesWithPayroll.map(employee => (
-                            <motion.div layout key={employee._id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col hover:shadow-xl hover:border-indigo-300 transition-all duration-300">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <h3 className="font-bold text-lg text-gray-900">{employee.name}</h3>
-                                        <p className="text-sm text-gray-500">{employee.email}</p>
-                                    </div>
-                                    <div className="flex gap-1">
-                                        <button onClick={() => handleEditPayroll(employee)} className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors" title="Edit Payroll"><Edit className="h-5 w-5" /></button>
-                                        <button onClick={() => handleDeletePayroll(employee)} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors" title="Delete Payroll"><Trash2 className="h-5 w-5" /></button>
-                                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {employeesWithPayroll.map(employee => (
+                        <div key={employee._id} className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col hover:shadow-xl hover:border-indigo-300 transition-all duration-300">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="font-bold text-lg text-gray-900">{employee.name}</h3>
+                                    <p className="text-sm text-gray-500">{employee.email}</p>
                                 </div>
+                                <div className="flex gap-1">
+                                    <button onClick={() => handleEditPayroll(employee)} className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors" title="Edit Payroll"><Edit className="h-5 w-5" /></button>
+                                    <button onClick={() => handleDeletePayroll(employee)} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors" title="Delete Payroll"><Trash2 className="h-5 w-5" /></button>
+                                </div>
+                            </div>
 
-                                <div className="space-y-3 flex-grow">
-                                    {[
-                                        { icon: <DollarSign className="h-5 w-5 text-green-600" />, label: "Base Salary", value: `$${employee.payroll.baseSalary?.toLocaleString()}` },
-                                        { icon: <Gift className="h-5 w-5 text-amber-600" />, label: "Bonus", value: `$${employee.payroll.bonus?.toLocaleString()}` },
-                                        { icon: <Package className="h-5 w-5 text-sky-600" />, label: "Stock Options", value: `${employee.payroll.stockOptions?.toLocaleString()} shares` }
-                                    ].map(({ icon, label, value }) => (
-                                        <div key={label} className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
-                                            <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">{icon}</div>
-                                            <div>
-                                                <p className="text-xs text-gray-500">{label}</p>
-                                                <p className="font-semibold text-gray-900">{value}</p>
-                                            </div>
+                            <div className="space-y-3 flex-grow">
+                                {[
+                                    { icon: <DollarSign className="h-5 w-5 text-green-600" />, label: "Base Salary", value: `$${employee.payroll.baseSalary?.toLocaleString()}` },
+                                    { icon: <Gift className="h-5 w-5 text-amber-600" />, label: "Bonus", value: `$${employee.payroll.bonus?.toLocaleString()}` },
+                                    { icon: <Package className="h-5 w-5 text-sky-600" />, label: "Stock Options", value: `${employee.payroll.stockOptions?.toLocaleString()} shares` }
+                                ].map(({ icon, label, value }) => (
+                                    <div key={label} className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                                        <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">{icon}</div>
+                                        <div>
+                                            <p className="text-xs text-gray-500">{label}</p>
+                                            <p className="font-semibold text-gray-900">{value}</p>
                                         </div>
-                                    ))}
-                                </div>
-
-                                {employee.payroll.lastRaiseDate && (
-                                    <div className="mt-4 pt-4 border-t border-slate-200 text-sm flex items-center justify-center gap-2 text-gray-500">
-                                        <Calendar className="h-4 w-4" />
-                                        <span>Last Raised: {new Date(employee.payroll.lastRaiseDate).toLocaleDateString()}</span>
                                     </div>
-                                )}
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </motion.div>
+                                ))}
+                            </div>
+
+                            {employee.payroll.lastRaiseDate && (
+                                <div className="mt-4 pt-4 border-t border-slate-200 text-sm flex items-center justify-center gap-2 text-gray-500">
+                                    <Calendar className="h-4 w-4" />
+                                    <span>Last Raised: {new Date(employee.payroll.lastRaiseDate).toLocaleDateString()}</span>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
             ) : (
                 <EmptyState text="No Payroll Data Available" icon={<DollarSign className="h-20 w-20 text-gray-300 mx-auto" />} />
             )}
