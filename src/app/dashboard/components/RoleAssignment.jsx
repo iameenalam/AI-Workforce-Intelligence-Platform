@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Users, Building2, Crown, Shield, User,
@@ -11,6 +11,10 @@ import axios from "axios";
 import toast from 'react-hot-toast';
 import { getEmployees } from "@/redux/action/employees";
 import { getDepartments } from "@/redux/action/departments";
+
+// --- Configuration for Auto-Scrolling ---
+const SCROLL_SPEED = 15; // Pixels per frame
+const SCROLL_ZONE = 100; // Pixels from top/bottom edge to start scrolling
 
 const EmployeeCard = ({ employee, onDragStart, onDragEnd, isDragging, canDrag = true }) => {
   return (
@@ -61,7 +65,6 @@ const DepartmentSection = ({ department, employees, onDrop, onDragOver, expanded
         </div>
       </div>
 
-      {/* Remove AnimatePresence and motion.div, use simple conditional rendering */}
       {expandedDepts[department._id] && (
         <div
           className="px-4 pb-4 space-y-4 border-t border-slate-100"
@@ -170,10 +173,13 @@ const DepartmentSection = ({ department, employees, onDrop, onDragOver, expanded
 export function RoleAssignment() {
   const dispatch = useDispatch();
   const { organization } = useSelector((state) => state.organization);
-  const { employees: reduxEmployees, loading: employeesLoading } = useSelector((state) => state.employees);
-  const { departments: reduxDepartments, loading: deptsLoading } = useSelector((state) => state.departments);
+  const { employees: reduxEmployees } = useSelector((state) => state.employees);
+  const { departments: reduxDepartments } = useSelector((state) => state.departments);
 
-  // Role-based access control state
+  // Refs for auto-scrolling
+  const departmentContainerRef = useRef(null);
+  const scrollRef = useRef(null);
+
   const [userRole, setUserRole] = useState(null);
   const [userPermissions, setUserPermissions] = useState(null);
   const [canAssignRoles, setCanAssignRoles] = useState(false);
@@ -186,6 +192,49 @@ export function RoleAssignment() {
   const [expandedDepts, setExpandedDepts] = useState({});
   const [expandedSubfuncs, setExpandedSubfuncs] = useState({});
   const [dragOverState, setDragOverState] = useState(null);
+  const [dragY, setDragY] = useState(null);
+
+  // --- Auto-Scrolling Logic ---
+  useEffect(() => {
+    let animationFrameId = null;
+
+    const autoScroll = () => {
+      if (!scrollRef.current) return;
+
+      const container = scrollRef.current;
+      const rect = container.getBoundingClientRect();
+      const mouseY = dragY;
+
+      let scrollAmount = 0;
+
+      if (mouseY !== null) {
+        if (mouseY < rect.top + SCROLL_ZONE) {
+          // Scroll up
+          scrollAmount = -SCROLL_SPEED;
+        } else if (mouseY > rect.bottom - SCROLL_ZONE) {
+          // Scroll down
+          scrollAmount = SCROLL_SPEED;
+        }
+      }
+
+      if (scrollAmount !== 0) {
+        container.scrollTop += scrollAmount;
+      }
+
+      animationFrameId = requestAnimationFrame(autoScroll);
+    };
+
+    if (draggedEmployee) {
+      animationFrameId = requestAnimationFrame(autoScroll);
+    }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [draggedEmployee, dragY]);
+  // ------------------------------
 
   // Check user permissions on component mount
   useEffect(() => {
@@ -212,18 +261,17 @@ export function RoleAssignment() {
   }, []);
 
   useEffect(() => {
-    // Use Redux data if available, otherwise fetch
     if (reduxEmployees && reduxEmployees.length > 0) {
       setEmployees(reduxEmployees);
-      setLoading(false); // Set loading to false immediately when we have Redux data
+      setLoading(false);
     }
     if (reduxDepartments && reduxDepartments.length > 0) {
-      setDepartments(reduxDepartments);
-      setLoading(false); // Set loading to false immediately when we have Redux data
-      // Set up initial expanded states
+      const departmentsData = Array.isArray(reduxDepartments) ? reduxDepartments : (reduxDepartments.departments || []);
+      setDepartments(departmentsData);
+      setLoading(false);
       const initialExpandedDepts = {};
       const initialExpandedSubfuncs = {};
-      reduxDepartments.forEach(dept => {
+      departmentsData.forEach(dept => {
         initialExpandedDepts[dept._id] = true;
         if (dept.subfunctions) {
           dept.subfunctions.forEach((_, sfIndex) => {
@@ -235,7 +283,6 @@ export function RoleAssignment() {
       setExpandedSubfuncs(initialExpandedSubfuncs);
     }
 
-    // Only fetch if we don't have Redux data
     if ((!reduxEmployees || reduxEmployees.length === 0) && (!reduxDepartments || reduxDepartments.length === 0)) {
       fetchData();
     }
@@ -275,14 +322,9 @@ export function RoleAssignment() {
   // Filter employees based on user access scope
   useEffect(() => {
     if (userRole === "HOD" && userPermissions?.accessScope === "department" && employees.length > 0) {
-      // HODs can only see employees in their department or unassigned employees
       const filteredEmps = employees.filter(emp => {
-        // Always show unassigned employees (they can be assigned to any department)
         if (!emp.department || emp.role === "Unassigned") return true;
-
-        // For assigned employees, check if they're in the same department
-        // Note: This would need the current user's employee record to determine their department
-        return true; // For now, show all - this can be refined based on actual user department
+        return true; // placeholder logic, should be refined based on actual user department
       });
       setAccessibleEmployees(filteredEmps);
     } else {
@@ -290,17 +332,31 @@ export function RoleAssignment() {
     }
   }, [employees, userRole, userPermissions]);
 
-  const handleDragStart = (e, employee) => { setDraggedEmployee(employee); e.dataTransfer.effectAllowed = "move"; };
-  const handleDragEnd = () => { setDraggedEmployee(null); setDragOverState(null); };
+  const handleDragStart = (e, employee) => {
+    setDraggedEmployee(employee);
+    e.dataTransfer.effectAllowed = "move";
+    // Set a transparent image to avoid the default drag ghost being annoying
+    if (e.dataTransfer.setDragImage) {
+        e.dataTransfer.setDragImage(new Image(), 0, 0);
+    }
+  };
+  
+  const handleDrag = (e) => {
+    setDragY(e.clientY);
+  };
+  
+  const handleDragEnd = () => {
+    setDraggedEmployee(null);
+    setDragOverState(null);
+    setDragY(null);
+  };
+  
   const handleDragOver = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; };
 
   const handleDrop = async (e, departmentId, role, subfunctionIndex = null) => {
     e.preventDefault();
     if (!draggedEmployee) return;
 
-    // Role assignment is allowed for users who can access this component
-
-    // Check if the employee is being dropped into the same role and department they are already in
     const currentDeptId = draggedEmployee.department?._id || draggedEmployee.department;
     if (draggedEmployee.role === role && currentDeptId === departmentId && draggedEmployee.subfunctionIndex === subfunctionIndex) {
       toast.error("Employee is already in this role.");
@@ -309,7 +365,6 @@ export function RoleAssignment() {
       return;
     }
 
-    // Check if trying to assign HOD when one already exists
     if (role === "HOD") {
       const existingHOD = employees.find(emp =>
         emp.role === "HOD" &&
@@ -333,7 +388,6 @@ export function RoleAssignment() {
       await axios.put("/api/employees", updateData, { headers: { Authorization: `Bearer ${token}` } });
       toast.success(`${draggedEmployee.name} assigned as ${role}`);
 
-      // Dispatch Redux actions for immediate updates (no spinner)
       dispatch(getEmployees());
       if (organization?._id) {
         dispatch(getDepartments({ organizationId: organization._id }));
@@ -351,8 +405,6 @@ export function RoleAssignment() {
     e.preventDefault();
     if (!draggedEmployee) return;
 
-    // Role assignment is allowed for users who can access this component
-
     if (draggedEmployee.role === "Unassigned" || !draggedEmployee.department) {
       toast.error("Employee is already unassigned.");
       setDraggedEmployee(null);
@@ -362,10 +414,9 @@ export function RoleAssignment() {
 
     try {
       const token = Cookies.get("token");
-      await axios.put("/api/employees", { employeeId: draggedEmployee._id, role: "Unassigned", departmentId: null }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put("/api/employees", { employeeId: draggedEmployee._id, role: "Unassigned", departmentId: null, subfunctionIndex: null }, { headers: { Authorization: `Bearer ${token}` } });
       toast.success(`${draggedEmployee.name} moved to unassigned pool`);
 
-      // Dispatch Redux actions for immediate updates (no spinner)
       dispatch(getEmployees());
       if (organization?._id) {
         dispatch(getDepartments({ organizationId: organization._id }));
@@ -382,7 +433,6 @@ export function RoleAssignment() {
   const toggleDept = (deptId) => setExpandedDepts(prev => ({ ...prev, [deptId]: !prev[deptId] }));
   const toggleSubfunc = (subfuncKey) => setExpandedSubfuncs(prev => ({ ...prev, [subfuncKey]: !prev[subfuncKey] }));
 
-  // Only show loading if we don't have any data at all
   if (loading && (!reduxEmployees || reduxEmployees.length === 0) && (!reduxDepartments || reduxDepartments.length === 0)) {
     return <div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin text-indigo-600" /></div>;
   }
@@ -390,57 +440,77 @@ export function RoleAssignment() {
   const unassignedEmployees = accessibleEmployees.filter(emp => emp.role === "Unassigned" || !emp.department);
 
   return (
-    <div className="space-y-6">
-      {/* Permission Notice */}
-
-
-      {/* Main Role Assignment Grid */}
+    <div className="space-y-6" onDrag={handleDrag}>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start h-full p-4 lg:p-0">
-      <div className="lg:col-span-4 xl:col-span-3">
-        <div className="lg:sticky lg:top-6 lg:h-[calc(100vh-17rem)]">
-          {/* We've removed the fixed height on mobile for this container */}
-          <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col h-auto lg:h-full">
-            <div className="flex items-center gap-3 mb-4 flex-shrink-0">
-              <Users className="w-5 h-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Unassigned Employees</h3>
-              <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">{unassignedEmployees.length}</span>
-            </div>
-            <div
-              // On large screens, this container will become scrollable
-              className={`flex-grow min-h-[100px] border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50/50 overflow-y-auto transition-all duration-200 ${dragOverState === 'unassigned' ? 'border-solid bg-indigo-50' : 'hover:border-gray-400'}`}
-              onDragOver={handleDragOver}
-              onDrop={handleDropToUnassigned}
-              onDragEnter={() => setDragOverState('unassigned')}
-              onDragLeave={() => setDragOverState(null)}
-            >
-              {unassignedEmployees.length > 0 ? (
-                <div className="space-y-3">
-                  {unassignedEmployees.map(employee => <EmployeeCard key={employee._id} employee={employee} onDragStart={handleDragStart} onDragEnd={handleDragEnd} isDragging={draggedEmployee?._id === employee._id} canDrag={canAssignRoles} />)}
-                </div>
-              ) : (
-                <div className="text-center text-gray-400 h-full flex flex-col justify-center items-center">
-                  <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p className="font-medium">All employees assigned</p>
-                </div>
-              )}
+        
+        {/* Unassigned Employees Column (Sticky on large screens, regular flow on small) */}
+        <div className="lg:col-span-4 xl:col-span-3">
+          <div className="lg:sticky lg:top-6 lg:h-[calc(100vh-12rem)]"> {/* Adjusted height for large screen stickiness */}
+            <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col h-auto lg:h-full">
+              <div className="flex items-center gap-3 mb-4 flex-shrink-0">
+                <Users className="w-5 h-5 text-gray-600" />
+                <h3 className="text-lg font-semibold text-gray-900">Unassigned Employees</h3>
+                <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">{unassignedEmployees.length}</span>
+              </div>
+              <div
+                className={`flex-grow min-h-[100px] border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50/50 overflow-y-auto transition-all duration-200 ${dragOverState === 'unassigned' ? 'border-solid bg-indigo-50' : 'hover:border-gray-400'}`}
+                onDragOver={handleDragOver}
+                onDrop={handleDropToUnassigned}
+                onDragEnter={() => setDragOverState('unassigned')}
+                onDragLeave={() => setDragOverState(null)}
+              >
+                {unassignedEmployees.length > 0 ? (
+                  <div className="space-y-3">
+                    {unassignedEmployees.map(employee => <EmployeeCard key={employee._id} employee={employee} onDragStart={handleDragStart} onDragEnd={handleDragEnd} isDragging={draggedEmployee?._id === employee._id} canDrag={canAssignRoles} />)}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-400 h-full flex flex-col justify-center items-center">
+                    <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p className="font-medium">All employees assigned</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className="lg:col-span-8 xl:col-span-9 space-y-4">
-        {departments.length > 0 ? (
-          departments.map(department => (
-            <DepartmentSection key={department._id} department={department} employees={accessibleEmployees} onDrop={handleDrop} onDragOver={handleDragOver} expandedDepts={expandedDepts} toggleDept={toggleDept} expandedSubfuncs={expandedSubfuncs} toggleSubfunc={toggleSubfunc} onDragStart={handleDragStart} onDragEnd={handleDragEnd} draggedEmployee={draggedEmployee} dragOverState={dragOverState} setDragOverState={setDragOverState} canAssignRoles={canAssignRoles} />
-          ))
-        ) : (
-          <div className="text-center py-12 text-gray-500 bg-white rounded-xl border">
-            <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p className="font-medium">No departments found</p>
-            <p className="text-sm">Create departments first to assign employees.</p>
+
+        {/* Departments Column (Main scroll area on drag) */}
+        <div 
+          className="lg:col-span-8 xl:col-span-9 space-y-4"
+          ref={departmentContainerRef}
+        >
+          {/* This wrapper div is the actual element that controls scroll. On small screens, this is the main viewport content. On large screens, this is the element we want to scroll relative to the fixed unassigned list. */}
+          <div ref={scrollRef} className="h-full overflow-y-visible"> 
+            {departments.length > 0 ? (
+              departments.map(department => (
+                <DepartmentSection 
+                  key={department._id} 
+                  department={department} 
+                  employees={accessibleEmployees} 
+                  onDrop={handleDrop} 
+                  onDragOver={handleDragOver} 
+                  expandedDepts={expandedDepts} 
+                  toggleDept={toggleDept} 
+                  expandedSubfuncs={expandedSubfuncs} 
+                  toggleSubfunc={toggleSubfunc} 
+                  onDragStart={handleDragStart} 
+                  onDragEnd={handleDragEnd} 
+                  draggedEmployee={draggedEmployee} 
+                  dragOverState={dragOverState} 
+                  setDragOverState={setDragOverState} 
+                  canAssignRoles={canAssignRoles} 
+                />
+              ))
+            ) : (
+              <div className="text-center py-12 text-gray-500 bg-white rounded-xl border">
+                <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p className="font-medium">No departments found</p>
+                <p className="text-sm">Create departments first to assign employees.</p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
-    </div>
     </div>
   );
 }
