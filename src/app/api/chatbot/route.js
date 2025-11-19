@@ -4,7 +4,6 @@ import path from "path";
 import OpenAI from "openai";
 import mongoose from "mongoose";
 
-// --- Mongoose models for embeddings ---
 const OrgEmbeddingSchema = new mongoose.Schema({
   chunkId: { type: String, unique: true },
   text: String,
@@ -26,7 +25,7 @@ const NEXT_PUBLIC_MONGO_URL = process.env.NEXT_PUBLIC_MONGO_URL || process.env.N
 
 async function connectDb() {
   if (!NEXT_PUBLIC_MONGO_URL || typeof NEXT_PUBLIC_MONGO_URL !== "string") {
-    throw new Error("MongoDB connection string is not set. Please set NEXT_PUBLIC_MONGO_URL or NEXT_PUBLIC_MONGO_URL in your environment.");
+    throw new Error("MongoDB connection string is not set.");
   }
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(NEXT_PUBLIC_MONGO_URL);
@@ -50,15 +49,11 @@ function ensureDataDir() {
 
 function ensureOrgAndEmpFiles() {
   ensureDataDir();
-  if (!fs.existsSync(orgPath)) {
-    if (fs.existsSync(READONLY_ORG_SRC)) {
-      fs.copyFileSync(READONLY_ORG_SRC, orgPath);
-    }
+  if (!fs.existsSync(orgPath) && fs.existsSync(READONLY_ORG_SRC)) {
+    fs.copyFileSync(READONLY_ORG_SRC, orgPath);
   }
-  if (!fs.existsSync(empPath)) {
-    if (fs.existsSync(READONLY_EMP_SRC)) {
-      fs.copyFileSync(READONLY_EMP_SRC, empPath);
-    }
+  if (!fs.existsSync(empPath) && fs.existsSync(READONLY_EMP_SRC)) {
+    fs.copyFileSync(READONLY_EMP_SRC, empPath);
   }
 }
 
@@ -114,18 +109,15 @@ function getOrgChunks(org) {
   if (!org) return [];
   const chunks = [];
   for (const [key, value] of Object.entries(org)) {
-    if (typeof value === "object" && value !== null) {
-      chunks.push({ id: key, text: `${key}: ${JSON.stringify(value)}` });
-    } else {
-      chunks.push({ id: key, text: `${key}: ${value}` });
-    }
+    const text = typeof value === "object" && value !== null ? `${key}: ${JSON.stringify(value)}` : `${key}: ${value}`;
+    chunks.push({ id: key, text });
   }
   return chunks;
 }
 
 function getEmpChunks(emps) {
   if (!emps) return [];
-  return emps.map((emp, idx) => ({ id: idx, text: JSON.stringify(emp) }));
+  return emps.map((emp, idx) => ({ id: idx.toString(), text: JSON.stringify(emp) }));
 }
 
 function cosineSimilarity(a, b) {
@@ -140,176 +132,119 @@ function cosineSimilarity(a, b) {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-// Utility to get a deterministic timestamp for SSR/CSR hydration
 function getDeterministicTimestamp() {
-  // Use a fixed value for SSR, or Date.now() for client
   if (typeof window === 'undefined') {
-    // On server, use a fixed value (e.g., build time or env)
     return '2025-01-01T00:00:00.000Z';
   } else {
-    // On client, use current time
     return new Date().toISOString();
+  }
+}
+
+async function getOrCreateEmbedding(openai, model, chunkId, chunkText, dbModel, cache) {
+  if (!cache[chunkId] || !cache[chunkId].embedding) {
+    const resp = await openai.embeddings.create({ model, input: [chunkText] });
+    await dbModel.updateOne(
+      { chunkId },
+      { text: chunkText, embedding: resp.data[0].embedding },
+      { upsert: true }
+    );
+    cache[chunkId] = { text: chunkText, embedding: resp.data[0].embedding };
+    console.log(`[Embedding] Created/updated embedding for chunkId: ${chunkId}`);
+  }
+}
+
+async function removeStaleEmbeddings(dbModel, cache, currentChunks) {
+  const currentIds = new Set(currentChunks.map(c => c.id));
+  for (const id of Object.keys(cache)) {
+    if (!currentIds.has(id)) {
+      await dbModel.deleteOne({ chunkId: id });
+      delete cache[id];
+    }
   }
 }
 
 export async function POST(req) {
   try {
     await connectDb();
-    const { message, userId, userIdentity } = await req.json();
+    const { message, userId } = await req.json();
     if (!message || !userId)
       return NextResponse.json(
         { error: "Missing message or userId" },
         { status: 400 }
       );
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const EMBEDDING_MODEL = "text-embedding-3-small";
 
-    // Load static data
     const organization = loadOrganization();
     const employees = loadEmployees();
 
-    // --- Embedding cache logic (now MongoDB only) ---
     const orgChunks = getOrgChunks(organization);
     const empChunks = getEmpChunks(employees);
     let orgEmbeddingCache = {};
     let empEmbeddingCache = {};
-    // Load org embeddings from DB
-    const orgEmbeds = await OrgEmbedding.find({});
-    orgEmbeds.forEach((e) => {
+
+    (await OrgEmbedding.find({})).forEach((e) => {
       orgEmbeddingCache[e.chunkId] = { text: e.text, embedding: e.embedding };
     });
-    // Load emp embeddings from DB
-    const empEmbeds = await EmpEmbedding.find({});
-    empEmbeds.forEach((e) => {
+    (await EmpEmbedding.find({})).forEach((e) => {
       empEmbeddingCache[e.chunkId] = { text: e.text, embedding: e.embedding };
     });
-    // Embed org chunks if missing
-    for (const chunk of orgChunks) {
-      if (!orgEmbeddingCache[chunk.id] || !orgEmbeddingCache[chunk.id].embedding) {
-        const resp = await openai.embeddings.create({
-          model: "text-embedding-3-small",
-          input: [chunk.text],
-        });
-        await OrgEmbedding.updateOne(
-          { chunkId: chunk.id },
-          { text: chunk.text, embedding: resp.data[0].embedding },
-          { upsert: true }
-        );
-        orgEmbeddingCache[chunk.id] = {
-          text: chunk.text,
-          embedding: resp.data[0].embedding,
-        };
-        console.log(`[OrgEmbedding] Created/updated embedding for chunkId: ${chunk.id}`);
-      }
-    }
-    // Remove stale org embeddings
-    for (const id of Object.keys(orgEmbeddingCache)) {
-      if (!orgChunks.find((c) => c.id == id)) {
-        await OrgEmbedding.deleteOne({ chunkId: id });
-        delete orgEmbeddingCache[id];
-      }
-    }
-    // Embed emp chunks if missing
-    for (const chunk of empChunks) {
-      if (!empEmbeddingCache[chunk.id] || !empEmbeddingCache[chunk.id].embedding) {
-        const resp = await openai.embeddings.create({
-          model: "text-embedding-3-small",
-          input: [chunk.text],
-        });
-        await EmpEmbedding.updateOne(
-          { chunkId: chunk.id },
-          { text: chunk.text, embedding: resp.data[0].embedding },
-          { upsert: true }
-        );
-        empEmbeddingCache[chunk.id] = {
-          text: chunk.text,
-          embedding: resp.data[0].embedding,
-        };
-        console.log(`[EmpEmbedding] Created/updated embedding for chunkId: ${chunk.id}`);
-      }
-    }
-    // Remove stale emp embeddings
-    for (const id of Object.keys(empEmbeddingCache)) {
-      if (!empChunks.find((c) => c.id == id)) {
-        await EmpEmbedding.deleteOne({ chunkId: id });
-        delete empEmbeddingCache[id];
-      }
-    }
 
-    // Load conversation history
+    for (const chunk of orgChunks) {
+      await getOrCreateEmbedding(openai, EMBEDDING_MODEL, chunk.id, chunk.text, OrgEmbedding, orgEmbeddingCache);
+    }
+    await removeStaleEmbeddings(OrgEmbedding, orgEmbeddingCache, orgChunks);
+    
+    for (const chunk of empChunks) {
+      await getOrCreateEmbedding(openai, EMBEDDING_MODEL, chunk.id, chunk.text, EmpEmbedding, empEmbeddingCache);
+    }
+    await removeStaleEmbeddings(EmpEmbedding, empEmbeddingCache, empChunks);
+
+
     let history = loadHistory();
     if (!Array.isArray(history)) history = [];
     const userHistory = history.filter((h) => h.userId === userId);
-    const messages = [];
-    if (userIdentity) {
-      messages.push({ role: "system", content: userIdentity });
-    }
-    userHistory.forEach((h) =>
-      messages.push({ role: h.role, content: h.content })
-    );
-    messages.push({ role: "user", content: message });
 
-    // Load memories
-    let memories = loadMemories();
-    if (!Array.isArray(memories)) memories = [];
-
-    // Embed user message
     const embedResp = await openai.embeddings.create({
-      model: "text-embedding-3-small",
+      model: EMBEDDING_MODEL,
       input: [message],
     });
     const userEmbedding = embedResp.data[0].embedding;
 
-    // Compute similarity to all memories
-    let memSuggestions = [];
-    for (let mem of memories) {
-      if (!mem.embedding) continue;
-      const sim = cosineSimilarity(userEmbedding, mem.embedding);
-      memSuggestions.push({ ...mem, relevance: sim });
-    }
-    memSuggestions.sort((a, b) => b.relevance - a.relevance);
-    const topMemories = memSuggestions.slice(0, 3);
+    let memories = loadMemories();
+    if (!Array.isArray(memories)) memories = [];
 
-    // Compute similarity to org chunks
-    let orgSuggestions = [];
-    for (const [id, obj] of Object.entries(orgEmbeddingCache)) {
-      const sim = cosineSimilarity(userEmbedding, obj.embedding);
-      orgSuggestions.push({ id, text: obj.text, relevance: sim });
-    }
-    orgSuggestions.sort((a, b) => b.relevance - a.relevance);
-    const topOrg = orgSuggestions.slice(0, 3);
+    const getSuggestions = (cache, filterFn) => {
+      let suggestions = [];
+      for (const [id, obj] of Object.entries(cache)) {
+        if (!filterFn || filterFn(obj)) {
+          const sim = cosineSimilarity(userEmbedding, obj.embedding);
+          suggestions.push({ id, text: obj.text, relevance: sim, embedding: obj.embedding });
+        }
+      }
+      suggestions.sort((a, b) => b.relevance - a.relevance);
+      return suggestions.slice(0, 3);
+    };
 
-    // Compute similarity to emp chunks
-    let empSuggestions = [];
-    for (const [id, obj] of Object.entries(empEmbeddingCache)) {
-      const sim = cosineSimilarity(userEmbedding, obj.embedding);
-      empSuggestions.push({ id, text: obj.text, relevance: sim });
-    }
-    empSuggestions.sort((a, b) => b.relevance - a.relevance);
-    const topEmp = empSuggestions.slice(0, 3);
+    const topMemories = getSuggestions(memories, (mem) => mem.embedding);
+    const topOrg = getSuggestions(orgEmbeddingCache);
+    const topEmp = getSuggestions(empEmbeddingCache);
 
-    // Build prompt with relevant org/emp/memories
     let relevantOrg = topOrg.map((s, i) => `${i + 1}. ${s.text}`).join("\n");
     let relevantEmp = topEmp
       .map((s, i) => {
         try {
           const empObj = JSON.parse(s.text);
-          if (
-            empObj["Red Flag"] &&
-            empObj["Red Flag"] !== null &&
-            empObj["Red Flag"] !== ""
-          ) {
-            return `${i + 1}. ${s.text}\n⚠️ Red Flag: ${empObj["Red Flag"]}`;
-          }
-        } catch {}
-        return `${i + 1}. ${s.text}`;
+          return empObj["Red Flag"] ? `${i + 1}. ${s.text}\n⚠️ Red Flag: ${empObj["Red Flag"]}` : `${i + 1}. ${s.text}`;
+        } catch {
+          return `${i + 1}. ${s.text}`;
+        }
       })
       .join("\n");
-    let relevantMemories = topMemories
-      .map((s, i) => `${i + 1}. ${s.text}`)
-      .join("\n");
+    let relevantMemories = topMemories.map((s, i) => `${i + 1}. ${s.text}`).join("\n");
 
-    // Enhanced system prompt for a flexible, business-focused chatbot
-    let systemPrompt = `You are an expert business assistant for company leadership, HR, and business users. You have access to detailed ORGANIZATION and EMPLOYEE data as context, including advanced fields such as performance reviews, KPIs, Red Flags, training history, peer feedback, risk scores, and more.
+    const messages = [];
+    messages.push({ role: "system", content: `You are an expert business assistant for company leadership, HR, and business users. You have access to detailed ORGANIZATION and EMPLOYEE data as context, including advanced fields such as performance reviews, KPIs, Red Flags, training history, peer feedback, risk scores, and more.
 
 Your core goal is to help users:
 - Understand their company and workforce
@@ -334,38 +269,31 @@ ${relevantMemories}
 
 CONVERSATION HISTORY:
 ${userHistory
-  .map((h) => `${h.role === "user" ? "Human" : "Assistant"}: ${h.content}`)
-  .join("\n")}
+      .map((h) => `${h.role === "user" ? "Human" : "Assistant"}: ${h.content}`)
+      .join("\n")}
 
 CURRENT QUERY:
 Human: ${message}
 
 Guidelines:
-- For questions about the organization, employees, performance, skills, risks, business goals, or workforce analytics, use the provided ORGANIZATION and EMPLOYEE data as much as possible.
-- Pay special attention to the 'Red Flag', 'PerformanceRating', 'LastPerformanceReview', 'AbsenteeismOrTurnoverRiskScore', 'EngagementSurveyResults', and similar fields to highlight risks, gaps, or underperformance.
-- If the answer is not present in the data, you may use your own knowledge to answer, but always align your suggestions with the context if relevant.
-- For general or conversational questions (e.g., greetings, small talk), behave like a normal chatbot and answer helpfully and naturally.
-- If you do not have enough information, say so, but try to provide a useful next step or suggestion.
+- **STRICTLY adhere to the context provided in the ORGANIZATION DATA, EMPLOYEE DATA, and MEMORIES sections.**
+- For all questions related to the company, employees, performance, or business strategy, **you MUST ONLY use information present in the provided context.**
+- **If the answer or necessary information to formulate an insight is NOT present in the provided context, you MUST politely state that you do not have enough specific data to answer the query, and then suggest what data might be needed (e.g., "I don't have enough specific employee data to answer that. Could you provide a name or department?").** Do not use your general knowledge to answer business-specific questions if the context is missing.
+- Pay special attention to 'Red Flag', 'PerformanceRating', 'LastPerformanceReview', 'AbsenteeismOrTurnoverRiskScore', and 'EngagementSurveyResults' to highlight risks or underperformance.
 - Never hallucinate facts about the organization or employees that are not present in the data.
-- When possible, propose actionable recommendations to help the company reach its business goals, based on the context.
+- When possible, propose actionable recommendations to help the company reach its business goals, strictly based on the context.
 - Be concise, clear, and business-focused in your responses.
-- If the user asks for advanced analysis (e.g., underperformance, outdated JDs, skill gaps, risk assessment, succession planning), analyze the context and highlight any issues, risks, or improvement opportunities you can infer from the data.
-- If a Red Flag or risk is present for an employee, mention it and suggest mitigation or improvement steps.
-- Use a professional, supportive, and insightful tone.
----`;
+- Use a professional, supportive, and insightful tone.` });
 
-    // Use GPT-4o for best RAG performance
+    messages.push({ role: "user", content: message });
+
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message },
-      ],
+      model: "gpt-4o-mini",
+      messages: messages,
     });
     const assistantReply = completion.choices[0].message.content;
     const chatUsage = completion.usage;
 
-    // Save to history
     history.push({
       userId,
       role: "user",
@@ -380,14 +308,13 @@ Guidelines:
     });
     saveHistory(history);
 
-    // Save new memory (user+assistant exchange)
     const memEmbedResp = await openai.embeddings.create({
-      model: "text-embedding-3-small",
+      model: EMBEDDING_MODEL,
       input: [`Human: ${message}\nAssistant: ${assistantReply}`],
     });
     const memEmbedding = memEmbedResp.data[0].embedding;
     memories.push({
-      id: memories.length,
+      id: memories.length.toString(),
       text: `Human: ${message}\nAssistant: ${assistantReply}`,
       embedding: memEmbedding,
       timestamp: getDeterministicTimestamp(),
@@ -396,7 +323,6 @@ Guidelines:
     });
     saveMemories(memories);
 
-    // Return reply and suggestions
     return NextResponse.json({ reply: assistantReply, usage: chatUsage });
   } catch (error) {
     console.error("Chatbot API error:", error);
@@ -410,12 +336,11 @@ Guidelines:
 export async function GET() {
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    // Minimal embedding call to test API key
     const resp = await openai.embeddings.create({
       model: "text-embedding-3-small",
       input: ["Hello world!"],
     });
-    const usage = resp.data.usage;
+    const usage = resp.usage;
     return NextResponse.json({ success: true, usage });
   } catch (error) {
     return NextResponse.json(
