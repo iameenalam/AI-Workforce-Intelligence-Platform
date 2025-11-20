@@ -3,19 +3,19 @@ import Link from "next/link";
 
 export default function SkillsSection() {
   return (
-    <section id="skills-dashboard" className="py-16 lg:py-24 bg-gradient-to-br from-blue-50 to-indigo-50 overflow-hidden">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    <section id="skills-dashboard" className="py-10 sm:py-14 md:py-16 lg:py-24 bg-gradient-to-br from-blue-50 to-indigo-50 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 items-center">
           {/* Left column - Content */}
           <div>
-            <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 mb-6">
+            <div className="inline-flex items-center px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-medium bg-indigo-100 text-indigo-800 mb-4 md:mb-6">
               <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Intelligent Dashboard
             </div>
 
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight">
               <span className="text-gray-900">Your AI-Powered</span>
               <br />
               <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
@@ -23,7 +23,7 @@ export default function SkillsSection() {
               </span>
             </h2>
 
-            <p className="text-lg md:text-xl text-gray-600 mb-10 leading-relaxed">
+            <p className="text-base md:text-lg lg:text-xl text-gray-600 mb-6 md:mb-10 leading-relaxed">
               Get comprehensive insights into your workforce with dynamic dashboards that adapt to your needs and provide actionable intelligence in real-time.
             </p>
 

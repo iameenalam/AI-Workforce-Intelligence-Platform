@@ -7,6 +7,7 @@ const initialState = {
   btnLoading: false,
   error: null,
   message: null,
+  revertState: null, // Added for optimistic updates
 };
 
 const departmentsSlice = createSlice({
@@ -43,25 +44,37 @@ const departmentsSlice = createSlice({
       state.error = action.payload;
     },
     updateDepartmentSuccess: (state, action) => {
-        state.btnLoading = false;
-        state.message = action.payload.message;
-        const index = state.departments.findIndex(d => d._id === action.payload.department._id);
-        if (index !== -1) {
-            state.departments[index] = action.payload.department;
-        }
+      state.btnLoading = false;
+      state.message = action.payload.message;
+      const index = state.departments.findIndex(d => d._id === action.payload.department._id);
+      if (index !== -1) {
+        state.departments[index] = action.payload.department;
+      }
     },
     updateDepartmentFail: (state, action) => {
-        state.btnLoading = false;
-        state.error = action.payload;
+      state.btnLoading = false;
+      state.error = action.payload;
+    },
+    // Start optimistic delete
+    deleteDepartmentStart: (state, action) => {
+      state.error = null;
+      state.message = null;
+      state.revertState = { departments: [...state.departments] }; // Save current state
+      state.departments = state.departments.filter(d => d._id !== action.payload); // Optimistically remove
     },
     deleteDepartmentSuccess: (state, action) => {
-        state.loading = false;
-        state.message = "Department deleted successfully.";
-        state.departments = state.departments.filter(d => d._id !== action.payload);
+      state.loading = false;
+      state.message = "Department deleted successfully.";
+      state.revertState = null; // Clear revert state on success
     },
     deleteDepartmentFail: (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
+      state.loading = false;
+      state.error = action.payload;
+      // Revert to previous state if delete failed
+      if (state.revertState) {
+        state.departments = state.revertState.departments;
+      }
+      state.revertState = null;
     },
     clearMessage: (state) => {
       state.message = null;
@@ -75,6 +88,7 @@ const departmentsSlice = createSlice({
       state.message = null;
       state.loading = false;
       state.btnLoading = false;
+      state.revertState = null;
     },
   },
   extraReducers: (builder) => {
@@ -84,6 +98,7 @@ const departmentsSlice = createSlice({
       state.btnLoading = false;
       state.error = null;
       state.message = null;
+      state.revertState = null;
     });
   },
 });
@@ -97,6 +112,7 @@ export const {
   addDepartmentFail,
   updateDepartmentSuccess,
   updateDepartmentFail,
+  deleteDepartmentStart,
   deleteDepartmentSuccess,
   deleteDepartmentFail,
   clearMessage,

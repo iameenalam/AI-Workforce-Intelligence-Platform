@@ -54,7 +54,7 @@ const EmptyState = ({ text, icon }) => (
 
 const statusConfig = {
     not_started: { icon: <Clock className="h-4 w-4" />, styles: "bg-gray-100 text-gray-800" },
-    in_progress: { icon: <Play className="h-4 w-4" />, styles: "bg-blue-100 text-blue-800" },
+    in_progress: { icon: <TrendingUp className="h-4 w-4" />, styles: "bg-blue-100 text-blue-800" },
     completed: { icon: <CheckCircle className="h-4 w-4" />, styles: "bg-green-100 text-green-800" },
     overdue: { icon: <AlertCircle className="h-4 w-4" />, styles: "bg-red-100 text-red-800" },
     default: { icon: <Clock className="h-4 w-4" />, styles: "bg-gray-100 text-gray-800" }
@@ -294,68 +294,61 @@ export const Performance = ({ employees, onEmployeeUpdate }) => {
             </div>
 
             {employeesWithPerformance.length > 0 ? (
-                <motion.div layout className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <AnimatePresence>
-                        {employeesWithPerformance.map(employee => (
-                            <motion.div layout key={employee._id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col hover:shadow-xl hover:border-indigo-300 transition-all duration-300">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <h3 className="font-bold text-lg text-gray-900">{employee.name}</h3>
-                                        <p className="text-sm text-gray-500">{employee.email}</p>
-                                    </div>
-                                    <div className="flex gap-1">
-                                        {[
-                                            { action: () => launchAdHocReview(employee), icon: Play, title: "Launch Ad Hoc Review", color: "green" },
-                                            { action: () => handleEditPerformance(employee), icon: Edit, title: "Edit Performance", color: "indigo" },
-                                            { action: () => handleDeletePerformance(employee), icon: Trash2, title: "Delete Tracking", color: "red" }
-                                        ].map(({ action, icon: Icon, title, color }) => (
-                                            <button key={title} onClick={action} className={`p-2 text-gray-500 hover:text-${color}-600 hover:bg-${color}-50 rounded-full transition-colors`} title={title}><Icon className="h-5 w-5" /></button>
-                                        ))}
-                                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {employeesWithPerformance.map(employee => (
+                        <div key={employee._id} className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col hover:shadow-xl hover:border-indigo-300 transition-all duration-300">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="font-bold text-lg text-gray-900">{employee.name}</h3>
+                                    <p className="text-sm text-gray-500">{employee.email}</p>
                                 </div>
-
-                                <div className="mb-4">
-                                    <label className="text-sm font-medium text-gray-700">Overall Progress</label>
-                                    <div className="mt-1 flex items-center gap-4">
-                                        <div className="h-2.5 w-full rounded-full bg-gray-200"><div className="h-2.5 rounded-full bg-gradient-to-r from-green-400 to-teal-500" style={{ width: `${employee.performance.overallCompletion}%` }}></div></div>
-                                        <span className="font-semibold text-green-600">{employee.performance.overallCompletion}%</span>
-                                    </div>
+                                <div className="flex gap-1">
+                                    <button onClick={() => handleEditPerformance(employee)} className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors" title="Edit Performance"><Edit className="h-5 w-5" /></button>
+                                    <button onClick={() => handleDeletePerformance(employee)} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors" title="Delete Performance"><Trash2 className="h-5 w-5" /></button>
                                 </div>
+                            </div>
 
-                                <div className="flex-grow">
-                                    <h4 className="mb-3 text-sm font-semibold text-gray-800">Active Goals ({employee.performance.goals?.length || 0})</h4>
-                                    <div className="space-y-3">
-                                        {employee.performance.goals?.slice(0, 2).map((goal, idx) => {
-                                            const status = statusConfig[goal.status] || statusConfig.default;
-                                            return (
-                                                <div key={idx} className="rounded-lg border border-gray-200 p-3 bg-slate-50/50">
-                                                    <div className="flex items-start justify-between mb-2">
-                                                        <div>
-                                                            <p className="font-medium text-gray-800 text-sm">{goal.name}</p>
-                                                            <p className="text-xs text-gray-500">Target: {new Date(goal.targetDate).toLocaleDateString()}</p>
-                                                        </div>
-                                                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium capitalize ${status.styles}`}>{status.icon} {goal.status.replace('_', ' ')}</span>
+                            <div className="mb-4">
+                                <label className="text-sm font-medium text-gray-700">Overall Progress</label>
+                                <div className="mt-1 flex items-center gap-4">
+                                    <div className="h-2.5 w-full rounded-full bg-gray-200"><div className="h-2.5 rounded-full bg-green-500" style={{ width: `${employee.performance.overallCompletion}%` }}></div></div>
+                                    <span className="font-semibold text-green-600">{employee.performance.overallCompletion}%</span>
+                                </div>
+                            </div>
+
+                            <div className="flex-grow">
+                                <h4 className="mb-3 text-sm font-semibold text-gray-800">Active Goals ({employee.performance.goals?.length || 0})</h4>
+                                <div className="space-y-3">
+                                    {employee.performance.goals?.slice(0, 2).map((goal, idx) => {
+                                        const status = statusConfig[goal.status] || statusConfig.default;
+                                        return (
+                                            <div key={idx} className="rounded-lg border border-gray-200 p-3 bg-slate-50/50">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div>
+                                                        <p className="font-medium text-gray-800 text-sm">{goal.name}</p>
+                                                        <p className="text-xs text-gray-500">Target: {new Date(goal.targetDate).toLocaleDateString()}</p>
                                                     </div>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="h-1.5 w-full rounded-full bg-gray-200"><div className="h-1.5 rounded-full bg-indigo-600" style={{ width: `${goal.completion}%` }}></div></div>
-                                                        <span className="text-xs font-medium text-gray-600">{goal.completion}%</span>
-                                                    </div>
+                                                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium capitalize ${status.styles}`}>{status.icon} {goal.status.replace('_', ' ')}</span>
                                                 </div>
-                                            );
-                                        })}
-                                        {employee.performance.goals?.length > 2 && <p className="text-xs text-gray-500 text-center pt-1">+{employee.performance.goals.length - 2} more goals</p>}
-                                        {employee.performance.goals?.length === 0 && <p className="text-xs text-gray-500 text-center py-4">No goals set.</p>}
-                                    </div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-1.5 w-full rounded-full bg-gray-200"><div className="h-1.5 rounded-full bg-indigo-600" style={{ width: `${goal.completion}%` }}></div></div>
+                                                    <span className="text-xs font-medium text-gray-600">{goal.completion}%</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    {employee.performance.goals?.length > 2 && <p className="text-xs text-gray-500 text-center pt-1">+{employee.performance.goals.length - 2} more goals</p>}
+                                    {employee.performance.goals?.length === 0 && <p className="text-xs text-gray-500 text-center py-4">No goals set.</p>}
                                 </div>
+                            </div>
 
-                                <div className="mt-4 pt-4 border-t border-slate-200 text-sm">
-                                    <div className="flex justify-between"><span className="text-gray-500">Cadence:</span><span className="font-medium">{employee.performance.reviewCadence}/year</span></div>
-                                    {employee.performance.nextReviewDate && <div className="flex justify-between mt-1"><span className="text-gray-500">Next Review:</span><span className="font-medium">{new Date(employee.performance.nextReviewDate).toLocaleDateString()}</span></div>}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </motion.div>
+                            <div className="mt-4 pt-4 border-t border-slate-200 text-sm">
+                                <div className="flex justify-between"><span className="text-gray-500">Cadence:</span><span className="font-medium">{employee.performance.reviewCadence}/year</span></div>
+                                {employee.performance.nextReviewDate && <div className="flex justify-between mt-1"><span className="text-gray-500">Next Review:</span><span className="font-medium">{new Date(employee.performance.nextReviewDate).toLocaleDateString()}</span></div>}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             ) : (
                 <EmptyState text="No Performance Data Available" icon={<TrendingUp className="h-20 w-20 text-gray-300 mx-auto" />} />
             )}

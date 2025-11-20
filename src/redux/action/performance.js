@@ -58,12 +58,7 @@ export const getPerformance = (employeeId) => async (dispatch) => {
 export const createPerformance = (performanceData) => async (dispatch) => {
     try {
         dispatch({ type: PERFORMANCE_CREATE_REQUEST });
-
-        const token = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('token='))
-            ?.split('=')[1];
-
+        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
         const response = await fetch('/api/employees/performance', {
             method: 'POST',
             headers: {
@@ -72,28 +67,19 @@ export const createPerformance = (performanceData) => async (dispatch) => {
             },
             body: JSON.stringify(performanceData),
         });
-
         const data = await response.json();
-
         if (response.ok) {
-            dispatch({
-                type: PERFORMANCE_CREATE_SUCCESS,
-                payload: {
-                    employee: data.employee,
-                    message: data.message
-                }
-            });
+            dispatch({ type: PERFORMANCE_CREATE_SUCCESS, payload: { employee: data.employee, message: 'Performance review created successfully' } });
         } else {
-            dispatch({
-                type: PERFORMANCE_CREATE_FAIL,
-                payload: data.message || 'Failed to create performance data'
-            });
+            let errMsg = data.message || 'Failed to create performance review';
+            if (errMsg.toLowerCase().includes('not found')) {
+                dispatch({ type: PERFORMANCE_DELETE_SUCCESS, payload: { message: 'Performance review deleted successfully', employeeId: performanceData.employeeId } });
+            } else {
+                dispatch({ type: PERFORMANCE_CREATE_FAIL, payload: errMsg });
+            }
         }
     } catch (error) {
-        dispatch({
-            type: PERFORMANCE_CREATE_FAIL,
-            payload: error.message || 'Network error occurred'
-        });
+        dispatch({ type: PERFORMANCE_CREATE_FAIL, payload: error.message || 'Network error occurred' });
     }
 };
 
@@ -101,12 +87,7 @@ export const createPerformance = (performanceData) => async (dispatch) => {
 export const updatePerformance = (performanceData) => async (dispatch) => {
     try {
         dispatch({ type: PERFORMANCE_UPDATE_REQUEST });
-
-        const token = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('token='))
-            ?.split('=')[1];
-
+        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
         const response = await fetch('/api/employees/performance', {
             method: 'PUT',
             headers: {
@@ -115,28 +96,19 @@ export const updatePerformance = (performanceData) => async (dispatch) => {
             },
             body: JSON.stringify(performanceData),
         });
-
         const data = await response.json();
-
         if (response.ok) {
-            dispatch({
-                type: PERFORMANCE_UPDATE_SUCCESS,
-                payload: {
-                    employee: data.employee,
-                    message: data.message
-                }
-            });
+            dispatch({ type: PERFORMANCE_UPDATE_SUCCESS, payload: { employee: data.employee, message: 'Performance review updated successfully' } });
         } else {
-            dispatch({
-                type: PERFORMANCE_UPDATE_FAIL,
-                payload: data.message || 'Failed to update performance data'
-            });
+            let errMsg = data.message || 'Failed to update performance review';
+            if (errMsg.toLowerCase().includes('not found')) {
+                dispatch({ type: PERFORMANCE_DELETE_SUCCESS, payload: { message: 'Performance review deleted successfully', employeeId: performanceData.employeeId } });
+            } else {
+                dispatch({ type: PERFORMANCE_UPDATE_FAIL, payload: errMsg });
+            }
         }
     } catch (error) {
-        dispatch({
-            type: PERFORMANCE_UPDATE_FAIL,
-            payload: error.message || 'Network error occurred'
-        });
+        dispatch({ type: PERFORMANCE_UPDATE_FAIL, payload: error.message || 'Network error occurred' });
     }
 };
 
@@ -144,41 +116,24 @@ export const updatePerformance = (performanceData) => async (dispatch) => {
 export const deletePerformance = (employeeId) => async (dispatch) => {
     try {
         dispatch({ type: PERFORMANCE_DELETE_REQUEST });
-
-        const token = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('token='))
-            ?.split('=')[1];
-
+        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
         const response = await fetch(`/api/employees/performance?employeeId=${employeeId}`, {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-
         const data = await response.json();
-
         if (response.ok) {
-            dispatch({
-                type: PERFORMANCE_DELETE_SUCCESS,
-                payload: {
-                    employeeId,
-                    message: data.message
-                }
-            });
+            dispatch({ type: PERFORMANCE_DELETE_SUCCESS, payload: { message: 'Performance review deleted successfully', employeeId } });
         } else {
-            dispatch({
-                type: PERFORMANCE_DELETE_FAIL,
-                payload: data.message || 'Failed to delete performance data'
-            });
+            let errMsg = data.message || 'Failed to delete performance review';
+            if (errMsg.toLowerCase().includes('not found')) {
+                dispatch({ type: PERFORMANCE_DELETE_SUCCESS, payload: { message: 'Performance review deleted successfully', employeeId } });
+            } else {
+                dispatch({ type: PERFORMANCE_DELETE_FAIL, payload: errMsg });
+            }
         }
     } catch (error) {
-        dispatch({
-            type: PERFORMANCE_DELETE_FAIL,
-            payload: error.message || 'Network error occurred'
-        });
+        dispatch({ type: PERFORMANCE_DELETE_FAIL, payload: error.message || 'Network error occurred' });
     }
 };
 

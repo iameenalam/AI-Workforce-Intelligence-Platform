@@ -79,14 +79,18 @@ export const updateEmployeeProfile = (employeeId, profileData) => async (dispatc
 export const deleteEmployee = (employeeId) => async (dispatch) => {
   try {
     const token = Cookies.get("token");
-    await axios.delete(`/api/employees/${employeeId}`, {
+    await axios.delete(`/api/employees?id=${employeeId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    // Optimistically update the UI
     dispatch({
       type: EMPLOYEE_DELETE_SUCCESS,
       payload: employeeId,
     });
+
+    // Return success message
+    return { message: "Employee deleted successfully" };
   } catch (error) {
     dispatch({
       type: EMPLOYEES_FAIL,
@@ -99,3 +103,27 @@ export const deleteEmployee = (employeeId) => async (dispatch) => {
 export const clearEmployeesMessage = () => ({
   type: EMPLOYEES_CLEAR_MESSAGE,
 });
+
+export const addEmployee = (employeeData, onSuccess) => async (dispatch) => {
+  try {
+    dispatch({ type: EMPLOYEES_REQUEST });
+    const token = Cookies.get("token");
+    const { data } = await axios.post("/api/employees", employeeData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    
+    dispatch({
+      type: EMPLOYEES_SUCCESS,
+      payload: [...(data.employees || [])],
+    });
+    
+    if (onSuccess) onSuccess();
+    return true;
+  } catch (error) {
+    dispatch({
+      type: EMPLOYEES_FAIL,
+      payload: error.response?.data?.message || "Failed to add employee",
+    });
+    return false;
+  }
+};

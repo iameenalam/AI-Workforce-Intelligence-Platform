@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit, Trash2, Briefcase, BookOpen, Lightbulb, Wrench, Award, Mail, Building2, User, Users, UserCircle, X, Loader2, MoreVertical, Eye, AlertTriangle, Plus, TrendingUp, DollarSign, Gift, Package, Calendar } from "lucide-react";
+import { Edit, Trash2, Briefcase, BookOpen, Lightbulb, Wrench, Award, Mail, Building2, User, Users, UserCircle, X, Loader2, MoreVertical, Eye, AlertTriangle, Plus, TrendingUp, DollarSign, Gift, Package, Calendar, FileText } from "lucide-react";
 import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
 import { InputField, AddItemButton, BackButton } from "./Reusable";
@@ -223,7 +223,7 @@ export function Employees({ employees, departments, onNavigate, onEditHod, onDel
 }
 
 export const GenericProfilePage = ({ person, onBack, isCeoProfile, onEdit }) => {
-    const { name, role, email, departmentName, reportsTo, pic, education = [], experience = [], skills = [], tools = [], certifications = [] } = person;
+    const { name, role, email, departmentName, reportsTo, pic, cvUrl, education = [], experience = [], skills = [], tools = [], certifications = [] } = person;
     const [activeTab, setActiveTab] = useState("experience");
     
     const TABS = [
@@ -232,6 +232,7 @@ export const GenericProfilePage = ({ person, onBack, isCeoProfile, onEdit }) => 
         { value: "skills", label: "Skills", icon: <Lightbulb className="w-5 h-5" /> },
         { value: "tools", label: "Tools", icon: <Wrench className="w-5 h-5" /> },
         { value: "certifications", label: "Certifications", icon: <Award className="w-5 h-5" /> },
+        ...(cvUrl ? [{ value: "cv", label: "CV", icon: <FileText className="w-5 h-5" /> }] : []),
         ...(isCeoProfile ? [] : [
             { value: "performance", label: "Performance", icon: <TrendingUp className="w-5 h-5" /> },
             { value: "payroll", label: "Payroll", icon: <DollarSign className="w-5 h-5" /> }
@@ -299,46 +300,84 @@ export const GenericProfilePage = ({ person, onBack, isCeoProfile, onEdit }) => 
 
                                 {activeTab === 'certifications' && (certifications.length > 0 ? certifications.map((cert, idx) => <div key={idx} className="relative pl-8 sm:pl-10 pb-8 border-l-2 border-slate-200 last:pb-0"><div className="absolute left-[-9px] top-1 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full"></div><h3 className="text-lg font-bold text-gray-800">{cert.title}</h3><p className="font-medium text-gray-600">{cert.issuer || 'N/A'}</p><p className="text-sm text-gray-500 mt-1">{cert.duration}</p></div>) : <EmptyState text="No Certifications Listed" icon={<Award className="h-10 w-10 text-gray-400" />} />)}
 
+                                {activeTab === 'cv' && (
+                                    cvUrl ? (
+                                        <div className="bg-white border border-gray-200 rounded-lg p-6">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <FileText className="w-6 h-6 text-blue-600" />
+                                                <h3 className="text-lg font-semibold text-gray-900">Curriculum Vitae</h3>
+                                            </div>
+                                            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="bg-blue-100 p-2 rounded-lg">
+                                                        <FileText className="w-5 h-5 text-blue-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-gray-900">CV Document</p>
+                                                        <p className="text-sm text-gray-600">Uploaded during invitation</p>
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    href={cvUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                    View CV
+                                                </a>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <EmptyState text="No CV Uploaded" icon={<FileText className="h-10 w-10 text-gray-400" />} />
+                                    )
+                                )}
+
                                 {activeTab === 'payroll' && (
-                                    !person.payroll ? <EmptyState text="No Payroll Information" icon={<DollarSign className="h-10 w-10 text-gray-400" />} /> :
-                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                            <div className="flex items-center gap-3">
-                                                <DollarSign className="h-6 w-6 text-green-600" />
+                                    !person.payroll ? (
+                                        <EmptyState text="No Payroll Information" icon={<DollarSign className="h-20 w-20 text-gray-300 mx-auto" />} />
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Row 1: Base Salary & Bonus */}
+                                            <div className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                                                <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">
+                                                    <DollarSign className="h-5 w-5 text-green-600" />
+                                                </div>
                                                 <div>
-                                                    <p className="text-sm text-gray-500">Base Salary</p>
-                                                    <p className="text-lg font-semibold text-gray-900">${person.payroll.baseSalary?.toLocaleString()}</p>
+                                                    <p className="text-xs text-gray-500">Base Salary</p>
+                                                    <p className="font-semibold text-gray-900">${person.payroll.baseSalary?.toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                                                <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">
+                                                    <Gift className="h-5 w-5 text-amber-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500">Bonus</p>
+                                                    <p className="font-semibold text-gray-900">${person.payroll.bonus?.toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                            {/* Row 2: Stock Options & Last Raised */}
+                                            <div className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                                                <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">
+                                                    <Package className="h-5 w-5 text-sky-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500">Stock Options</p>
+                                                    <p className="font-semibold text-gray-900">{person.payroll.stockOptions?.toLocaleString()} shares</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                                                <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">
+                                                    <Calendar className="h-5 w-5 text-indigo-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500">Last Raised</p>
+                                                    <p className="font-semibold text-gray-900">{person.payroll.lastRaiseDate ? new Date(person.payroll.lastRaiseDate).toLocaleDateString() : '-'}</p>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                            <div className="flex items-center gap-3">
-                                                <Gift className="h-6 w-6 text-blue-600" />
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Bonus</p>
-                                                    <p className="text-lg font-semibold text-gray-900">${person.payroll.bonus?.toLocaleString()}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                            <div className="flex items-center gap-3">
-                                                <Package className="h-6 w-6 text-purple-600" />
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Stock Options</p>
-                                                    <p className="text-lg font-semibold text-gray-900">{person.payroll.stockOptions?.toLocaleString()} shares</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                            <div className="flex items-center gap-3">
-                                                <Calendar className="h-6 w-6 text-orange-600" />
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Last Raise Date</p>
-                                                    <p className="text-lg font-semibold text-gray-900">{person.payroll.lastRaiseDate ? new Date(person.payroll.lastRaiseDate).toLocaleDateString() : 'N/A'}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    )
                                 )}
 
                                 {activeTab === 'performance' && (
@@ -920,6 +959,8 @@ const EditEmployeeModal = ({ employee, departments, onClose, onSave }) => {
                             Update with CV
                         </button>
                     </div>
+
+
 
                     {editMode === 'manual' ? (
                         <div className="space-y-4">

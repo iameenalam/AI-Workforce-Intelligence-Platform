@@ -36,17 +36,25 @@ export default function DepartmentPage() {
   const { organization } = useSelector((state) => state.organization);
   const { departments, loading: deptsLoading } = useSelector((state) => state.departments);
   const { employees, loading: employeesLoading } = useSelector((state) => state.employees);
-  
-  useEffect(() => {
-    dispatch(getOrganization());
-  }, [dispatch]);
 
+  // Only fetch org if not present
+  useEffect(() => {
+    if (!organization) {
+      dispatch(getOrganization());
+    }
+  }, [dispatch, organization]);
+
+  // Only fetch depts/employees if org is present
   useEffect(() => {
     if (organization?._id) {
-      dispatch(getDepartments({ organizationId: organization._id }));
-      dispatch(getEmployees());
+      if (!departments || departments.length === 0) {
+        dispatch(getDepartments({ organizationId: organization._id }));
+      }
+      if (!employees || employees.length === 0) {
+        dispatch(getEmployees());
+      }
     }
-  }, [dispatch, organization?._id]);
+  }, [dispatch, organization?._id, departments, employees]);
 
   const department = departments?.find(d => d._id === id);
   const relevantEmployees = employees?.filter(emp =>
@@ -57,10 +65,9 @@ export default function DepartmentPage() {
 
   const currentHOD = relevantEmployees.find(emp => emp.role === "HOD");
   const totalMembers = relevantEmployees.length;
-  
+
   useEffect(() => {
     if (!department) return;
-
     const generateDetails = async () => {
       try {
         setGenLoading(true);
@@ -77,11 +84,11 @@ export default function DepartmentPage() {
         setGenLoading(false);
       }
     };
-
     generateDetails();
   }, [department]);
 
-  const loading = deptsLoading || employeesLoading || !department;
+  // Unified loading: only render when all data is ready and department exists
+  const loading = !organization || deptsLoading || employeesLoading || !departments || !employees || !department;
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen bg-slate-50"><Loader2 className="h-12 w-12 animate-spin text-indigo-600" /></div>;

@@ -60,19 +60,24 @@ export default function OrganizationPage() {
   const [metrics, setMetrics] = useState({ totalDepartments: 0, totalEmployees: 0, totalSubFunctions: 0 });
   const [showFallback, setShowFallback] = useState(false);
 
-  const loading = orgLoading || deptLoading || employeesLoading;
-  const error = orgError || deptError || employeesError;
-
+  // Only fetch org if not present
   useEffect(() => {
-    dispatch(getOrganization());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (organization?._id) {
-      dispatch(getDepartments({ organizationId: organization._id }));
-      dispatch(getEmployees());
+    if (!organization) {
+      dispatch(getOrganization());
     }
   }, [dispatch, organization]);
+
+  // Only fetch depts/employees if org is present
+  useEffect(() => {
+    if (organization?._id) {
+      if (!departments || departments.length === 0) {
+        dispatch(getDepartments({ organizationId: organization._id }));
+      }
+      if (!employees || employees.length === 0) {
+        dispatch(getEmployees());
+      }
+    }
+  }, [dispatch, organization?._id, departments, employees]);
 
   useEffect(() => {
     if (organization && departments && employees) {
@@ -100,6 +105,10 @@ export default function OrganizationPage() {
   };
 
   const subFunctionCountForDept = (dept) => dept.subfunctions?.length || 0;
+
+  // Unified loading: only render when all data is ready and organization exists
+  const loading = !organization || orgLoading || deptLoading || employeesLoading || !departments || !employees;
+  const error = orgError || deptError || employeesError;
 
   if (loading) return <div className="flex h-screen items-center justify-center bg-slate-50"><Loader2 className="h-12 w-12 animate-spin text-indigo-600" /></div>;
   if (error) return <div className="flex h-screen items-center justify-center bg-slate-50"><Alert type="error" message={error} /></div>;

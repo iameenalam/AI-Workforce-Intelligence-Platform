@@ -2,6 +2,7 @@ import AuthHydrator from "./AuthHydrator";
 import "./globals.css";
 import ProviderRedux from "./providers/provider";
 import GoogleProvider from "./providers/GoogleProvider";
+import { Toaster } from "react-hot-toast";
 
 export const metadata = {
   title: "ReeOrg – Business & Workforce Intelligence for the Post-AI Era",
@@ -39,6 +40,18 @@ export default function RootLayout({ children }) {
         <ProviderRedux>
           <GoogleProvider clientId={googleClientId}>
             <AuthHydrator />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: "#fff",
+                  color: "#1f2937",
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                },
+                duration: 4000,
+              }}
+            />
             {children}
           </GoogleProvider>
         </ProviderRedux>

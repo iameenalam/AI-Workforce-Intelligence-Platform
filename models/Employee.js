@@ -100,7 +100,22 @@ const employeeSchema = new mongoose.Schema(
     experience: { type: [ExperienceSchema], default: [] },
     education: { type: [EducationSchema], default: [] },
     
-    // Invitation status
+    // Invitation status and tracking
+    invitationStatus: {
+      type: String,
+      enum: ["pending", "accepted", "not_invited"],
+      default: "not_invited",
+    },
+    invitationToken: {
+      type: String,
+      default: null,
+    },
+    invitationAcceptedAt: {
+      type: Date,
+      default: null,
+    },
+
+    // Legacy field for backward compatibility
     invited: { type: Boolean, default: false },
 
     // Reporting structure - will be determined by role and department assignment

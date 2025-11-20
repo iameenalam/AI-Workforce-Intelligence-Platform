@@ -259,17 +259,54 @@ export default function ChartEmployeeProfile() {
                   {activeTab === 'tools' && (tools.length > 0 ? <div className="flex flex-wrap gap-3">{tools.map((tool, idx) => <span key={idx} className="bg-indigo-100 text-indigo-800 text-sm font-medium px-4 py-2 rounded-full">{tool}</span>)}</div> : <EmptyState text="No Tools Listed" icon={<Wrench className="h-10 w-10 text-gray-400" />} />)}
 
                   {activeTab === 'payroll' && (
-                    !employee.payroll ? <EmptyState text="No Payroll Information" icon={<DollarSign className="h-10 w-10 text-gray-400" />} /> :
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <StatCard icon={<DollarSign className="h-6 w-6"/>} label="Base Salary" value={`$${employee.payroll.baseSalary?.toLocaleString()}`} />
-                      <StatCard icon={<Gift className="h-6 w-6"/>} label="Bonus" value={`$${employee.payroll.bonus?.toLocaleString()}`} />
-                      <StatCard icon={<Package className="h-6 w-6"/>} label="Stock Options" value={employee.payroll.stockOptions} unit=" shares" />
-                      <StatCard icon={<Calendar className="h-6 w-6"/>} label="Last Raise Date" value={employee.payroll.lastRaiseDate ? new Date(employee.payroll.lastRaiseDate).toLocaleDateString() : 'N/A'} />
-                    </div>
+                    !employee?.payroll ? (
+                      <EmptyState text="No Payroll Information" icon={<DollarSign className="h-20 w-20 text-gray-300 mx-auto" />} />
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Row 1: Base Salary & Bonus */}
+                        <div className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                          <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">
+                            <DollarSign className="h-5 w-5 text-green-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Base Salary</p>
+                            <p className="font-semibold text-gray-900">${employee.payroll.baseSalary?.toLocaleString()}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                          <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">
+                            <Gift className="h-5 w-5 text-amber-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Bonus</p>
+                            <p className="font-semibold text-gray-900">${employee.payroll.bonus?.toLocaleString()}</p>
+                          </div>
+                        </div>
+                        {/* Row 2: Stock Options & Last Raised */}
+                        <div className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                          <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">
+                            <Package className="h-5 w-5 text-sky-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Stock Options</p>
+                            <p className="font-semibold text-gray-900">{employee.payroll.stockOptions?.toLocaleString()} shares</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 bg-slate-50/70 p-3 rounded-lg">
+                          <div className="p-2 bg-white rounded-md shadow-sm border border-slate-100">
+                            <Calendar className="h-5 w-5 text-indigo-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Last Raised</p>
+                            <p className="font-semibold text-gray-900">{employee.payroll.lastRaiseDate ? new Date(employee.payroll.lastRaiseDate).toLocaleDateString() : '-'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )
                   )}
 
                   {activeTab === 'performance' && (
-                    !employee.performance ? <EmptyState text="No Performance Data" icon={<TrendingUp className="h-10 w-10 text-gray-400" />} /> :
+                    !employee?.performance ? <EmptyState text="No Performance Data" icon={<TrendingUp className="h-10 w-10 text-gray-400" />} /> :
                     <div className="space-y-6">
                       <div>
                         <label className="text-sm font-medium text-gray-700">Overall Completion</label>
@@ -277,11 +314,23 @@ export default function ChartEmployeeProfile() {
                           <div className="h-2.5 w-full rounded-full bg-gray-200"><div className="h-2.5 rounded-full bg-green-500" style={{ width: `${employee.performance.overallCompletion}%` }}></div></div>
                           <span className="font-semibold text-green-600">{employee.performance.overallCompletion}%</span>
                         </div>
+                        {employee.performance.nextReviewDate && (
+                          <div className="mt-2 text-xs text-gray-500">
+                            Next Review: {new Date(employee.performance.nextReviewDate).toLocaleDateString()}
+                          </div>
+                        )}
                       </div>
                       <div>
                         <h3 className="mb-3 text-lg font-semibold text-gray-800">Active Goals</h3>
                         <div className="space-y-4">
                           {employee.performance.goals?.map((goal, idx) => {
+                            const statusConfig = {
+                              not_started: { icon: <Clock className="h-4 w-4" />, styles: "bg-gray-100 text-gray-800" },
+                              in_progress: { icon: <TrendingUp className="h-4 w-4" />, styles: "bg-blue-100 text-blue-800" },
+                              completed: { icon: <CheckCircle className="h-4 w-4" />, styles: "bg-green-100 text-green-800" },
+                              overdue: { icon: <AlertTriangle className="h-4 w-4" />, styles: "bg-red-100 text-red-800" },
+                              default: { icon: <Clock className="h-4 w-4" />, styles: "bg-gray-100 text-gray-800" }
+                            };
                             const status = statusConfig[goal.status] || statusConfig.default;
                             return (
                               <div key={idx} className="rounded-lg border border-gray-200 p-4">

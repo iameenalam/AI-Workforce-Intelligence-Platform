@@ -65,6 +65,7 @@ export const payrollReducer = (state = initialState, action) => {
                 employee: null,
                 message: action.payload.message,
                 error: null,
+                deletedEmployeeId: action.payload.employeeId,
             };
 
         case PAYROLL_FAIL:

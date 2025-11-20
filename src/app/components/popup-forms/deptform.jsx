@@ -114,7 +114,7 @@ export default function DeptForm({ onClose }) {
               &times;
             </button>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-1 text-center">
-              Add Departments
+              Add Department(s)
             </h1>
             <p className="text-gray-600 text-center text-sm sm:text-base">
               Fill out the details for one or more departments below.

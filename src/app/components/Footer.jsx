@@ -26,57 +26,57 @@ const Linkedin = ({ className }) => (
 export default function Footer() {
   return (
     <footer className="bg-gray-900 text-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 md:py-16 lg:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
           {/* Column 1: Brand and Social */}
           <div>
-             <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-blue-400 bg-clip-text text-transparent mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-400 to-blue-400 bg-clip-text text-transparent mb-2 sm:mb-4">
               ReeOrg
             </h2>
-            <p className="text-gray-400 mb-6 max-w-xs">
+            <p className="text-gray-400 mb-4 sm:mb-6 max-w-xs text-sm sm:text-base">
               The Workforce Intelligence platform for the AI Era.
             </p>
-            <div className="flex space-x-4">
+            <div className="flex space-x-3 sm:space-x-4">
               <a
                 href="mailto:contact@reeorg.com"
                 className="text-gray-400 hover:text-indigo-400 transition-colors"
                 aria-label="Email"
               >
-                <Mail className="h-6 w-6" />
+                <Mail className="h-5 w-5 sm:h-6 sm:w-6" />
               </a>
               <a
                 href="https://www.linkedin.com/company/reeorg"
                 className="text-gray-400 hover:text-indigo-400 transition-colors"
                 aria-label="LinkedIn"
               >
-                <Linkedin className="h-6 w-6" />
+                <Linkedin className="h-5 w-5 sm:h-6 sm:w-6" />
               </a>
             </div>
           </div>
 
           {/* Column 2: Product Links */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2 sm:mb-4">
               Product
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-2 sm:space-y-3">
               <li>
-                <Link href="/#features" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/#features" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                   Workforce Intelligence
                 </Link>
               </li>
               <li>
-                <Link href="/#skills-dashboard" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/#skills-dashboard" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                   Talent Management
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/#features" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                   Skills Intelligence
                 </Link>
               </li>
               <li>
-                <Link href="/#org-design" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/#org-design" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                   Org Design
                 </Link>
               </li>
@@ -85,27 +85,27 @@ export default function Footer() {
 
           {/* Column 3: Company Links */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2 sm:mb-4">
               Company
             </h3>
-            <ul className="space-y-3">
-               <li>
-                <Link href="/#" className="text-gray-300 hover:text-white transition-colors">
+            <ul className="space-y-2 sm:space-y-3">
+              <li>
+                <Link href="/#" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="/#contact" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/#contact" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                   Contact
                 </Link>
               </li>
               <li>
-                <Link href="/privacy-policy" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/privacy-policy" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms-and-condition" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/terms-and-condition" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">
                   Terms & Conditions
                 </Link>
               </li>
@@ -113,8 +113,8 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-12 pt-8">
-          <p className="text-gray-500 text-sm text-center">
+        <div className="border-t border-gray-800 mt-8 md:mt-12 pt-6 md:pt-8">
+          <p className="text-gray-500 text-xs sm:text-sm text-center">
             &copy; {new Date().getFullYear()} ReeOrg. All rights reserved.
           </p>
         </div>

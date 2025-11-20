@@ -4,19 +4,16 @@ import Cookies from "js-cookie";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { CloudUpload, X, UserPlus } from "lucide-react";
-import toast from 'react-hot-toast';
+import { toast } from "react-hot-toast";
 
 export default function InvForm({ onClose }) {
   const [btnLoading, setBtnLoading] = useState(false);
-  const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  const [employees, setEmployees] = useState([{ id: Date.now(), name: "", email: "", pic: null, picPreview: null, cv: null }]);
+  const [employees, setEmployees] = useState([{ id: Date.now(), name: "", email: "", pic: null, picPreview: null }]);
   const fileInputRefs = useRef([]);
-  const cvInputRefs = useRef([]);
 
   const addEmployeeForm = () => {
-    const newEmployee = { id: Date.now(), name: "", email: "", pic: null, picPreview: null, cv: null };
+    const newEmployee = { id: Date.now(), name: "", email: "", pic: null, picPreview: null };
     setEmployees([...employees, newEmployee]);
   };
 
@@ -25,7 +22,6 @@ export default function InvForm({ onClose }) {
       const updatedEmployees = employees.filter((_, i) => i !== index);
       setEmployees(updatedEmployees);
       fileInputRefs.current = fileInputRefs.current.filter((_, i) => i !== index);
-      cvInputRefs.current = cvInputRefs.current.filter((_, i) => i !== index);
     }
   };
 
@@ -38,11 +34,11 @@ export default function InvForm({ onClose }) {
   const handlePicChange = (index, file) => {
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setError("Image size must be less than 5MB");
+        toast.error("Image size must be less than 5MB");
         return;
       }
       if (!file.type.startsWith("image/")) {
-        setError("Please select an image file");
+        toast.error("Please select an image file");
         return;
       }
 
@@ -50,25 +46,6 @@ export default function InvForm({ onClose }) {
       updatedEmployees[index].pic = file;
       updatedEmployees[index].picPreview = URL.createObjectURL(file);
       setEmployees(updatedEmployees);
-      setError("");
-    }
-  };
-
-  const handleCvChange = (index, file) => {
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError("CV size must be less than 5MB");
-        return;
-      }
-      if (file.type !== "application/pdf") {
-        setError("Please select a PDF file for CV");
-        return;
-      }
-
-      const updatedEmployees = [...employees];
-      updatedEmployees[index].cv = file;
-      setEmployees(updatedEmployees);
-      setError("");
     }
   };
 
@@ -76,72 +53,57 @@ export default function InvForm({ onClose }) {
     for (let i = 0; i < employees.length; i++) {
       const emp = employees[i];
       if (!emp.name.trim() || !emp.email.trim()) {
-        setError(`Please fill in all required fields for employee ${i + 1}`);
+        toast.error(`Please fill in all required fields for employee ${i + 1}`);
         return;
       }
-
       const emailRegex = /^\S+@\S+\.\S+$/;
       if (!emailRegex.test(emp.email)) {
-        setError(`Please enter a valid email address for employee ${i + 1}`);
+        toast.error(`Please enter a valid email address for employee ${i + 1}`);
         return;
       }
     }
-
     setBtnLoading(true);
-    setError("");
     setSuccess("");
-
     try {
       const token = Cookies.get("token");
-      const invitedEmployees = [];
-
-      for (const emp of employees) {
-        const formData = new FormData();
-        formData.append("name", emp.name);
-        formData.append("email", emp.email);
+      const formData = new FormData();
+      formData.append("employees", JSON.stringify(employees.map(emp => ({
+        name: emp.name,
+        email: emp.email
+      }))));
+      employees.forEach((emp, index) => {
         if (emp.pic) {
-          formData.append("pic", emp.pic);
+          formData.append(`pic_${index}`, emp.pic);
         }
-
-        const { data } = await axios.post("/api/employees", formData, {
-          headers: { Authorization: `Bearer ${token}` },
+      });
+      const { data } = await axios.post("/api/invitations", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Show all error toasts, combine with email for each failed invite
+      if (data.errorDetails && data.errorDetails.length > 0) {
+        data.errorDetails.forEach(({ email, error }) => {
+          toast.error(`Failed to send invitation to ${email}. ${error}`);
         });
-
-        if (data?.employee) {
-          invitedEmployees.push(data.employee);
-
-          if (emp.cv) {
-            try {
-              await new Promise(resolve => setTimeout(resolve, 500));
-              const cvFormData = new FormData();
-              cvFormData.append("cv", emp.cv);
-              cvFormData.append("employeeId", data.employee._id);
-              await axios.post("/api/employees/cv", cvFormData, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-            } catch (cvError) {
-              toast.error(`CV upload failed for ${emp.name}: ${cvError.response?.data?.message || cvError.message}`);
-            }
-          }
-        }
       }
-
-      setSuccess(`Successfully invited ${invitedEmployees.length} employee(s)!`);
-      toast.success(`Successfully invited ${invitedEmployees.length} employee(s)!`);
-
-      const cvUploaded = employees.filter(emp => emp.cv).length;
-      if (cvUploaded > 0) {
-        toast.success(`${cvUploaded} CV(s) uploaded and processed!`);
+      if (data.invitations && data.invitations > 0) {
+        toast.success(data.message || "Invitations sent successfully");
       }
-
+      setSuccess(data.message);
       setTimeout(() => {
         onClose?.();
       }, 1500);
-
     } catch (error) {
+      // Show all backend error messages as separate toasts if present
+      const errorDetails = error.response?.data?.errorDetails;
       const errorMessage = error.response?.data?.message || "Failed to invite employees";
-      setError(errorMessage);
-      toast.error(errorMessage);
+      if (Array.isArray(errorDetails) && errorDetails.length > 0) {
+        errorDetails.forEach(({ email, error }) => {
+          toast.error(`Failed to send invitation to ${email}. ${error}`);
+        });
+        // Do NOT show the main error message if errorDetails exist
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setBtnLoading(false);
     }
@@ -162,7 +124,7 @@ export default function InvForm({ onClose }) {
               &times;
             </button>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-1 text-center">
-              Invite Employees
+              Invite Employee(s)
             </h1>
             <p className="text-gray-600 text-center text-sm sm:text-base">
               Add employees to your organization. They will be added to the unassigned pool.
@@ -170,16 +132,6 @@ export default function InvForm({ onClose }) {
           </div>
 
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 p-4 sm:p-6">
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 font-medium text-center rounded-lg">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 font-medium text-center rounded-lg">
-                {success}
-              </div>
-            )}
             <div className="space-y-4">
               {employees.map((employee, index) => (
                 <div key={employee.id} className="border border-gray-200 bg-gray-50 p-4 rounded-xl relative">
@@ -203,96 +155,51 @@ export default function InvForm({ onClose }) {
                       <input type="text" value={employee.name} onChange={(e) => handleEmployeeChange(index, "name", e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" placeholder="Enter employee name" required />
                     </div>
                     <div>
-                      <label className="block font-medium text-gray-700 mb-1">Email *</label>
-                      <input type="email" value={employee.email} onChange={(e) => handleEmployeeChange(index, "email", e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" placeholder="Enter employee email" required />
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block font-medium text-gray-700 mb-1">Profile Picture (Optional)</label>
-                        <input
-                          type="file"
-                          ref={(el) => (fileInputRefs.current[index] = el)}
-                          onChange={(e) => handlePicChange(index, e.target.files[0])}
-                          accept="image/*"
-                          className="hidden"
-                        />
+                      <label className="block font-medium text-gray-700 mb-1">Profile Picture (Optional)</label>
+                      <input
+                        type="file"
+                        ref={(el) => (fileInputRefs.current[index] = el)}
+                        onChange={(e) => handlePicChange(index, e.target.files[0])}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => fileInputRefs.current[index]?.click()}
-                          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors border border-gray-300"
+                          className="flex-grow flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors border border-gray-300"
                         >
                           <CloudUpload className="w-4 h-4" />
                           Choose Image
                         </button>
-                      </div>
-                      <div>
-                        <label className="block font-medium text-gray-700 mb-1">CV (Optional)</label>
-                        <input
-                          type="file"
-                          ref={(el) => (cvInputRefs.current[index] = el)}
-                          onChange={(e) => handleCvChange(index, e.target.files[0])}
-                          accept=".pdf"
-                          className="hidden"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => cvInputRefs.current[index]?.click()}
-                          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors border border-gray-300"
-                        >
-                          <CloudUpload className="w-4 h-4" />
-                          Choose PDF
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mt-2 flex items-start justify-between min-h-[44px]">
-                      <div className="flex-1">
                         {employee.picPreview && (
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={employee.picPreview}
-                              alt="Preview"
-                              className="w-10 h-10 rounded-full object-cover border border-gray-300"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const updatedEmployees = [...employees];
-                                updatedEmployees[index].pic = null;
-                                updatedEmployees[index].picPreview = null;
-                                setEmployees(updatedEmployees);
-                              }}
-                              className="text-red-500 hover:text-red-700 transition-colors"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
+                            <div className="flex items-center gap-2">
+                                <img
+                                src={employee.picPreview}
+                                alt="Preview"
+                                className="w-10 h-10 rounded-full object-cover border border-gray-300"
+                                />
+                                <button
+                                type="button"
+                                onClick={() => {
+                                    const updatedEmployees = [...employees];
+                                    updatedEmployees[index].pic = null;
+                                    updatedEmployees[index].picPreview = null;
+                                    setEmployees(updatedEmployees);
+                                }}
+                                className="text-red-500 hover:text-red-700 transition-colors"
+                                >
+                                <X className="w-4 h-4" />
+                                </button>
+                            </div>
                         )}
-                      </div>
-
-                      <div className="flex-1 text-right">
-                        {employee.cv && (
-                          <div className="flex items-center justify-end gap-2">
-                            <span className="text-sm text-gray-600 font-medium truncate">{employee.cv.name}</span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const updatedEmployees = [...employees];
-                                updatedEmployees[index].cv = null;
-                                setEmployees(updatedEmployees);
-                              }}
-                              className="text-red-500 hover:text-red-700 transition-colors"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        )}
-                        <p className="text-xs text-gray-500 mt-1">PDF only, max 5MB.</p>
                       </div>
                     </div>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <label className="block font-medium text-gray-700 mb-1">Email *</label>
+                    <input type="email" value={employee.email} onChange={(e) => handleEmployeeChange(index, "email", e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-gray-400 transition outline-none" placeholder="Enter employee email" required />
                   </div>
 
                 </div>
@@ -331,3 +238,4 @@ export default function InvForm({ onClose }) {
     </div>
   );
 }
+

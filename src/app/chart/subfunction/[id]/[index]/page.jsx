@@ -36,11 +36,16 @@ export default function SubfunctionPage() {
   const { organization } = useSelector((state) => state.organization);
   const { departments, loading: deptsLoading } = useSelector((state) => state.departments);
   const { employees, loading: employeesLoading } = useSelector((state) => state.employees);
-  
+
+  // Only fetch org if not present
   useEffect(() => {
     if (!organization) {
       dispatch(getOrganization());
     }
+  }, [dispatch, organization]);
+
+  // Only fetch depts/employees if org is present
+  useEffect(() => {
     if (organization?._id) {
       if (!departments || departments.length === 0) {
         dispatch(getDepartments({ organizationId: organization._id }));
@@ -49,8 +54,8 @@ export default function SubfunctionPage() {
         dispatch(getEmployees());
       }
     }
-  }, [dispatch, organization?._id]);
-  
+  }, [dispatch, organization?._id, departments, employees]);
+
   const department = departments?.find(d => d._id === id);
   const subfunction = department?.subfunctions?.[parseInt(index)];
   const relevantEmployees = employees?.filter(emp =>
@@ -58,10 +63,9 @@ export default function SubfunctionPage() {
     (emp.department._id === id || emp.department === id) &&
     emp.subfunctionIndex === parseInt(index)
   ) || [];
-  
+
   useEffect(() => {
     if (!subfunction) return;
-  
     const generateDetails = async () => {
       try {
         setGenLoading(true);
@@ -78,11 +82,11 @@ export default function SubfunctionPage() {
         setGenLoading(false);
       }
     };
-  
     generateDetails();
   }, [subfunction]);
 
-  const loading = deptsLoading || employeesLoading || !subfunction;
+  // Unified loading: only render when all data is ready and subfunction exists
+  const loading = !organization || deptsLoading || employeesLoading || !departments || !employees || !department || !subfunction;
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen bg-slate-50"><Loader2 className="h-12 w-12 animate-spin text-indigo-600" /></div>;
