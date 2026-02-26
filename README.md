@@ -29,7 +29,7 @@
 
 ## Demo
 
-You can view the live demo of the website [here](https://reeorg.vercel.app/)
+You can view the live demo of the website [here](https://reeorg.netlify.app/)
 
 ## Contributions
 
